@@ -6,8 +6,11 @@ import { createOneRequestSchema, getAllRequestSchema, getByIdRequestSchema, upda
 
 export const usersRouter = Router();
 
-const requireTeacher = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (req.auth?.role !== UsersRoles.TEACHER) {
+const requireDirectoryAccess = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const isTeacher = req.auth?.role === UsersRoles.TEACHER;
+    const isStudentReadingTeachers = req.auth?.role === UsersRoles.STUDENT && req.query.role === UsersRoles.TEACHER;
+
+    if (!isTeacher && !isStudentReadingTeachers) {
         res.status(403).json({ message: 'Forbidden' });
         return;
     }
@@ -25,7 +28,7 @@ const requireSelf = (req: AuthenticatedRequest, res: Response, next: NextFunctio
 };
 
 usersRouter.post('/', validateRequest(createOneRequestSchema), wrapController(UsersController.createOne));
-usersRouter.get('/', authenticateJWT, requireTeacher, validateRequest(getAllRequestSchema), wrapController(UsersController.getAll));
+usersRouter.get('/', authenticateJWT, requireDirectoryAccess, validateRequest(getAllRequestSchema), wrapController(UsersController.getAll));
 usersRouter.get('/:id', authenticateJWT, requireSelf, validateRequest(getByIdRequestSchema), wrapController(UsersController.getById));
 usersRouter.patch('/:id', authenticateJWT, requireSelf, validateRequest(updateOneRequestSchema), wrapController(UsersController.updateOne));
 usersRouter.delete('/:id', authenticateJWT, requireSelf, validateRequest(getByIdRequestSchema), wrapController(UsersController.deleteOne));

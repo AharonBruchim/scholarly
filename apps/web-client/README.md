@@ -25,6 +25,14 @@ The client uses `i18next` and `react-i18next`. Hebrew is the default language an
 
 User-facing text on active routes must be added to both translation resources instead of being written directly in JSX.
 
+## Authentication and profile
+
+- Access tokens are held in application memory only and expire after 15 minutes.
+- Refresh tokens are sent only in an `HttpOnly`, `SameSite=Lax` cookie; authentication data is not persisted in `localStorage`.
+- The old `localStorage["scholarly.auth.session"]` value is deleted on startup for existing browsers.
+- Signed-in users can open `/profile` from “My profile” in the header and edit only their own name, email, phone number, and messaging preferences.
+- Bank-account values are never returned in the authentication session or profile response.
+
 ## Dashboard data
 
 Both dashboards read real lesson records from `GET /api/lessons`:
@@ -33,5 +41,7 @@ Both dashboards read real lesson records from `GET /api/lessons`:
 - Teachers send `teacherId=<authenticated user id>`.
 - Upcoming lessons are non-cancelled, scheduled lessons whose start time is in the future.
 - Subject and student counts are calculated from returned lesson records.
+- Students can search the privacy-limited teacher directory by name and see their upcoming lessons.
+- Teachers can select a registered student and create a lesson with subject, time, price, and notes.
 
 The product does not have grades, so the dashboard deliberately contains no grade or average metric.

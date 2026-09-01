@@ -1,4 +1,5 @@
 import type { TypedRequest } from '@scholarly/utils';
+import { UserNotFoundError } from '@scholarly/utils';
 import type { Response } from 'express';
 import { UserManager } from './manager';
 import type { createOneRequestSchema, getAllRequestSchema, getByIdRequestSchema, updateOneRequestSchema } from './validations';
@@ -9,7 +10,9 @@ export const UsersController = {
     },
 
     getById: async (req: TypedRequest<typeof getByIdRequestSchema>, res: Response) => {
-        res.json(await UserManager.getById(req.params.id));
+        const user = await UserManager.getProfileById(req.params.id);
+        if (!user) throw new UserNotFoundError(req.params.id);
+        res.json(user);
     },
 
     deleteOne: async (req: TypedRequest<typeof getByIdRequestSchema>, res: Response) => {
@@ -17,7 +20,9 @@ export const UsersController = {
     },
 
     updateOne: async (req: TypedRequest<typeof updateOneRequestSchema>, res: Response) => {
-        res.json(await UserManager.updateOne(req.params.id, req.body));
+        const user = await UserManager.updateProfile(req.params.id, req.body);
+        if (!user) throw new UserNotFoundError(req.params.id);
+        res.json(user);
     },
 
     getAll: async (req: TypedRequest<typeof getAllRequestSchema>, res: Response) => {

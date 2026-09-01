@@ -5,9 +5,15 @@ import AppRoutes from "./components/AppRoutes/AppRoutes";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { Spinner } from "./components/common/Spinner";
 import { Layout } from "./components/Layout/Layout";
+import { useAuth } from "./context/auth-context-core";
 
 export default function App() {
   const { i18n } = useTranslation();
+  const { isInitializing } = useAuth();
+
+  if (isInitializing) {
+    return <Spinner />;
+  }
 
   return (
     <>

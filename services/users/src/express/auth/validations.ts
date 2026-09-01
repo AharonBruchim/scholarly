@@ -22,9 +22,13 @@ export const registerRequestSchema = z.object({
 });
 
 export const refreshRequestSchema = z.object({
-    body: z.object({
-        refreshToken: z.string().min(1, 'Refresh token is required'),
-    }),
+    body: z.object({}).strict(),
+    query: z.object({}),
+    params: z.object({}),
+});
+
+export const logoutRequestSchema = z.object({
+    body: z.object({}).strict(),
     query: z.object({}),
     params: z.object({}),
 });

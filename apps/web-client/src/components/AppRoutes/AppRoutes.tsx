@@ -7,6 +7,7 @@ const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 const TeacherDashboardPage = lazy(() => import("@/pages/teacher/TeacherDashboardPage"));
 const StudentDashboardPage = lazy(() => import("@/pages/student/StudentDashboardPage"));
+const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
 
 export default function AppRoutes() {
   return (
@@ -21,6 +22,10 @@ export default function AppRoutes() {
 
       <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
         <Route path="/student" element={<StudentDashboardPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={["teacher", "student"]} />}>
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

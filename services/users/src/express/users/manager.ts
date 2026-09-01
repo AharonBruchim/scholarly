@@ -1,6 +1,6 @@
 import { type CreateUserValues, type IUserUpdate, type ListUsersQuery, UsersRoles } from '@scholarly/shared';
 import { ConflictError, ServiceError } from '@scholarly/utils';
-import type { PublicUser, UserDocument } from './interface';
+import type { DirectoryUser, PublicUser, SafeUserProfile, UserDocument } from './interface';
 import { StudentModel, TeacherModel, UserModel } from './model';
 import { hashPassword, verifyPassword } from './password';
 
@@ -19,6 +19,23 @@ const toPublicUser = (user: UserDocument): PublicUser => ({
     email: user.email,
     phone: user.phone,
     ...(user.bankAccount ? { bankAccount: user.bankAccount } : {}),
+});
+
+const toDirectoryUser = (user: UserDocument): DirectoryUser => ({
+    _id: String(user._id),
+    role: user.role,
+    firstName: user.firstName,
+    lastName: user.lastName,
+});
+
+export const toSafeUserProfile = (user: PublicUser): SafeUserProfile => ({
+    _id: user._id,
+    role: user.role,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    hasBankAccount: Boolean(user.bankAccount),
 });
 
 export const UserManager = {
@@ -69,6 +86,11 @@ export const UserManager = {
         return user ? toPublicUser(user) : null;
     },
 
+    getProfileById: async (id: string): Promise<SafeUserProfile | null> => {
+        const user = await UserManager.getById(id);
+        return user ? toSafeUserProfile(user) : null;
+    },
+
     deleteOne: async (id: string): Promise<PublicUser | null> => {
         const user = (await UserModel.findByIdAndDelete(id)) as unknown as UserDocument | null;
         return user ? toPublicUser(user) : null;
@@ -99,8 +121,15 @@ export const UserManager = {
         }
     },
 
-    getAll: async (filters: ListUsersQuery): Promise<PublicUser[]> => {
-        const users = (await UserModel.find(filters.role ? { role: filters.role } : {}).select('-bankAccount')) as unknown as UserDocument[];
-        return users.map(toPublicUser);
+    updateProfile: async (id: string, userUpdate: IUserUpdate): Promise<SafeUserProfile | null> => {
+        const user = await UserManager.updateOne(id, userUpdate);
+        return user ? toSafeUserProfile(user) : null;
+    },
+
+    getAll: async (filters: ListUsersQuery): Promise<DirectoryUser[]> => {
+        const users = (await UserModel.find(filters.role ? { role: filters.role } : {}).select(
+            'role firstName lastName',
+        )) as unknown as UserDocument[];
+        return users.map(toDirectoryUser);
     },
 };

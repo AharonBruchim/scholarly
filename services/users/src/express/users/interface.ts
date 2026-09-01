@@ -1,4 +1,4 @@
-import type { IBankAccount, IUser } from '@scholarly/shared';
+import type { IBankAccount, IUser, UserProfile } from '@scholarly/shared';
 import type { HydratedDocument } from 'mongoose';
 
 export interface UserRecord extends IUser {
@@ -9,3 +9,6 @@ export interface UserRecord extends IUser {
 
 export type UserDocument = HydratedDocument<UserRecord>;
 export type PublicUser = Omit<UserRecord, 'passwordHash'>;
+
+export type DirectoryUser = Pick<UserRecord, '_id' | 'role' | 'firstName' | 'lastName'>;
+export type SafeUserProfile = UserProfile;

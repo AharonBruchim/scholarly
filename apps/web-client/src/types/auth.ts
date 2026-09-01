@@ -33,17 +33,19 @@ export interface BankAccount {
 export interface AuthUser {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  phone: {
+    number?: string;
+    allowWhatsApp?: boolean;
+    allowSMS?: boolean;
+  };
   role: UserRole;
-  bankAccount?: BankAccount | null;
-}
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
+  hasBankAccount: boolean;
 }
 
 export interface AuthSession {
   user: AuthUser;
-  tokens: AuthTokens;
+  accessToken: string;
 }

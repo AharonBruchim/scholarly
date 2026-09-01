@@ -12,15 +12,7 @@ export function getLessonDashboardStats(
   now: Date = new Date(),
 ): LessonDashboardStats {
   const nonCancelledLessons = lessons.filter((lesson) => lesson.status !== "cancelled");
-  const upcomingLessons = nonCancelledLessons
-    .filter(
-      (lesson) =>
-        lesson.status === "scheduled" && new Date(lesson.startTime).getTime() >= now.getTime(),
-    )
-    .sort(
-      (firstLesson, secondLesson) =>
-        new Date(firstLesson.startTime).getTime() - new Date(secondLesson.startTime).getTime(),
-    );
+  const upcomingLessons = getUpcomingLessons(nonCancelledLessons, now);
 
   return {
     subjectCount: new Set(
@@ -30,6 +22,18 @@ export function getLessonDashboardStats(
     upcomingLessonCount: upcomingLessons.length,
     nextLesson: upcomingLessons[0] ?? null,
   };
+}
+
+export function getUpcomingLessons(lessons: Lesson[], now: Date = new Date()): Lesson[] {
+  return lessons
+    .filter(
+      (lesson) =>
+        lesson.status === "scheduled" && new Date(lesson.startTime).getTime() >= now.getTime(),
+    )
+    .sort(
+      (firstLesson, secondLesson) =>
+        new Date(firstLesson.startTime).getTime() - new Date(secondLesson.startTime).getTime(),
+    );
 }
 
 export function formatLessonDateTime(value: string, language: string): string {

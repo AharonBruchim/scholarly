@@ -1,93 +1,79 @@
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import type { UserProfile } from "@scholarly/shared";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
-import type { AuthSession, AuthUser } from "@/types/auth";
+import { authApi, getCurrentSession, setCurrentSession, subscribeToSession } from "@/services/api";
+import type { AuthSession } from "@/types/auth";
 import { AuthContext, type AuthContextValue } from "./auth-context-core";
 
-const STORAGE_KEY = "scholarly.auth.session";
-
-function readStoredSession(): AuthSession | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const savedSession = window.localStorage.getItem(STORAGE_KEY);
-
-  if (!savedSession) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(savedSession) as AuthSession;
-  } catch {
-    window.localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
-}
-
-function writeStoredSession(session: AuthSession | null) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  if (!session) {
-    window.localStorage.removeItem(STORAGE_KEY);
-    return;
-  }
-
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<AuthSession | null>(() => readStoredSession());
+  const [session, setSession] = useState<AuthSession | null>(() => getCurrentSession());
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => subscribeToSession(setSession), []);
+
+  useEffect(() => {
+    let active = true;
+
+    void authApi.refresh().finally(() => {
+      if (active) {
+        setIsInitializing(false);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const login = useCallback((nextSession: AuthSession) => {
-    setSession(nextSession);
-    writeStoredSession(nextSession);
+    setCurrentSession(nextSession);
   }, []);
 
   const register = useCallback((nextSession: AuthSession) => {
-    setSession(nextSession);
-    writeStoredSession(nextSession);
+    setCurrentSession(nextSession);
   }, []);
 
-  const updateTeacherBankAccount = useCallback(
-    (bankAccount: NonNullable<AuthUser["bankAccount"]>) => {
-      setSession((current) => {
-        if (current?.user.role !== "teacher") {
-          return current;
-        }
+  const updateProfile = useCallback((profile: UserProfile) => {
+    const current = getCurrentSession();
+    if (!current || current.user.id !== profile._id) return;
 
-        const nextSession: AuthSession = {
-          ...current,
-          user: {
-            ...current.user,
-            bankAccount,
-          },
-        };
+    setCurrentSession({
+      ...current,
+      user: {
+        ...current.user,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        name: `${profile.firstName} ${profile.lastName}`.trim(),
+        email: profile.email,
+        phone: profile.phone,
+        hasBankAccount: profile.hasBankAccount,
+      },
+    });
+  }, []);
 
-        writeStoredSession(nextSession);
-        return nextSession;
-      });
-    },
-    [],
-  );
+  const markBankAccountConfigured = useCallback(() => {
+    const current = getCurrentSession();
+    if (current?.user.role !== "teacher") return;
+    setCurrentSession({ ...current, user: { ...current.user, hasBankAccount: true } });
+  }, []);
 
-  const logout = useCallback(() => {
-    setSession(null);
-    writeStoredSession(null);
+  const logout = useCallback(async () => {
+    await authApi.logout();
   }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
       user: session?.user ?? null,
+      isInitializing,
       isAuthenticated: Boolean(session),
       login,
       register,
-      updateTeacherBankAccount,
+      updateProfile,
+      markBankAccountConfigured,
       logout,
     }),
-    [login, logout, register, session, updateTeacherBankAccount],
+    [isInitializing, login, logout, markBankAccountConfigured, register, session, updateProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

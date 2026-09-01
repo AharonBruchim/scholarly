@@ -45,20 +45,23 @@ export interface IUserUpdate {
     bankAccount?: Partial<IBankAccount>;
 }
 
-export interface AuthTokens {
-    accessToken: string;
-    refreshToken: string;
-}
-
 export interface AuthUser {
     id: string;
     name: string;
+    firstName: string;
+    lastName: string;
     email: string;
+    phone: IUserPhone;
     role: UsersRoles;
-    bankAccount?: IBankAccount | null;
+    hasBankAccount: boolean;
 }
 
 export interface AuthSession {
     user: AuthUser;
-    tokens: AuthTokens;
+    accessToken: string;
 }
+
+export type UserProfile = Pick<IUser, 'role' | 'firstName' | 'lastName' | 'email' | 'phone'> & {
+    _id: string;
+    hasBankAccount: boolean;
+};

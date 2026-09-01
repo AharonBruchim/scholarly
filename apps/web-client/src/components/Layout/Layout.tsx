@@ -1,18 +1,17 @@
 import type { ReactNode } from "react";
-import { Link, useNavigate } from "react-router-dom";
-
-import { Button } from "@/components/ui/button";
-import { LanguageToggle } from "@/components/common/LanguageToggle";
-import { useAuth } from "@/context/auth-context-core";
 import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
+import { LanguageToggle } from "@/components/common/LanguageToggle";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/auth-context-core";
 
 export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const { t } = useTranslation();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
@@ -41,9 +40,14 @@ export function Layout({ children }: { children: ReactNode }) {
             ) : (
               <>
                 <LanguageToggle />
-                <span className="hidden rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-200 sm:inline-flex">
+                <Link
+                  to="/profile"
+                  className="inline-flex min-h-10 items-center rounded-full border border-slate-700 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-100 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-700 hover:text-white hover:shadow-md hover:shadow-sky-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                  title={t("common.myProfile")}
+                  aria-label={`${t("common.myProfile")}: ${user?.name ?? ""}`}
+                >
                   {user?.name}
-                </span>
+                </Link>
                 <Button variant="secondary" onClick={handleLogout}>
                   {t("common.logout")}
                 </Button>
