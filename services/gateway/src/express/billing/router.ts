@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
-import { config } from '../../config.js';
+import { config } from '../../config';
 
-export const usersRouter = Router();
+export const billingRouter = Router();
 
 const { billing: { uri }, service } = config;
 
-usersRouter.use(
+billingRouter.use(
     '/',
     createProxyMiddleware({
         target: uri,

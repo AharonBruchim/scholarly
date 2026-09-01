@@ -1,6 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
-
-import type { AuthSession } from "@/types/auth";
+import { type CreateUserValues } from "@scholarly/shared";
+import { type AuthSession } from "@/types/auth";
 
 const API_GATEWAY_URL = "http://localhost:5000/api";
 
@@ -59,31 +59,17 @@ apiClient.interceptors.response.use(
 
 export const authApi = {
   login: async (email: string, password: string): Promise<AuthSession> => {
-    const response = await apiClient.post<{
-      user: { id: string; name: string; email: string; role: "teacher" | "student" };
-      tokens: { accessToken: string; refreshToken: string };
-    }>('/auth/login', { email, password });
+    const response = await apiClient.post<AuthSession>('/auth/login', { email, password });
 
-    const session: AuthSession = {
-      user: response.data.user,
-      tokens: response.data.tokens,
-    };
-
+    const session = response.data;
     setStoredSession(session);
     return session;
   },
 
-  register: async (name: string, email: string, password: string, role: "teacher" | "student"): Promise<AuthSession> => {
-    const response = await apiClient.post<{
-      user: { id: string; name: string; email: string; role: "teacher" | "student" };
-      tokens: { accessToken: string; refreshToken: string };
-    }>('/auth/register', { name, email, password, role });
+  register: async (data: CreateUserValues): Promise<AuthSession> => {
+    const response = await apiClient.post<AuthSession>('/auth/register', data);
 
-    const session: AuthSession = {
-      user: response.data.user,
-      tokens: response.data.tokens,
-    };
-
+    const session = response.data;
     setStoredSession(session);
     return session;
   },

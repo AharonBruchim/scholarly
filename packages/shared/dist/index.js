@@ -1,8 +1,3 @@
-export var UsersRoles;
-(function (UsersRoles) {
-    UsersRoles["Admin"] = "admin";
-    UsersRoles["Teacher"] = "teacher";
-    UsersRoles["Student"] = "student";
-    UsersRoles["Parent"] = "parent";
-})(UsersRoles || (UsersRoles = {}));
+export * from "./types/user";
+export * from "./schemas/user";
 //# sourceMappingURL=index.js.map

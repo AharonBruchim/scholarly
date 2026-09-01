@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-
+import { type CreateUserValues } from "@scholarly/shared";
 import { authApi } from "@/services/api";
 
 export function useLoginMutation() {
@@ -12,18 +12,8 @@ export function useLoginMutation() {
 
 export function useRegisterMutation() {
   return useMutation({
-    mutationFn: async ({
-      name,
-      email,
-      password,
-      role,
-    }: {
-      name: string;
-      email: string;
-      password: string;
-      role: "teacher" | "student";
-    }) => {
-      return authApi.register(name, email, password, role);
+    mutationFn: async (data: CreateUserValues) => {
+      return authApi.register(data);
     },
   });
 }

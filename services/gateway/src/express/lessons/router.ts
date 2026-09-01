@@ -2,11 +2,11 @@ import { Router } from 'express';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { config } from '../../config.js';
 
-export const usersRouter = Router();
+export const lessonsRouter = Router();
 
 const { lessons: { uri }, service } = config;
 
-usersRouter.use(
+lessonsRouter.use(
     '/',
     createProxyMiddleware({
         target: uri,

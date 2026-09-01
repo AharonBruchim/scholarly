@@ -6,7 +6,7 @@ import {
     updateOneRequestSchema 
 } from './validations.js';
 import { TypedRequest } from '@scholarly/utils';
-import { UserManager } from './manager.js';
+import { UserManager } from './manager';
 
 export class UsersController {
     static createOne = async (req: TypedRequest<typeof createOneRequestSchema>, res: Response) => {

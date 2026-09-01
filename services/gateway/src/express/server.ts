@@ -17,13 +17,27 @@ export class Server {
 
     static createExpressApp() {
         const app = express();
+        
+        const allowedOrigins = process.env['CORS_ORIGIN']
+            ? process.env['CORS_ORIGIN'].split(',').map((origin) => origin.trim())
+            : ['http://localhost:5000', 'http://localhost:5173'];
+
+        const corsOptions: cors.CorsOptions = {
+            origin: allowedOrigins,
+            credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+        };
+
+        app.use(cors(corsOptions));
+        app.options('*', cors(corsOptions));
+
         app.use(
-            cors({
-                origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'] : ['http://localhost:5000','http://localhost:5173' ]
-            }),
+            helmet({
+                crossOriginResourcePolicy: { policy: 'cross-origin' },
+            })
         );
 
-        app.use(helmet());
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
 

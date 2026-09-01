@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
+import { IStudent, ITeacher, UsersRoles } from '@scholarly/shared'; 
 import { config } from '../../config.js';
-import { IStudent, ITeacher, UserDocument, UsersRoles } from './interface.js';
+import { UserDocument } from './interface.js'; 
 
 const phoneSchema = new mongoose.Schema(
     {
@@ -13,22 +14,22 @@ const phoneSchema = new mongoose.Schema(
 
 const userSchema = new mongoose.Schema<UserDocument>(
     {
-        name: {
-            firstName: { type: String, required: true },
-            lastName: { type: String, required: true },
+        firstName: { type: String, required: true },
+        lastName: { type: String, required: true },
+        email: { type: String, required: true, unique: true },
+        phone: {
+            type: phoneSchema,
+            required: true,
         },
-        contact: {
-            email: { type: String, required: true, unique: true },
-            phone: {
-                type: phoneSchema,
-                required: true,
-            },
+        password: {
+            type: String,
+            required: true,    
         },
         role: {
             type: String,
             enum: Object.values(UsersRoles),
             required: true,
-        },
+        }
     },
     {
         timestamps: true,

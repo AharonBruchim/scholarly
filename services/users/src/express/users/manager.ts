@@ -1,12 +1,9 @@
 import { 
-    IUser, 
-    IUserUpdate, 
-    ListUsersQuery, 
-    UserDocument, 
-    UsersRoles 
-} from './interface.js';
+  UserDocument
+} from './interface';
+import { StudentModel, TeacherModel, UserModel } from './model';
 import { ServiceError } from '@scholarly/utils';
-import { StudentModel, TeacherModel, UserModel } from './model.js';
+import { IUser, IUserUpdate, ListUsersQuery, UsersRoles } from '@scholarly/shared';
 
 export class UserManager {
     static createOne = async (user: IUser): Promise<UserDocument> => {
