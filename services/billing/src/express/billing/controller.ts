@@ -1,7 +1,7 @@
 import { Response } from 'express';
-import { createOneRequestSchema } from './validations.js';
+import { createOneRequestSchema } from './validations';
 import { TypedRequest, ServiceError } from '@scholarly/utils';
-import { BillingManager } from './manager.js';
+import { BillingManager } from './manager';
 
 export class BillingController {
     static createOne = async (req: TypedRequest<typeof createOneRequestSchema>, res: Response) => {

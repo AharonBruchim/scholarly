@@ -2,7 +2,7 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { type CreateUserValues } from "@scholarly/shared";
 import { type AuthSession } from "@/types/auth";
 
-const API_GATEWAY_URL = "http://localhost:5000/api";
+const API_GATEWAY_URL = import.meta.env.VITE_AUTH_API_URL ?? "/api";
 
 const STORAGE_KEY = "scholarly.auth.session";
 

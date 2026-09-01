@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { ServiceError } from "../errors.js";
+import { ServiceError } from "../errors";
 
 export const errorMiddleware = (
   error: Error,

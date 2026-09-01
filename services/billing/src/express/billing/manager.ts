@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { PaymentFormData } from './interface.js';
+import { PaymentFormData } from './interface';
 import { ServiceError } from '@scholarly/utils';
 
 const { GMAIL_SENDER, GMAIL_APP_PASSWORD } = process.env;

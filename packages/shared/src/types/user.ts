@@ -22,7 +22,6 @@ export interface IUser {
     lastName: string;
     email: string;
     phone: IUserPhone;
-    password: string;
 }
 
 export interface IStudent extends IUser {
@@ -51,7 +50,15 @@ export interface AuthTokens {
     refreshToken: string;
 }
 
+export interface AuthUser {
+    id: string;
+    name: string;
+    email: string;
+    role: UsersRoles;
+    bankAccount?: IBankAccount | null;
+}
+
 export interface AuthSession {
-    user: IUser;
+    user: AuthUser;
     tokens: AuthTokens;
 }

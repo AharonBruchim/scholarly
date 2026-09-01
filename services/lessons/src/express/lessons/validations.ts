@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { LessonStatus } from './interface.js';
+import { LessonStatus } from './interface';
 import { zodMongoObjectId } from '@scholarly/utils';
 
 // GET /api/lessons

@@ -7,13 +7,17 @@ export {
   ForbiddenError,
   NotFoundError,
   ConflictError,
-} from "./errors.js";
+} from "./errors";
 
 // Authentication
-export { authenticateJWT, type AuthenticatedRequest } from "./auth.js";
+export {
+  authenticateJWT,
+  type AuthenticatedRequest,
+  type AuthenticatedUser,
+} from "./auth";
 
 // Type utilities
-export type { Prettify } from "./types.js";
+export type { Prettify } from "./types";
 
 // Zod utilities
 export {
@@ -21,18 +25,18 @@ export {
   type TypedRequest,
   parseZod,
   safeParseZod,
-} from "./zod.js";
+} from "./zod";
 
 // Express utilities
-export { errorMiddleware } from "./express/error.js";
-export { wrapMiddleware, wrapController, validateRequest } from "./express/wrappers.js";
+export { errorMiddleware } from "./express/error";
+export { wrapMiddleware, wrapController, validateRequest } from "./express/wrappers";
 
 // Logger utilities
-export { logger } from "./logger/index.js";
-export { loggerMiddleware } from "./logger/middleware.js";
+export { logger } from "./logger/index";
+export { loggerMiddleware } from "./logger/middleware";
 
 // Database utilities
-export { transaction } from "./db/mongoose.js";
+export { transaction } from "./db/mongoose";
 
 // Common helpers
 export const toErrorMessage = (error: unknown): string => {

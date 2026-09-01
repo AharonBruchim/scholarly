@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { AnyZodObject } from "zod";
-import { TypedRequest } from "../zod.js";
+import { TypedRequest } from "../zod";
 
 export const wrapMiddleware = (
   func: (req: Request, res?: Response) => Promise<void>

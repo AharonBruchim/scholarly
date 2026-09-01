@@ -4,9 +4,9 @@ import {
     getAllRequestSchema, 
     getByIdRequestSchema, 
     updateOneRequestSchema 
-} from './validations.js';
+} from './validations';
 import { TypedRequest } from '@scholarly/utils';
-import { LessonManager } from './manager.js';
+import { LessonManager } from './manager';
 
 export class LessonsController {
     static createOne = async (req: TypedRequest<typeof createOneRequestSchema>, res: Response) => {

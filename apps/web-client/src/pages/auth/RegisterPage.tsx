@@ -9,6 +9,26 @@ import { useRegisterMutation } from "@/hooks/useAuthQueries";
 
 import { createUserSchema, UsersRoles, type CreateUserValues } from "@scholarly/shared";
 
+function FieldErrors({ errors }: { errors: readonly unknown[] }) {
+  const messages = errors.flatMap((error) => {
+    if (typeof error === "string") {
+      return [error];
+    }
+
+    if (error && typeof error === "object" && "message" in error) {
+      return [String(error.message)];
+    }
+
+    return [];
+  });
+
+  return messages.map((message, index) => (
+    <p key={`${message}-${index}`} className="text-xs text-red-400" role="alert">
+      {message}
+    </p>
+  ));
+}
+
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { register: setSession } = useAuth();
@@ -16,22 +36,22 @@ export default function RegisterPage() {
 
   const form = useForm({
     defaultValues: {
-        role: UsersRoles.STUDENT,
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: { number: "", allowWhatsApp: true, allowSMS: true },
-        password: "",
+      role: UsersRoles.STUDENT,
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: { number: "", allowWhatsApp: true, allowSMS: true },
+      password: "",
     } as CreateUserValues,
     validators: {
-        onChange: createUserSchema,
+      onChange: createUserSchema,
     },
     onSubmit: async ({ value }) => {
-        const session = await mutation.mutateAsync(value);
-        setSession(session);
-        navigate(value.role === UsersRoles.TEACHER ? "/teacher" : "/student");
+      const session = await mutation.mutateAsync(value);
+      setSession(session);
+      navigate(value.role === UsersRoles.TEACHER ? "/teacher" : "/student");
     },
-}); 
+  });
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
       <Card className="w-full max-w-lg">
@@ -42,6 +62,8 @@ export default function RegisterPage() {
 
         <CardContent>
           <form
+            autoComplete="on"
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -52,8 +74,10 @@ export default function RegisterPage() {
             <form.Field name="role">
               {(field) => (
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">תפקיד</label>
+                  <label htmlFor="role" className="text-sm font-medium">תפקיד</label>
                   <select
+                    id="role"
+                    name="role"
                     value={field.state.value}
                     onChange={(e) => {
                       const newRole = e.target.value as UsersRoles;
@@ -77,16 +101,17 @@ export default function RegisterPage() {
               <form.Field name="firstName">
                 {(field) => (
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">שם פרטי</label>
+                    <label htmlFor="firstName" className="text-sm font-medium">שם פרטי</label>
                     <Input
+                      id="firstName"
+                      name="firstName"
+                      autoComplete="given-name"
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="ישראל"
                     />
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-xs text-red-400">{field.state.meta.errors.join(", ")}</p>
-                    )}
+                    <FieldErrors errors={field.state.meta.errors} />
                   </div>
                 )}
               </form.Field>
@@ -94,16 +119,17 @@ export default function RegisterPage() {
               <form.Field name="lastName">
                 {(field) => (
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">שם משפחה</label>
+                    <label htmlFor="lastName" className="text-sm font-medium">שם משפחה</label>
                     <Input
+                      id="lastName"
+                      name="lastName"
+                      autoComplete="family-name"
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="ישראלי"
                     />
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-xs text-red-400">{field.state.meta.errors.join(", ")}</p>
-                    )}
+                    <FieldErrors errors={field.state.meta.errors} />
                   </div>
                 )}
               </form.Field>
@@ -112,17 +138,18 @@ export default function RegisterPage() {
             <form.Field name="email">
               {(field) => (
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">אימייל</label>
+                  <label htmlFor="email" className="text-sm font-medium">אימייל</label>
                   <Input
+                    id="email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="you@example.com"
                   />
-                  {field.state.meta.errors.length > 0 && (
-                    <p className="text-xs text-red-400">{field.state.meta.errors.join(", ")}</p>
-                  )}
+                  <FieldErrors errors={field.state.meta.errors} />
                 </div>
               )}
             </form.Field>
@@ -130,19 +157,77 @@ export default function RegisterPage() {
             <form.Field name="phone.number">
               {(field) => (
                 <div className="space-y-1">
-                  <label className="text-sm font-medium">מספר טלפון</label>
+                  <label htmlFor="phone" className="text-sm font-medium">מספר טלפון</label>
                   <Input
+                    id="phone"
+                    name="phone.number"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
                     value={field.state.value ?? ""}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="0500000000"
                   />
-                  {field.state.meta.errors.length > 0 && (
-                    <p className="text-xs text-red-400">{field.state.meta.errors.join(", ")}</p>
-                  )}
+                  <FieldErrors errors={field.state.meta.errors} />
                 </div>
               )}
             </form.Field>
+
+            <form.Field name="password">
+              {(field) => (
+                <div className="space-y-1">
+                  <label htmlFor="password" className="text-sm font-medium">סיסמה</label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="לפחות 8 תווים"
+                  />
+                  <FieldErrors errors={field.state.meta.errors} />
+                </div>
+              )}
+            </form.Field>
+
+            <div className="space-y-2 rounded-md border border-slate-800 p-3">
+              <form.Field name="phone.allowWhatsApp">
+                {(field) => (
+                  <label htmlFor="allowWhatsApp" className="flex items-center gap-2 text-sm text-slate-200">
+                    <input
+                      id="allowWhatsApp"
+                      name="phone.allowWhatsApp"
+                      type="checkbox"
+                      checked={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-700"
+                    />
+                    אני מאשר/ת קבלת הודעות ב־WhatsApp
+                  </label>
+                )}
+              </form.Field>
+
+              <form.Field name="phone.allowSMS">
+                {(field) => (
+                  <label htmlFor="allowSMS" className="flex items-center gap-2 text-sm text-slate-200">
+                    <input
+                      id="allowSMS"
+                      name="phone.allowSMS"
+                      type="checkbox"
+                      checked={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-700"
+                    />
+                    אני מאשר/ת קבלת הודעות SMS
+                  </label>
+                )}
+              </form.Field>
+            </div>
 
             <form.Subscribe selector={(state) => state.values.role}>
               {(role) =>
@@ -153,16 +238,17 @@ export default function RegisterPage() {
                     <form.Field name={"bankAccount.bankName" as never}>
                       {(field) => (
                         <div className="space-y-1">
-                          <label className="text-xs font-medium">שם הבנק</label>
+                          <label htmlFor="bankName" className="text-xs font-medium">שם הבנק</label>
                           <Input
+                            id="bankName"
+                            name="bankAccount.bankName"
+                            autoComplete="off"
                             value={(field.state.value as string) ?? ""}
                             onBlur={field.handleBlur}
                             onChange={(e) => field.handleChange(e.target.value as never)}
                             placeholder="בנק הפועלים"
                           />
-                          {field.state.meta.errors.length > 0 && (
-                            <p className="text-xs text-red-400">{field.state.meta.errors.join(", ")}</p>
-                          )}
+                          <FieldErrors errors={field.state.meta.errors} />
                         </div>
                       )}
                     </form.Field>
@@ -171,16 +257,18 @@ export default function RegisterPage() {
                       <form.Field name={"bankAccount.branchNumber" as never}>
                         {(field) => (
                           <div className="space-y-1">
-                            <label className="text-xs font-medium">מספר סניף</label>
+                            <label htmlFor="branchNumber" className="text-xs font-medium">מספר סניף</label>
                             <Input
+                              id="branchNumber"
+                              name="bankAccount.branchNumber"
+                              inputMode="numeric"
+                              autoComplete="off"
                               value={(field.state.value as string) ?? ""}
                               onBlur={field.handleBlur}
                               onChange={(e) => field.handleChange(e.target.value as never)}
                               placeholder="123"
                             />
-                            {field.state.meta.errors.length > 0 && (
-                              <p className="text-xs text-red-400">{field.state.meta.errors.join(", ")}</p>
-                            )}
+                            <FieldErrors errors={field.state.meta.errors} />
                           </div>
                         )}
                       </form.Field>
@@ -188,16 +276,18 @@ export default function RegisterPage() {
                       <form.Field name={"bankAccount.accountNumber" as never}>
                         {(field) => (
                           <div className="space-y-1">
-                            <label className="text-xs font-medium">מספר חשבון</label>
+                            <label htmlFor="accountNumber" className="text-xs font-medium">מספר חשבון</label>
                             <Input
+                              id="accountNumber"
+                              name="bankAccount.accountNumber"
+                              inputMode="numeric"
+                              autoComplete="off"
                               value={(field.state.value as string) ?? ""}
                               onBlur={field.handleBlur}
                               onChange={(e) => field.handleChange(e.target.value as never)}
                               placeholder="456789"
                             />
-                            {field.state.meta.errors.length > 0 && (
-                              <p className="text-xs text-red-400">{field.state.meta.errors.join(", ")}</p>
-                            )}
+                            <FieldErrors errors={field.state.meta.errors} />
                           </div>
                         )}
                       </form.Field>

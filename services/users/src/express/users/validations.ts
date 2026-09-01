@@ -33,14 +33,10 @@ export const createOneRequestSchema = z.object({
 // PATCH /api/users/:id
 export const updateOneRequestSchema = z.object({
     body: z.object({
-        name: z.object({
-            firstName: z.string().min(1).optional(),
-            lastName: z.string().min(1).optional(),
-        }).partial().optional(),
-        contact: z.object({
-            email: z.string().email().optional(),
-            phone: phoneSchema.partial().optional(),
-        }).partial().optional(),
+        firstName: z.string().trim().min(1).optional(),
+        lastName: z.string().trim().min(1).optional(),
+        email: z.string().trim().email().optional(),
+        phone: phoneSchema.partial().optional(),
         bankAccount: bankAccountSchema.partial().optional(),
     }).strict(),
     query: z.object({}),

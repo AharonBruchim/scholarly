@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { IStudent, ITeacher, UsersRoles } from '@scholarly/shared'; 
-import { config } from '../../config.js';
-import { UserDocument } from './interface.js'; 
+import { UsersRoles } from '@scholarly/shared'; 
+import { config } from '../../config';
+import { UserRecord } from './interface'; 
 
 const phoneSchema = new mongoose.Schema(
     {
@@ -12,18 +12,19 @@ const phoneSchema = new mongoose.Schema(
     { _id: false },
 );
 
-const userSchema = new mongoose.Schema<UserDocument>(
+const userSchema = new mongoose.Schema<UserRecord>(
     {
-        firstName: { type: String, required: true },
-        lastName: { type: String, required: true },
-        email: { type: String, required: true, unique: true },
+        firstName: { type: String, required: true, trim: true },
+        lastName: { type: String, required: true, trim: true },
+        email: { type: String, required: true, unique: true, lowercase: true, trim: true },
         phone: {
             type: phoneSchema,
             required: true,
         },
-        password: {
+        passwordHash: {
             type: String,
-            required: true,    
+            required: true,
+            select: false,
         },
         role: {
             type: String,
@@ -34,10 +35,22 @@ const userSchema = new mongoose.Schema<UserDocument>(
     {
         timestamps: true,
         discriminatorKey: 'role',
+        toJSON: {
+            transform: (_document, returnedObject) => {
+                Reflect.deleteProperty(returnedObject, 'passwordHash');
+                return returnedObject;
+            },
+        },
+        toObject: {
+            transform: (_document, returnedObject) => {
+                Reflect.deleteProperty(returnedObject, 'passwordHash');
+                return returnedObject;
+            },
+        },
     },
 );
 
-const teacherSchema = new mongoose.Schema<ITeacher>({
+const teacherSchema = new mongoose.Schema<UserRecord>({
     bankAccount: {
         bankName: { type: String, required: true },
         branchNumber: { type: String, required: true },
@@ -45,14 +58,14 @@ const teacherSchema = new mongoose.Schema<ITeacher>({
     },
 });
 
-export const UserModel = mongoose.model<UserDocument>(config.mongo.usersCollectionName, userSchema);
+export const UserModel = mongoose.model<UserRecord>(config.mongo.usersCollectionName, userSchema);
 
-export const StudentModel = UserModel.discriminator<IStudent>(
+export const StudentModel = UserModel.discriminator<UserRecord>(
     UsersRoles.STUDENT,
-    new mongoose.Schema<IStudent>(),
+    new mongoose.Schema<UserRecord>(),
 );
 
-export const TeacherModel = UserModel.discriminator<ITeacher>(
+export const TeacherModel = UserModel.discriminator<UserRecord>(
     UsersRoles.TEACHER,
     teacherSchema,
 );

@@ -1,30 +1,60 @@
-import jwt, { VerifyErrors } from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
-export interface AuthenticatedRequest extends Request {
-  user?: any;
+export interface AuthenticatedUser extends JwtPayload {
+  sub: string;
+  role: string;
+  tokenType: "access";
 }
 
-const SECRET_KEY = process.env.JWT_SECRET || "your-secret-key";
+export interface AuthenticatedRequest extends Request {
+  auth?: AuthenticatedUser;
+}
+
+const TOKEN_ISSUER = "scholarly-users";
+const TOKEN_AUDIENCE = "scholarly-web";
 
 export const authenticateJWT = (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): void => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const authorization = req.headers.authorization;
+  const token = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : undefined;
 
   if (!token) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
-  jwt.verify(token, SECRET_KEY, (err: VerifyErrors | null, user: any) => {
-    if (err) {
-      res.status(403).json({ message: "Forbidden" });
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret || secret.length < 32) {
+    res.status(500).json({ message: "Authentication is not configured" });
+    return;
+  }
+
+  try {
+    const payload = jwt.verify(token, secret, {
+      issuer: TOKEN_ISSUER,
+      audience: TOKEN_AUDIENCE,
+    });
+
+    if (
+      typeof payload === "string"
+      || !payload.sub
+      || typeof payload.role !== "string"
+      || payload.tokenType !== "access"
+    ) {
+      res.status(401).json({ message: "Unauthorized" });
       return;
     }
-    req.user = user;
+
+    req.auth = payload as AuthenticatedUser;
     next();
-  });
+  } catch {
+    res.status(401).json({ message: "Unauthorized" });
+  }
 };

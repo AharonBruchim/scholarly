@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { createOneRequestSchema } from './validations.js';
+import { createOneRequestSchema } from './validations';
 import { validateRequest, wrapController } from '@scholarly/utils';
-import { BillingController } from './controller.js';
+import { BillingController } from './controller';
 
 export const billingRouter = Router();
 const upload = multer({ storage: multer.memoryStorage() });

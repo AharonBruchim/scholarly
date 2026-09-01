@@ -4,8 +4,8 @@ import {
     ILessonUpdate, 
     LessonDocument, 
     ListLessonsQuery 
-} from './interface.js';
-import { LessonModel } from './model.js';
+} from './interface';
+import { LessonModel } from './model';
 import { ServiceError } from '@scholarly/utils';
 
 export class LessonManager {

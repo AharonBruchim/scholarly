@@ -42,6 +42,7 @@ export default function LoginPage() {
               label="Email"
               name="email"
               type="email"
+              autoComplete="email"
               placeholder="you@example.com"
               error={form.formState.errors.email?.message}
             />
@@ -49,6 +50,7 @@ export default function LoginPage() {
               label="Password"
               name="password"
               type="password"
+              autoComplete="current-password"
               placeholder="••••••••"
               error={form.formState.errors.password?.message}
             />

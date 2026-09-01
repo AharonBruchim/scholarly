@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { AnyZodObject, z } from "zod";
-import { Prettify } from "./types.js";
+import { Prettify } from "./types";
 
 export const zodMongoObjectId = z
   .string()

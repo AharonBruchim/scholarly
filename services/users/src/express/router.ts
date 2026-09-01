@@ -1,8 +1,10 @@
 import { Router } from 'express';
-import { usersRouter } from './users/router.js';
+import { authRouter } from './auth/router';
+import { usersRouter } from './users/router';
 
 export const appRouter = Router();
 
+appRouter.use('/api/auth', authRouter);
 appRouter.use('/api/users', usersRouter);
 
 appRouter.use(['/isAlive', '/isalive', '/health'], (_req, res) => {

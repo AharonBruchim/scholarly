@@ -4,13 +4,13 @@ import {
     getAllRequestSchema, 
     getByIdRequestSchema, 
     updateOneRequestSchema 
-} from './validations.js';
+} from './validations';
 import { TypedRequest } from '@scholarly/utils';
 import { UserManager } from './manager';
 
 export class UsersController {
     static createOne = async (req: TypedRequest<typeof createOneRequestSchema>, res: Response) => {
-        res.json(await UserManager.createOne(req.body));
+        res.status(201).json(await UserManager.createOne(req.body));
     };
 
     static getById = async (req: TypedRequest<typeof getByIdRequestSchema>, res: Response) => {

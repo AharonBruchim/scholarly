@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import http from 'http';
 import cors from 'cors';
 import { loggerMiddleware, errorMiddleware } from '@scholarly/utils';
-import { appRouter } from './router.js';
+import { appRouter } from './router';
 
 export class Server {
     private app: express.Application;

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { config } from '../../config.js';
-import { IStudent, ITeacher, UserDocument, UsersRoles } from './interface.js';
+import { config } from '../../config';
+import { IStudent, ITeacher, UserDocument, UsersRoles } from './interface';
 
 const phoneSchema = new mongoose.Schema(
     {

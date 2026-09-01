@@ -9,7 +9,7 @@
         ".": "./dist/index.js"
     },
     "scripts": {
-        "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json && node ../../scripts/fix-esm-imports.mjs dist"
     },
     "devDependencies": {
         "typescript": "^5.6.3"

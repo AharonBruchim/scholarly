@@ -14,11 +14,16 @@ export const bankAccountSchema = z.object({
 });
 
 export const baseUserSchema = z.object({
-    firstName: z.string().min(1, 'שם פרטי הוא שדה חובה'),
-    lastName: z.string().min(1, 'שם משפחה הוא שדה חובה'),
-    email: z.string().email('כתובת אימייל לא תקינה'),
+    firstName: z.string().trim().min(1, 'שם פרטי הוא שדה חובה'),
+    lastName: z.string().trim().min(1, 'שם משפחה הוא שדה חובה'),
+    email: z.string().trim().email('כתובת אימייל לא תקינה'),
     phone: phoneSchema,
-    password: z.string().min(6, 'סיסמה חייבת להכיל לפחות 6 תווים'),
+    password: z.string()
+        .min(8, 'סיסמה חייבת להכיל לפחות 8 תווים')
+        .refine(
+            (password) => new TextEncoder().encode(password).byteLength <= 72,
+            'הסיסמה ארוכה מדי',
+        ),
 });
 
 export const studentSchema = baseUserSchema.extend({

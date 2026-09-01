@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { lessonsRouter } from './lessons/router.js';
+import { lessonsRouter } from './lessons/router';
 
 export const appRouter = Router();
 

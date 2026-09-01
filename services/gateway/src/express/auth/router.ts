@@ -2,17 +2,18 @@ import { Router } from 'express';
 import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { config } from '../../config';
 
-export const lessonsRouter = Router();
+export const authRouter = Router();
 
-const { lessons: { uri }, service } = config;
+const { users: { uri, authBaseRoute }, service } = config;
+const target = `${uri.replace(/\/$/, '')}${authBaseRoute}`;
 
-lessonsRouter.use(
+authRouter.use(
     '/',
     createProxyMiddleware({
-        target: uri,
+        target,
         on: {
-            proxyReq: fixRequestBody, 
+            proxyReq: fixRequestBody,
         },
         proxyTimeout: service.requestTimeout,
-    })
+    }),
 );

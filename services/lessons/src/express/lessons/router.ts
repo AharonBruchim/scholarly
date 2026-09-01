@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { LessonsController } from './controller.js';
+import { LessonsController } from './controller';
 import { 
     createOneRequestSchema, 
     getAllRequestSchema, 
     getByIdRequestSchema, 
     updateOneRequestSchema 
-} from './validations.js';
+} from './validations';
 import { validateRequest, wrapController } from '@scholarly/utils';
 
 export const lessonsRouter = Router();
