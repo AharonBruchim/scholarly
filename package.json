@@ -1,0 +1,22 @@
+{
+  "name": "scholarly",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev": "concurrently --names 'web-client,billing,lessons,users' --prefix '[{name}]' 'npm run dev -w apps/web-client' 'npm run dev -w services/billing' 'npm run dev -w services/lessons' 'npm run dev -w services/users'",
+    "dev:services": "concurrently --names 'billing,lessons,users' --prefix '[{name}]' 'npm run dev -w services/billing' 'npm run dev -w services/lessons' 'npm run dev -w services/users'",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.11",
+    "concurrently": "^10.0.5",
+    "typescript": "^5.6.3"
+  }
+}
