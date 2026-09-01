@@ -1,6 +1,6 @@
 export enum UsersRoles {
-    STUDENT = "student",
-    TEACHER = "teacher"
+    STUDENT = 'student',
+    TEACHER = 'teacher',
 }
 
 export interface IUserPhone {

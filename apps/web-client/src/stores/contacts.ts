@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Contact } from "../types/contact";
+import type { Contact } from "../types/contact";
 
 type ContactsStore = {
   contacts: Contact[];

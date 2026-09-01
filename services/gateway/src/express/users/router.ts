@@ -4,7 +4,10 @@ import { config } from '../../config';
 
 export const usersRouter = Router();
 
-const { users: { uri, baseRoute }, service } = config;
+const {
+    users: { uri, baseRoute },
+    service,
+} = config;
 const target = `${uri.replace(/\/$/, '')}${baseRoute}`;
 
 usersRouter.use(
@@ -12,8 +15,8 @@ usersRouter.use(
     createProxyMiddleware({
         target,
         on: {
-            proxyReq: fixRequestBody, 
+            proxyReq: fixRequestBody,
         },
         proxyTimeout: service.requestTimeout,
-    })
+    }),
 );

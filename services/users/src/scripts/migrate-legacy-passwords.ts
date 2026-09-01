@@ -31,9 +31,7 @@ async function migrateLegacyPasswords() {
         }
 
         const passwordIsTooLong = new TextEncoder().encode(document.password).byteLength > 72;
-        const passwordToHash = passwordIsTooLong
-            ? randomBytes(32).toString('hex')
-            : document.password;
+        const passwordToHash = passwordIsTooLong ? randomBytes(32).toString('hex') : document.password;
         const passwordHash = await hashPassword(passwordToHash);
         const result = await collection.updateOne(
             {

@@ -4,15 +4,18 @@ import { config } from '../../config';
 
 export const billingRouter = Router();
 
-const { billing: { uri }, service } = config;
+const {
+    billing: { uri },
+    service,
+} = config;
 
 billingRouter.use(
     '/',
     createProxyMiddleware({
         target: uri,
         on: {
-            proxyReq: fixRequestBody, 
+            proxyReq: fixRequestBody,
         },
         proxyTimeout: service.requestTimeout,
-    })
+    }),
 );

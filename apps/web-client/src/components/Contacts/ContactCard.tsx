@@ -13,13 +13,22 @@ export default function ContactCard({ contact }: { contact: Contact }) {
       </div>
 
       <div className="flex gap-2">
-        <button type="button" className="rounded-md bg-emerald-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400">
+        <button
+          type="button"
+          className="rounded-md bg-emerald-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400"
+        >
           Send
         </button>
-        <button type="button" className="rounded-md bg-sky-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-sky-400">
+        <button
+          type="button"
+          className="rounded-md bg-sky-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-sky-400"
+        >
           Edit
         </button>
-        <button type="button" className="rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white hover:bg-red-400">
+        <button
+          type="button"
+          className="rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white hover:bg-red-400"
+        >
           Delete
         </button>
       </div>

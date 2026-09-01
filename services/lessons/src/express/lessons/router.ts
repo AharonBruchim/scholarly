@@ -1,12 +1,7 @@
+import { validateRequest, wrapController } from '@scholarly/utils';
 import { Router } from 'express';
 import { LessonsController } from './controller';
-import { 
-    createOneRequestSchema, 
-    getAllRequestSchema, 
-    getByIdRequestSchema, 
-    updateOneRequestSchema 
-} from './validations';
-import { validateRequest, wrapController } from '@scholarly/utils';
+import { createOneRequestSchema, getAllRequestSchema, getByIdRequestSchema, updateOneRequestSchema } from './validations';
 
 export const lessonsRouter = Router();
 

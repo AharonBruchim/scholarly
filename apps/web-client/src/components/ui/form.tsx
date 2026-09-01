@@ -1,15 +1,14 @@
-import * as React from "react";
+import type * as React from "react";
 import {
-  FormProvider,
   type FieldValues,
+  FormProvider,
   type SubmitHandler,
-  useFormContext,
   type UseFormReturn,
+  useFormContext,
 } from "react-hook-form";
-
-import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface FormProps<TFieldValues extends FieldValues> {
   form: UseFormReturn<TFieldValues>;
@@ -18,10 +17,19 @@ interface FormProps<TFieldValues extends FieldValues> {
   className?: string;
 }
 
-function Form<TFieldValues extends FieldValues>({ form, onSubmit, children, className }: FormProps<TFieldValues>) {
+function Form<TFieldValues extends FieldValues>({
+  form,
+  onSubmit,
+  children,
+  className,
+}: FormProps<TFieldValues>) {
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className={cn("space-y-4", className)} noValidate>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn("space-y-4", className)}
+        noValidate
+      >
         {children}
       </form>
     </FormProvider>

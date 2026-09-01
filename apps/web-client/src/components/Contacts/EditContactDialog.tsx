@@ -47,10 +47,18 @@ export default function EditContactDialog({
         </div>
 
         <div className="mt-6 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-md border border-slate-600 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-slate-600 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800"
+          >
             Cancel
           </button>
-          <button type="button" onClick={onConfirm} className="rounded-md bg-sky-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-sky-400">
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="rounded-md bg-sky-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-sky-400"
+          >
             Update
           </button>
         </div>

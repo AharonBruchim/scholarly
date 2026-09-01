@@ -1,11 +1,7 @@
-import { Router } from 'express';
 import { validateRequest, wrapController } from '@scholarly/utils';
+import { Router } from 'express';
 import { AuthController } from './controller';
-import {
-    loginRequestSchema,
-    refreshRequestSchema,
-    registerRequestSchema,
-} from './validations';
+import { loginRequestSchema, refreshRequestSchema, registerRequestSchema } from './validations';
 
 export const authRouter = Router();
 

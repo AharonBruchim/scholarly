@@ -4,7 +4,10 @@ import { config } from '../../config';
 
 export const authRouter = Router();
 
-const { users: { uri, authBaseRoute }, service } = config;
+const {
+    users: { uri, authBaseRoute },
+    service,
+} = config;
 const target = `${uri.replace(/\/$/, '')}${authBaseRoute}`;
 
 authRouter.use(

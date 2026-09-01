@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/context/auth-context-core";
 
 const defaultBankAccount = {
   bankName: "",
@@ -45,7 +45,9 @@ export default function TeacherDashboardPage() {
                 <span>Bank name</span>
                 <input
                   value={form.bankName}
-                  onChange={(event) => setForm((current) => ({ ...current, bankName: event.target.value }))}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, bankName: event.target.value }))
+                  }
                   className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
                   placeholder="Bank Hapoalim"
                   required
@@ -56,7 +58,9 @@ export default function TeacherDashboardPage() {
                 <span>Branch number</span>
                 <input
                   value={form.branchNumber}
-                  onChange={(event) => setForm((current) => ({ ...current, branchNumber: event.target.value }))}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, branchNumber: event.target.value }))
+                  }
                   className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
                   placeholder="123"
                   required
@@ -67,7 +71,9 @@ export default function TeacherDashboardPage() {
                 <span>Account number</span>
                 <input
                   value={form.accountNumber}
-                  onChange={(event) => setForm((current) => ({ ...current, accountNumber: event.target.value }))}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, accountNumber: event.target.value }))
+                  }
                   className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
                   placeholder="012345678"
                   required

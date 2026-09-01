@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-
+import { useAuth } from "@/context/auth-context-core";
 import { fetchStudentOverview, fetchTeacherOverview } from "@/services/api";
-import { useAuth } from "@/context/auth-context";
 
 export function useTeacherOverview() {
   const { user } = useAuth();

@@ -1,4 +1,5 @@
 import axios from "axios";
+
 // import { PaymentFormData } from "../types/formData";
 
 const api = axios.create({
@@ -13,4 +14,3 @@ export const mailApi = {
     return response.data;
   },
 };
-

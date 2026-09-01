@@ -1,7 +1,7 @@
+import { UsersRoles } from '@scholarly/shared';
 import mongoose from 'mongoose';
-import { UsersRoles } from '@scholarly/shared'; 
 import { config } from '../../config';
-import { UserRecord } from './interface'; 
+import type { UserRecord } from './interface';
 
 const phoneSchema = new mongoose.Schema(
     {
@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema<UserRecord>(
             type: String,
             enum: Object.values(UsersRoles),
             required: true,
-        }
+        },
     },
     {
         timestamps: true,
@@ -60,12 +60,6 @@ const teacherSchema = new mongoose.Schema<UserRecord>({
 
 export const UserModel = mongoose.model<UserRecord>(config.mongo.usersCollectionName, userSchema);
 
-export const StudentModel = UserModel.discriminator<UserRecord>(
-    UsersRoles.STUDENT,
-    new mongoose.Schema<UserRecord>(),
-);
+export const StudentModel = UserModel.discriminator<UserRecord>(UsersRoles.STUDENT, new mongoose.Schema<UserRecord>());
 
-export const TeacherModel = UserModel.discriminator<UserRecord>(
-    UsersRoles.TEACHER,
-    teacherSchema,
-);
+export const TeacherModel = UserModel.discriminator<UserRecord>(UsersRoles.TEACHER, teacherSchema);

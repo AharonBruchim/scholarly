@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { config } from '../../config';
-import { LessonDocument, LessonStatus } from './interface';
+import { type LessonDocument, LessonStatus } from './interface';
 
 const lessonSchema = new mongoose.Schema<LessonDocument>(
     {

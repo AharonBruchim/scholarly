@@ -1,13 +1,11 @@
+import { type CreateUserValues, createUserSchema, UsersRoles } from "@scholarly/shared";
 import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate } from "react-router-dom";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/context/auth-context-core";
 import { useRegisterMutation } from "@/hooks/useAuthQueries";
-
-import { createUserSchema, UsersRoles, type CreateUserValues } from "@scholarly/shared";
 
 function FieldErrors({ errors }: { errors: readonly unknown[] }) {
   const messages = errors.flatMap((error) => {
@@ -22,8 +20,8 @@ function FieldErrors({ errors }: { errors: readonly unknown[] }) {
     return [];
   });
 
-  return messages.map((message, index) => (
-    <p key={`${message}-${index}`} className="text-xs text-red-400" role="alert">
+  return [...new Set(messages)].map((message) => (
+    <p key={message} className="text-xs text-red-400" role="alert">
       {message}
     </p>
   ));
@@ -74,7 +72,9 @@ export default function RegisterPage() {
             <form.Field name="role">
               {(field) => (
                 <div className="space-y-1">
-                  <label htmlFor="role" className="text-sm font-medium">תפקיד</label>
+                  <label htmlFor="role" className="text-sm font-medium">
+                    תפקיד
+                  </label>
                   <select
                     id="role"
                     name="role"
@@ -85,7 +85,10 @@ export default function RegisterPage() {
                       if (newRole === UsersRoles.STUDENT) {
                         form.setFieldValue("bankAccount" as never, undefined as never);
                       } else {
-                        form.setFieldValue("bankAccount" as never, { bankName: "", branchNumber: "", accountNumber: "" } as never);
+                        form.setFieldValue(
+                          "bankAccount" as never,
+                          { bankName: "", branchNumber: "", accountNumber: "" } as never,
+                        );
                       }
                     }}
                     className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
@@ -101,7 +104,9 @@ export default function RegisterPage() {
               <form.Field name="firstName">
                 {(field) => (
                   <div className="space-y-1">
-                    <label htmlFor="firstName" className="text-sm font-medium">שם פרטי</label>
+                    <label htmlFor="firstName" className="text-sm font-medium">
+                      שם פרטי
+                    </label>
                     <Input
                       id="firstName"
                       name="firstName"
@@ -119,7 +124,9 @@ export default function RegisterPage() {
               <form.Field name="lastName">
                 {(field) => (
                   <div className="space-y-1">
-                    <label htmlFor="lastName" className="text-sm font-medium">שם משפחה</label>
+                    <label htmlFor="lastName" className="text-sm font-medium">
+                      שם משפחה
+                    </label>
                     <Input
                       id="lastName"
                       name="lastName"
@@ -138,7 +145,9 @@ export default function RegisterPage() {
             <form.Field name="email">
               {(field) => (
                 <div className="space-y-1">
-                  <label htmlFor="email" className="text-sm font-medium">אימייל</label>
+                  <label htmlFor="email" className="text-sm font-medium">
+                    אימייל
+                  </label>
                   <Input
                     id="email"
                     name="email"
@@ -157,7 +166,9 @@ export default function RegisterPage() {
             <form.Field name="phone.number">
               {(field) => (
                 <div className="space-y-1">
-                  <label htmlFor="phone" className="text-sm font-medium">מספר טלפון</label>
+                  <label htmlFor="phone" className="text-sm font-medium">
+                    מספר טלפון
+                  </label>
                   <Input
                     id="phone"
                     name="phone.number"
@@ -177,7 +188,9 @@ export default function RegisterPage() {
             <form.Field name="password">
               {(field) => (
                 <div className="space-y-1">
-                  <label htmlFor="password" className="text-sm font-medium">סיסמה</label>
+                  <label htmlFor="password" className="text-sm font-medium">
+                    סיסמה
+                  </label>
                   <Input
                     id="password"
                     name="password"
@@ -196,7 +209,10 @@ export default function RegisterPage() {
             <div className="space-y-2 rounded-md border border-slate-800 p-3">
               <form.Field name="phone.allowWhatsApp">
                 {(field) => (
-                  <label htmlFor="allowWhatsApp" className="flex items-center gap-2 text-sm text-slate-200">
+                  <label
+                    htmlFor="allowWhatsApp"
+                    className="flex items-center gap-2 text-sm text-slate-200"
+                  >
                     <input
                       id="allowWhatsApp"
                       name="phone.allowWhatsApp"
@@ -213,7 +229,10 @@ export default function RegisterPage() {
 
               <form.Field name="phone.allowSMS">
                 {(field) => (
-                  <label htmlFor="allowSMS" className="flex items-center gap-2 text-sm text-slate-200">
+                  <label
+                    htmlFor="allowSMS"
+                    className="flex items-center gap-2 text-sm text-slate-200"
+                  >
                     <input
                       id="allowSMS"
                       name="phone.allowSMS"
@@ -233,12 +252,16 @@ export default function RegisterPage() {
               {(role) =>
                 role === UsersRoles.TEACHER ? (
                   <div className="space-y-3 rounded-md border border-slate-800 p-3 bg-slate-900/40">
-                    <h4 className="text-sm font-semibold text-slate-200">פרטי חשבון בנק (למורים)</h4>
+                    <h4 className="text-sm font-semibold text-slate-200">
+                      פרטי חשבון בנק (למורים)
+                    </h4>
 
                     <form.Field name={"bankAccount.bankName" as never}>
                       {(field) => (
                         <div className="space-y-1">
-                          <label htmlFor="bankName" className="text-xs font-medium">שם הבנק</label>
+                          <label htmlFor="bankName" className="text-xs font-medium">
+                            שם הבנק
+                          </label>
                           <Input
                             id="bankName"
                             name="bankAccount.bankName"
@@ -257,7 +280,9 @@ export default function RegisterPage() {
                       <form.Field name={"bankAccount.branchNumber" as never}>
                         {(field) => (
                           <div className="space-y-1">
-                            <label htmlFor="branchNumber" className="text-xs font-medium">מספר סניף</label>
+                            <label htmlFor="branchNumber" className="text-xs font-medium">
+                              מספר סניף
+                            </label>
                             <Input
                               id="branchNumber"
                               name="bankAccount.branchNumber"
@@ -276,7 +301,9 @@ export default function RegisterPage() {
                       <form.Field name={"bankAccount.accountNumber" as never}>
                         {(field) => (
                           <div className="space-y-1">
-                            <label htmlFor="accountNumber" className="text-xs font-medium">מספר חשבון</label>
+                            <label htmlFor="accountNumber" className="text-xs font-medium">
+                              מספר חשבון
+                            </label>
                             <Input
                               id="accountNumber"
                               name="bankAccount.accountNumber"
@@ -299,7 +326,11 @@ export default function RegisterPage() {
 
             <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
               {([canSubmit, isSubmitting]) => (
-                <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting || mutation.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={!canSubmit || isSubmitting || mutation.isPending}
+                >
                   {mutation.isPending || isSubmitting ? "יוצר חשבון..." : "הרשמה"}
                 </Button>
               )}
@@ -311,7 +342,10 @@ export default function RegisterPage() {
           </form>
 
           <p className="mt-4 text-center text-sm text-slate-300">
-            כבר יש לך חשבון? <Link to="/login" className="font-medium text-sky-400 hover:text-sky-300">התחברות</Link>
+            כבר יש לך חשבון?{" "}
+            <Link to="/login" className="font-medium text-sky-400 hover:text-sky-300">
+              התחברות
+            </Link>
           </p>
         </CardContent>
       </Card>

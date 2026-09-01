@@ -1,13 +1,8 @@
-import { NextFunction, Response, Router } from 'express';
+import { UsersRoles } from '@scholarly/shared';
+import { type AuthenticatedRequest, authenticateJWT, validateRequest, wrapController } from '@scholarly/utils';
+import { type NextFunction, type Response, Router } from 'express';
 import { UsersController } from './controller';
 import { createOneRequestSchema, getAllRequestSchema, getByIdRequestSchema, updateOneRequestSchema } from './validations';
-import {
-    authenticateJWT,
-    AuthenticatedRequest,
-    validateRequest,
-    wrapController,
-} from '@scholarly/utils';
-import { UsersRoles } from '@scholarly/shared';
 
 export const usersRouter = Router();
 

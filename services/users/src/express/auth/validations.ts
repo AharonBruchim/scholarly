@@ -1,14 +1,13 @@
 import { createUserSchema } from '@scholarly/shared';
 import { z } from 'zod';
 
-const passwordByteLength = (password: string): number => (
-    new TextEncoder().encode(password).byteLength
-);
+const passwordByteLength = (password: string): number => new TextEncoder().encode(password).byteLength;
 
 export const loginRequestSchema = z.object({
     body: z.object({
         email: z.string().trim().email('Invalid email address'),
-        password: z.string()
+        password: z
+            .string()
             .min(1, 'Password is required')
             .refine((password) => passwordByteLength(password) <= 72, 'Password is too long'),
     }),

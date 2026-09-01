@@ -1,6 +1,6 @@
-import nodemailer from 'nodemailer';
-import { PaymentFormData } from './interface';
 import { ServiceError } from '@scholarly/utils';
+import nodemailer from 'nodemailer';
+import type { PaymentFormData } from './interface';
 
 const { GMAIL_SENDER, GMAIL_APP_PASSWORD } = process.env;
 
@@ -31,8 +31,8 @@ function buildHtmlEmail(p: PaymentFormData): string {
     return `<div dir="rtl" style="font-family: Arial, sans-serif; font-size:16px; line-height:1.7; white-space:pre-wrap;">${esc(buildText(p))}</div>`;
 }
 
-export class BillingManager {
-    static sendPaymentEmail = async (payment: PaymentFormData, pdfBuffer: Buffer) => {
+export const BillingManager = {
+    sendPaymentEmail: async (payment: PaymentFormData, pdfBuffer: Buffer) => {
         if (!GMAIL_SENDER || !GMAIL_APP_PASSWORD) {
             throw new ServiceError('Missing email configuration in environment variables', 500);
         }
@@ -55,5 +55,5 @@ export class BillingManager {
         });
 
         return { ok: true, messageId: info.messageId };
-    };
-}
+    },
+};

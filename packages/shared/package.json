@@ -1,17 +1,17 @@
 {
-    "name": "@scholarly/shared",
-    "version": "1.0.0",
-    "private": true,
-    "type": "module",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "exports": {
-        ".": "./dist/index.js"
-    },
-    "scripts": {
+  "name": "@scholarly/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
     "build": "tsc -p tsconfig.json && node ../../scripts/fix-esm-imports.mjs dist"
-    },
-    "devDependencies": {
-        "typescript": "^5.6.3"
-    }
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
 }

@@ -1,7 +1,7 @@
+import { logger } from '@scholarly/utils';
 import mongoose from 'mongoose';
 import { config } from './config';
 import { Server } from './express/server';
-import { logger } from '@scholarly/utils';
 
 const { mongo, service } = config;
 

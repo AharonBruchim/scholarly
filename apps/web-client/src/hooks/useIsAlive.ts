@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
 import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
@@ -29,7 +29,7 @@ export const useIsAlive = () => {
     isError: false,
   });
 
-  const checkIsAlive = async () => {
+  const checkIsAlive = useCallback(async () => {
     setState({ isLoading: true, isSuccess: false, isError: false });
 
     try {
@@ -45,11 +45,11 @@ export const useIsAlive = () => {
           : "Unknown error occurred",
       });
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkIsAlive();
-  }, []);
+  }, [checkIsAlive]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -61,10 +61,9 @@ export const useIsAlive = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [state.isSuccess, state.isLoading]);
+  }, [state.isSuccess, state.isLoading, checkIsAlive]);
 
   return {
     ...state,
   };
 };
-

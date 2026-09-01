@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { ToastContainer } from "react-toastify";
-import { Layout } from "./components/Layout/Layout";
+import AppRoutes from "./components/AppRoutes/AppRoutes";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { Spinner } from "./components/common/Spinner";
-import AppRoutes from "./components/AppRoutes/AppRoutes";
+import { Layout } from "./components/Layout/Layout";
 
 export default function App() {
   return (

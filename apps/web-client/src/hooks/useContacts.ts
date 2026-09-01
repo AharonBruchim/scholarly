@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useShallow } from "zustand/react/shallow";
 import { FirestoreClient } from "../services/FirestoreClient";
-import { Contact } from "../types/contact";
 import { useContactsStore } from "../stores/contacts";
+import type { Contact } from "../types/contact";
 
 type Options = { autoFetch?: boolean };
 
@@ -38,7 +38,7 @@ export function useContacts({ autoFetch = true }: Options = {}) {
       setDeleteId: s.setDeleteId,
       setUpdateId: s.setUpdateId,
       setSelectedContactId: s.setSelectedContactId,
-    }))
+    })),
   );
 
   const fetchContacts = useCallback(async () => {
@@ -67,7 +67,7 @@ export function useContacts({ autoFetch = true }: Options = {}) {
         setUpdateId(null);
       }
     },
-    [fetchContacts, setUpdateId]
+    [fetchContacts, setUpdateId],
   );
 
   const deleteContact = useCallback(
@@ -83,7 +83,7 @@ export function useContacts({ autoFetch = true }: Options = {}) {
         setDeleteId(null);
       }
     },
-    [fetchContacts, setDeleteId]
+    [fetchContacts, setDeleteId],
   );
 
   const createContact = useCallback(
@@ -111,28 +111,26 @@ export function useContacts({ autoFetch = true }: Options = {}) {
         setLoading(false);
       }
     },
-    [fetchContacts, setLoading, navigate]
+    [fetchContacts, setLoading, navigate],
   );
 
   const sendMessage = useCallback(
     (name: string, email: string) => {
       navigate(
-        `/requests?clientName=${encodeURIComponent(
-          name
-        )}&clientEmail=${encodeURIComponent(email)}`
+        `/requests?clientName=${encodeURIComponent(name)}&clientEmail=${encodeURIComponent(email)}`,
       );
     },
-    [navigate]
+    [navigate],
   );
 
   const selectContact = useCallback(
     (id: string | null) => setSelectedContactId(id),
-    [setSelectedContactId]
+    [setSelectedContactId],
   );
 
   const selectedContact = useMemo(
     () => contacts.find((c) => c.id === selectedContactId) ?? null,
-    [contacts, selectedContactId]
+    [contacts, selectedContactId],
   );
 
   useEffect(() => {

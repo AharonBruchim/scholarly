@@ -1,11 +1,6 @@
-import { z } from 'zod';
+import { bankAccountSchema, createUserSchema, phoneSchema, UsersRoles } from '@scholarly/shared';
 import { zodMongoObjectId } from '@scholarly/utils';
-import { 
-  UsersRoles, 
-  createUserSchema, 
-  phoneSchema, 
-  bankAccountSchema 
-} from '@scholarly/shared';
+import { z } from 'zod';
 
 // GET /api/users
 export const getAllRequestSchema = z.object({
@@ -32,13 +27,15 @@ export const createOneRequestSchema = z.object({
 
 // PATCH /api/users/:id
 export const updateOneRequestSchema = z.object({
-    body: z.object({
-        firstName: z.string().trim().min(1).optional(),
-        lastName: z.string().trim().min(1).optional(),
-        email: z.string().trim().email().optional(),
-        phone: phoneSchema.partial().optional(),
-        bankAccount: bankAccountSchema.partial().optional(),
-    }).strict(),
+    body: z
+        .object({
+            firstName: z.string().trim().min(1).optional(),
+            lastName: z.string().trim().min(1).optional(),
+            email: z.string().trim().email().optional(),
+            phone: phoneSchema.partial().optional(),
+            bankAccount: bankAccountSchema.partial().optional(),
+        })
+        .strict(),
     query: z.object({}),
     params: z.object({
         id: zodMongoObjectId,

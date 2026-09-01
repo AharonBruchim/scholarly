@@ -5,9 +5,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField } from "@/components/ui/form";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/context/auth-context-core";
 import { useLoginMutation } from "@/hooks/useAuthQueries";
-import { loginSchema, type LoginFormValues } from "@/types/auth";
+import { type LoginFormValues, loginSchema } from "@/types/auth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -64,7 +64,10 @@ export default function LoginPage() {
           </Form>
 
           <p className="mt-4 text-center text-sm text-slate-300">
-            Need an account? <Link to="/register" className="font-medium text-sky-400 hover:text-sky-300">Create one</Link>
+            Need an account?{" "}
+            <Link to="/register" className="font-medium text-sky-400 hover:text-sky-300">
+              Create one
+            </Link>
           </p>
         </CardContent>
       </Card>

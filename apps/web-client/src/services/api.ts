@@ -1,6 +1,6 @@
-import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
-import { type CreateUserValues } from "@scholarly/shared";
-import { type AuthSession } from "@/types/auth";
+import type { CreateUserValues } from "@scholarly/shared";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import type { AuthSession } from "@/types/auth";
 
 const API_GATEWAY_URL = import.meta.env.VITE_AUTH_API_URL ?? "/api";
 
@@ -54,12 +54,12 @@ apiClient.interceptors.response.use(
     const message = error.response?.data?.message ?? error.message ?? "Request failed.";
 
     return Promise.reject(new Error(message));
-  }
+  },
 );
 
 export const authApi = {
   login: async (email: string, password: string): Promise<AuthSession> => {
-    const response = await apiClient.post<AuthSession>('/auth/login', { email, password });
+    const response = await apiClient.post<AuthSession>("/auth/login", { email, password });
 
     const session = response.data;
     setStoredSession(session);
@@ -67,7 +67,7 @@ export const authApi = {
   },
 
   register: async (data: CreateUserValues): Promise<AuthSession> => {
-    const response = await apiClient.post<AuthSession>('/auth/register', data);
+    const response = await apiClient.post<AuthSession>("/auth/register", data);
 
     const session = response.data;
     setStoredSession(session);
@@ -80,11 +80,21 @@ export const authApi = {
 };
 
 export async function fetchTeacherOverview() {
-  const response = await apiClient.get<{ teacherId: string; classes: string[]; students: string[]; nextLesson: string }>(`/teachers/overview`);
+  const response = await apiClient.get<{
+    teacherId: string;
+    classes: string[];
+    students: string[];
+    nextLesson: string;
+  }>(`/teachers/overview`);
   return response.data;
 }
 
 export async function fetchStudentOverview() {
-  const response = await apiClient.get<{ studentId: string; classes: string[]; schedule: string[]; grades: { course: string; score: number }[] }>(`/students/overview`);
+  const response = await apiClient.get<{
+    studentId: string;
+    classes: string[];
+    schedule: string[];
+    grades: { course: string; score: number }[];
+  }>(`/students/overview`);
   return response.data;
 }

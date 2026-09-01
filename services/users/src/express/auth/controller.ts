@@ -1,22 +1,18 @@
-import { Response } from 'express';
-import { TypedRequest } from '@scholarly/utils';
+import type { TypedRequest } from '@scholarly/utils';
+import type { Response } from 'express';
 import { AuthManager } from './manager';
-import {
-    loginRequestSchema,
-    refreshRequestSchema,
-    registerRequestSchema,
-} from './validations';
+import type { loginRequestSchema, refreshRequestSchema, registerRequestSchema } from './validations';
 
-export class AuthController {
-    static register = async (req: TypedRequest<typeof registerRequestSchema>, res: Response) => {
+export const AuthController = {
+    register: async (req: TypedRequest<typeof registerRequestSchema>, res: Response) => {
         res.status(201).json(await AuthManager.register(req.body));
-    };
+    },
 
-    static login = async (req: TypedRequest<typeof loginRequestSchema>, res: Response) => {
+    login: async (req: TypedRequest<typeof loginRequestSchema>, res: Response) => {
         res.json(await AuthManager.login(req.body.email, req.body.password));
-    };
+    },
 
-    static refresh = async (req: TypedRequest<typeof refreshRequestSchema>, res: Response) => {
+    refresh: async (req: TypedRequest<typeof refreshRequestSchema>, res: Response) => {
         res.json(await AuthManager.refresh(req.body.refreshToken));
-    };
-}
+    },
+};

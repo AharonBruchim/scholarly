@@ -18,12 +18,10 @@ export const baseUserSchema = z.object({
     lastName: z.string().trim().min(1, 'שם משפחה הוא שדה חובה'),
     email: z.string().trim().email('כתובת אימייל לא תקינה'),
     phone: phoneSchema,
-    password: z.string()
+    password: z
+        .string()
         .min(8, 'סיסמה חייבת להכיל לפחות 8 תווים')
-        .refine(
-            (password) => new TextEncoder().encode(password).byteLength <= 72,
-            'הסיסמה ארוכה מדי',
-        ),
+        .refine((password) => new TextEncoder().encode(password).byteLength <= 72, 'הסיסמה ארוכה מדי'),
 });
 
 export const studentSchema = baseUserSchema.extend({
@@ -35,9 +33,6 @@ export const teacherSchema = baseUserSchema.extend({
     bankAccount: bankAccountSchema,
 });
 
-export const createUserSchema = z.discriminatedUnion('role', [
-    studentSchema,
-    teacherSchema,
-]);
+export const createUserSchema = z.discriminatedUnion('role', [studentSchema, teacherSchema]);
 
 export type CreateUserValues = z.infer<typeof createUserSchema>;

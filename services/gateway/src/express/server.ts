@@ -1,9 +1,9 @@
-import { once } from 'events';
+import { once } from 'node:events';
+import type http from 'node:http';
+import { errorMiddleware, loggerMiddleware } from '@scholarly/utils';
+import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-import http from 'http';
-import cors from 'cors';
-import { loggerMiddleware, errorMiddleware } from '@scholarly/utils';
 import { appRouter } from './router';
 
 export class Server {
@@ -17,9 +17,9 @@ export class Server {
 
     static createExpressApp() {
         const app = express();
-        
-        const allowedOrigins = process.env['CORS_ORIGIN']
-            ? process.env['CORS_ORIGIN'].split(',').map((origin) => origin.trim())
+
+        const allowedOrigins = process.env.CORS_ORIGIN
+            ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim())
             : ['http://localhost:5000', 'http://localhost:5173'];
 
         const corsOptions: cors.CorsOptions = {
@@ -35,7 +35,7 @@ export class Server {
         app.use(
             helmet({
                 crossOriginResourcePolicy: { policy: 'cross-origin' },
-            })
+            }),
         );
 
         app.use(express.json());

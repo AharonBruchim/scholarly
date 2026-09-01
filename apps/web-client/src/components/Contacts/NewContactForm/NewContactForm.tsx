@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { type FormEvent, useState } from "react";
 
 export default function NewContactForm() {
   const [name, setName] = useState("");
@@ -39,7 +39,10 @@ export default function NewContactForm() {
           />
         </label>
 
-        <button type="submit" className="w-full rounded-md bg-sky-500 px-4 py-2.5 text-sm font-medium text-slate-950 hover:bg-sky-400">
+        <button
+          type="submit"
+          className="w-full rounded-md bg-sky-500 px-4 py-2.5 text-sm font-medium text-slate-950 hover:bg-sky-400"
+        >
           Save
         </button>
       </form>

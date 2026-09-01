@@ -1,7 +1,7 @@
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import { AuthSession, AuthUser, UsersRoles, type CreateUserValues } from '@scholarly/shared';
+import { type AuthSession, type AuthUser, type CreateUserValues, UsersRoles } from '@scholarly/shared';
 import { ServiceError, UnauthorizedError } from '@scholarly/utils';
-import { PublicUser } from '../users/interface';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
+import type { PublicUser } from '../users/interface';
 import { UserManager } from '../users/manager';
 
 const TOKEN_ISSUER = 'scholarly-users';
@@ -35,11 +35,7 @@ function getTokenSecrets(): TokenSecrets {
     };
 
     if (secrets.access === secrets.refresh) {
-        throw new ServiceError(
-            'JWT_SECRET and JWT_REFRESH_SECRET must be different',
-            500,
-            'AUTH_CONFIGURATION_ERROR',
-        );
+        throw new ServiceError('JWT_SECRET and JWT_REFRESH_SECRET must be different', 500, 'AUTH_CONFIGURATION_ERROR');
     }
 
     return secrets;
@@ -59,16 +55,16 @@ function createSession(user: PublicUser, secrets: TokenSecrets): AuthSession {
         role: user.role,
     };
 
-    const accessToken = jwt.sign(
-        { ...commonClaims, tokenType: 'access' },
-        secrets.access,
-        { expiresIn: '15m', issuer: TOKEN_ISSUER, audience: TOKEN_AUDIENCE },
-    );
-    const refreshToken = jwt.sign(
-        { ...commonClaims, tokenType: 'refresh' },
-        secrets.refresh,
-        { expiresIn: '7d', issuer: TOKEN_ISSUER, audience: TOKEN_AUDIENCE },
-    );
+    const accessToken = jwt.sign({ ...commonClaims, tokenType: 'access' }, secrets.access, {
+        expiresIn: '15m',
+        issuer: TOKEN_ISSUER,
+        audience: TOKEN_AUDIENCE,
+    });
+    const refreshToken = jwt.sign({ ...commonClaims, tokenType: 'refresh' }, secrets.refresh, {
+        expiresIn: '7d',
+        issuer: TOKEN_ISSUER,
+        audience: TOKEN_AUDIENCE,
+    });
 
     return {
         user: toAuthUser(user),
@@ -84,10 +80,10 @@ function verifyRefreshToken(refreshToken: string, refreshSecret: string): AuthTo
         });
 
         if (
-            typeof payload === 'string'
-            || !payload.sub
-            || payload.tokenType !== 'refresh'
-            || !Object.values(UsersRoles).includes(payload.role as UsersRoles)
+            typeof payload === 'string' ||
+            !payload.sub ||
+            payload.tokenType !== 'refresh' ||
+            !Object.values(UsersRoles).includes(payload.role as UsersRoles)
         ) {
             throw new UnauthorizedError();
         }
@@ -102,14 +98,14 @@ function verifyRefreshToken(refreshToken: string, refreshSecret: string): AuthTo
     }
 }
 
-export class AuthManager {
-    static register = async (values: CreateUserValues): Promise<AuthSession> => {
+export const AuthManager = {
+    register: async (values: CreateUserValues): Promise<AuthSession> => {
         const secrets = getTokenSecrets();
         const user = await UserManager.createOne(values);
         return createSession(user, secrets);
-    };
+    },
 
-    static login = async (email: string, password: string): Promise<AuthSession> => {
+    login: async (email: string, password: string): Promise<AuthSession> => {
         const secrets = getTokenSecrets();
         const user = await UserManager.authenticate(email, password);
 
@@ -118,9 +114,9 @@ export class AuthManager {
         }
 
         return createSession(user, secrets);
-    };
+    },
 
-    static refresh = async (refreshToken: string): Promise<AuthSession> => {
+    refresh: async (refreshToken: string): Promise<AuthSession> => {
         const secrets = getTokenSecrets();
         const payload = verifyRefreshToken(refreshToken, secrets.refresh);
         const user = await UserManager.getById(payload.sub);
@@ -130,5 +126,5 @@ export class AuthManager {
         }
 
         return createSession(user, secrets);
-    };
-}
+    },
+};

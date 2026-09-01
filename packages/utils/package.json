@@ -1,21 +1,21 @@
 {
-    "name": "@scholarly/utils",
-    "version": "1.0.0",
-    "private": true,
-    "type": "module",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "exports": {
-        ".": "./dist/index.js"
-    },
-    "scripts": {
+  "name": "@scholarly/utils",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
     "build": "tsc -p tsconfig.json && node ../../scripts/fix-esm-imports.mjs dist"
-    },
-    "dependencies": {
-        "zod": "^3.21.4"
-    },
-    "devDependencies": {
-        "@types/node": "^20.19.11",
-        "typescript": "^5.6.3"
-    }
+  },
+  "dependencies": {
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.11",
+    "typescript": "^5.6.3"
+  }
 }

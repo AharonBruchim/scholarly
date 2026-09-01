@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { config } from '../../config';
-import { IStudent, ITeacher, UserDocument, UsersRoles } from './interface';
+import { type IStudent, type ITeacher, type UserDocument, UsersRoles } from './interface';
 
 const phoneSchema = new mongoose.Schema(
     {
@@ -46,12 +46,6 @@ const teacherSchema = new mongoose.Schema<ITeacher>({
 
 export const UserModel = mongoose.model<UserDocument>(config.mongo.usersCollectionName, userSchema);
 
-export const StudentModel = UserModel.discriminator<IStudent>(
-    UsersRoles.STUDENT,
-    new mongoose.Schema<IStudent>(),
-);
+export const StudentModel = UserModel.discriminator<IStudent>(UsersRoles.STUDENT, new mongoose.Schema<IStudent>());
 
-export const TeacherModel = UserModel.discriminator<ITeacher>(
-    UsersRoles.TEACHER,
-    teacherSchema,
-);
+export const TeacherModel = UserModel.discriminator<ITeacher>(UsersRoles.TEACHER, teacherSchema);

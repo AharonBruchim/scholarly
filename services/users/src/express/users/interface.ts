@@ -1,5 +1,5 @@
-import { IBankAccount, IUser } from '@scholarly/shared';
-import { HydratedDocument } from 'mongoose';
+import type { IBankAccount, IUser } from '@scholarly/shared';
+import type { HydratedDocument } from 'mongoose';
 
 export interface UserRecord extends IUser {
     _id: string;

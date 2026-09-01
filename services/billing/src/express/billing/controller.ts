@@ -1,15 +1,15 @@
-import { Response } from 'express';
-import { createOneRequestSchema } from './validations';
-import { TypedRequest, ServiceError } from '@scholarly/utils';
+import { ServiceError, type TypedRequest } from '@scholarly/utils';
+import type { Response } from 'express';
 import { BillingManager } from './manager';
+import type { createOneRequestSchema } from './validations';
 
-export class BillingController {
-    static createOne = async (req: TypedRequest<typeof createOneRequestSchema>, res: Response) => {
+export const BillingController = {
+    createOne: async (req: TypedRequest<typeof createOneRequestSchema>, res: Response) => {
         if (!req.file?.buffer) {
             throw new ServiceError('PDF file is required', 400);
         }
 
         const result = await BillingManager.sendPaymentEmail(req.body, req.file.buffer);
         res.json(result);
-    };
-}
+    },
+};

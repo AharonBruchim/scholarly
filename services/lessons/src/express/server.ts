@@ -1,9 +1,9 @@
-import { once } from 'events';
+import { once } from 'node:events';
+import type http from 'node:http';
+import { errorMiddleware, loggerMiddleware } from '@scholarly/utils';
+import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-import http from 'http';
-import cors from 'cors';
-import { loggerMiddleware, errorMiddleware } from '@scholarly/utils';
 import { appRouter } from './router';
 
 export class Server {
@@ -19,7 +19,7 @@ export class Server {
         const app = express();
         app.use(
             cors({
-                origin: process.env['CORS_ORIGIN'] ? process.env['CORS_ORIGIN'] : ['http://localhost:5000'],
+                origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN : ['http://localhost:5000'],
             }),
         );
 

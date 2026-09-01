@@ -13,7 +13,9 @@ interface PaymentPreviewData {
 export const StyledPaymentPreview = ({ data }: { data: PaymentPreviewData }) => {
   return (
     <div className="rounded-2xl border border-slate-700 bg-white p-6 text-slate-900 shadow-lg">
-      <h3 className="text-center text-xl font-bold text-sky-700">Payment request for {data.clientName}</h3>
+      <h3 className="text-center text-xl font-bold text-sky-700">
+        Payment request for {data.clientName}
+      </h3>
       <div className="mt-4 space-y-2 text-sm">
         <p>Amount: {data.amount}</p>
         <p>Date: {data.date || "Not provided"}</p>

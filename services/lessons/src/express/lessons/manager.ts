@@ -1,30 +1,25 @@
-import { FilterQuery } from 'mongoose';
-import { 
-    ILesson, 
-    ILessonUpdate, 
-    LessonDocument, 
-    ListLessonsQuery 
-} from './interface';
-import { LessonModel } from './model';
 import { ServiceError } from '@scholarly/utils';
+import type { FilterQuery } from 'mongoose';
+import type { ILesson, ILessonUpdate, LessonDocument, ListLessonsQuery } from './interface';
+import { LessonModel } from './model';
 
-export class LessonManager {
-    static createOne = async (lesson: ILesson): Promise<LessonDocument> => {
+export const LessonManager = {
+    createOne: async (lesson: ILesson): Promise<LessonDocument> => {
         if (lesson.startTime >= lesson.endTime) {
             throw new ServiceError('End time must be after start time', 400);
         }
         return LessonModel.create(lesson);
-    };
+    },
 
-    static getById = async (id: string): Promise<LessonDocument | null> => {
+    getById: async (id: string): Promise<LessonDocument | null> => {
         return LessonModel.findById(id);
-    };
+    },
 
-    static deleteOne = async (id: string): Promise<LessonDocument | null> => {
+    deleteOne: async (id: string): Promise<LessonDocument | null> => {
         return LessonModel.findByIdAndDelete(id);
-    };
+    },
 
-    static updateOne = async (id: string, lessonUpdate: ILessonUpdate): Promise<LessonDocument | null> => {
+    updateOne: async (id: string, lessonUpdate: ILessonUpdate): Promise<LessonDocument | null> => {
         const lesson = await LessonModel.findById(id);
         if (!lesson) {
             return null;
@@ -40,9 +35,9 @@ export class LessonManager {
         lesson.set(lessonUpdate);
         await lesson.save();
         return lesson;
-    };
+    },
 
-    static getAll = async (filters: ListLessonsQuery): Promise<LessonDocument[]> => {
+    getAll: async (filters: ListLessonsQuery): Promise<LessonDocument[]> => {
         const query: FilterQuery<LessonDocument> = {};
 
         if (filters.studentId) query.studentId = filters.studentId;
@@ -56,5 +51,5 @@ export class LessonManager {
         }
 
         return LessonModel.find(query);
-    };
-}
+    },
+};

@@ -4,15 +4,18 @@ import { config } from '../../config';
 
 export const lessonsRouter = Router();
 
-const { lessons: { uri }, service } = config;
+const {
+    lessons: { uri },
+    service,
+} = config;
 
 lessonsRouter.use(
     '/',
     createProxyMiddleware({
         target: uri,
         on: {
-            proxyReq: fixRequestBody, 
+            proxyReq: fixRequestBody,
         },
         proxyTimeout: service.requestTimeout,
-    })
+    }),
 );
