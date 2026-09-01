@@ -1,48 +1,74 @@
-import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
+
+import { LessonDataError } from "@/components/dashboard/LessonDataError";
+import { Spinner } from "@/components/common/Spinner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDashboardLessons } from "@/hooks/useDashboard";
+import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
 
 export default function StudentDashboardPage() {
+  const { t, i18n } = useTranslation();
+  const lessonsQuery = useDashboardLessons();
+  const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">Student dashboard</p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">My learning</h1>
+      <div>
+        <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">
+          {t("dashboard.studentLabel")}
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold text-white">{t("dashboard.studentTitle")}</h1>
+      </div>
+
+      {lessonsQuery.isPending ? <Spinner compact /> : null}
+      {lessonsQuery.isError ? (
+        <LessonDataError onRetry={() => void lessonsQuery.refetch()} />
+      ) : null}
+
+      {lessonsQuery.isSuccess ? (
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("dashboard.subjects")}</CardTitle>
+              <CardDescription>{t("dashboard.subjectsDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold text-white">{stats.subjectCount}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("dashboard.scheduledLessons")}</CardTitle>
+              <CardDescription>{t("dashboard.scheduledDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold text-white">{stats.upcomingLessonCount}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("dashboard.nextLesson")}</CardTitle>
+              <CardDescription>
+                {stats.nextLesson
+                  ? t("dashboard.nextLessonWithSubject", {
+                      subject: stats.nextLesson.subject,
+                      date: formatLessonDateTime(stats.nextLesson.startTime, i18n.language),
+                    })
+                  : t("dashboard.noUpcomingLesson")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xl font-semibold text-white">
+                {stats.nextLesson
+                  ? formatLessonDateTime(stats.nextLesson.startTime, i18n.language)
+                  : t("common.none")}
+              </p>
+            </CardContent>
+          </Card>
         </div>
-        <Button variant="secondary">Enroll now</Button>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Courses</CardTitle>
-            <CardDescription>Current enrollments</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold text-white">6</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Average</CardTitle>
-            <CardDescription>Across this term</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold text-white">92%</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Schedule</CardTitle>
-            <CardDescription>Next lesson tomorrow</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold text-white">9:30 AM</p>
-          </CardContent>
-        </Card>
-      </div>
+      ) : null}
     </div>
   );
 }

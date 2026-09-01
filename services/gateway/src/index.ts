@@ -1,21 +1,10 @@
 import { logger } from '@scholarly/utils';
-import mongoose from 'mongoose';
 import { config } from './config';
 import { Server } from './express/server';
 
-const { mongo, service } = config;
-
-const initializeMongo = async () => {
-    logger.info('Connecting to Mongo...');
-
-    await mongoose.connect(mongo.uri);
-
-    logger.info('Mongo connection established');
-};
+const { service } = config;
 
 const main = async () => {
-    await initializeMongo();
-
     const server = new Server(service.port);
 
     await server.start();

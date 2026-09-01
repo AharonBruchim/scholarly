@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "dev": "concurrently --names 'web-client,billing,lessons,users' --prefix '[{name}]' 'npm run dev -w apps/web-client' 'npm run dev -w services/billing' 'npm run dev -w services/lessons' 'npm run dev -w services/users'",
-    "dev:services": "concurrently --names 'billing,lessons,users' --prefix '[{name}]' 'npm run dev -w services/billing' 'npm run dev -w services/lessons' 'npm run dev -w services/users'",
+    "dev": "concurrently --names 'web-client,gateway,billing,lessons,users' --prefix '[{name}]' 'npm run dev -w apps/web-client' 'USERS_SERVICE_URI=http://localhost:5000 BILLING_SERVICE_URI=http://localhost:8000 LESSONS_SERVICE_URI=http://localhost:6000 npm run dev -w services/gateway' 'npm run dev -w services/billing' 'npm run dev -w services/lessons' 'npm run dev -w services/users'",
+    "dev:services": "concurrently --names 'gateway,billing,lessons,users' --prefix '[{name}]' 'USERS_SERVICE_URI=http://localhost:5000 BILLING_SERVICE_URI=http://localhost:8000 LESSONS_SERVICE_URI=http://localhost:6000 npm run dev -w services/gateway' 'npm run dev -w services/billing' 'npm run dev -w services/lessons' 'npm run dev -w services/users'",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",

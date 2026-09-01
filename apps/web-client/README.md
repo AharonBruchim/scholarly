@@ -1,54 +1,37 @@
-# React + TypeScript + Vite
+# Scholarly web client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React/Vite client for Scholarly.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+From the repository root:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The Vite development server proxies `/api` to the gateway on `http://localhost:3000`. The root `npm run dev` command starts the gateway with local service URLs for users (`5000`), lessons (`6000`), and billing (`8000`).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Localization
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+The client uses `i18next` and `react-i18next`. Hebrew is the default language and English is available from the language control in the header.
+
+- Translation resources: `src/i18n/index.ts`
+- Saved preference: `localStorage["scholarly.language"]`
+- Hebrew sets `<html lang="he" dir="rtl">`
+- English sets `<html lang="en" dir="ltr">`
+- Dates and times are formatted with `Intl.DateTimeFormat` for `he-IL` or `en-US`
+
+User-facing text on active routes must be added to both translation resources instead of being written directly in JSX.
+
+## Dashboard data
+
+Both dashboards read real lesson records from `GET /api/lessons`:
+
+- Students send `studentId=<authenticated user id>`.
+- Teachers send `teacherId=<authenticated user id>`.
+- Upcoming lessons are non-cancelled, scheduled lessons whose start time is in the future.
+- Subject and student counts are calculated from returned lesson records.
+
+The product does not have grades, so the dashboard deliberately contains no grade or average metric.

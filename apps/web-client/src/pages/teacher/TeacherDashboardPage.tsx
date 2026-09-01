@@ -1,124 +1,175 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
+import { LessonDataError } from "@/components/dashboard/LessonDataError";
+import { Spinner } from "@/components/common/Spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/auth-context-core";
+import { useDashboardLessons } from "@/hooks/useDashboard";
+import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
+import { updateTeacherBankAccount as persistTeacherBankAccount } from "@/services/api";
 
-const defaultBankAccount = {
+const emptyBankAccount = {
   bankName: "",
   branchNumber: "",
   accountNumber: "",
 };
 
 export default function TeacherDashboardPage() {
+  const { t, i18n } = useTranslation();
   const { user, updateTeacherBankAccount } = useAuth();
-  const [form, setForm] = useState(defaultBankAccount);
-  const [submitted, setSubmitted] = useState(Boolean(user?.bankAccount));
+  const lessonsQuery = useDashboardLessons();
+  const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
+  const [bankForm, setBankForm] = useState(() => user?.bankAccount ?? emptyBankAccount);
+  const [isSavingBankAccount, setIsSavingBankAccount] = useState(false);
+  const [bankAccountError, setBankAccountError] = useState<string | null>(null);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleBankAccountSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    updateTeacherBankAccount(form);
-    setSubmitted(true);
+
+    if (!user) {
+      return;
+    }
+
+    setIsSavingBankAccount(true);
+    setBankAccountError(null);
+
+    try {
+      await persistTeacherBankAccount(user.id, bankForm);
+      updateTeacherBankAccount(bankForm);
+    } catch {
+      setBankAccountError(t("dashboard.bankSaveFailed"));
+    } finally {
+      setIsSavingBankAccount(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-sky-400">Teacher dashboard</p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">Overview</h1>
-        </div>
-        <Button>Create class</Button>
+      <div>
+        <p className="text-sm uppercase tracking-[0.2em] text-sky-400">
+          {t("dashboard.teacherLabel")}
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold text-white">{t("dashboard.teacherTitle")}</h1>
       </div>
 
-      {!user?.bankAccount && !submitted ? (
+      {!user?.bankAccount ? (
         <Card className="border-amber-500/40 bg-amber-500/10">
           <CardHeader>
-            <CardTitle className="text-amber-200">Complete your bank details</CardTitle>
+            <CardTitle className="text-amber-200">{t("dashboard.bankPromptTitle")}</CardTitle>
             <CardDescription className="text-amber-100/80">
-              Add your bank account to continue and receive teacher payouts.
+              {t("dashboard.bankPromptDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="grid gap-4 md:grid-cols-3" onSubmit={handleSubmit}>
+            <form className="grid gap-4 md:grid-cols-3" onSubmit={handleBankAccountSubmit}>
               <label className="space-y-2 text-sm text-slate-200">
-                <span>Bank name</span>
+                <span>{t("dashboard.bankName")}</span>
                 <input
-                  value={form.bankName}
+                  value={bankForm.bankName}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, bankName: event.target.value }))
+                    setBankForm((current) => ({ ...current, bankName: event.target.value }))
                   }
                   className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
-                  placeholder="Bank Hapoalim"
+                  autoComplete="organization"
                   required
                 />
               </label>
 
               <label className="space-y-2 text-sm text-slate-200">
-                <span>Branch number</span>
+                <span>{t("dashboard.branchNumber")}</span>
                 <input
-                  value={form.branchNumber}
+                  value={bankForm.branchNumber}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, branchNumber: event.target.value }))
+                    setBankForm((current) => ({ ...current, branchNumber: event.target.value }))
                   }
                   className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
-                  placeholder="123"
+                  inputMode="numeric"
                   required
                 />
               </label>
 
               <label className="space-y-2 text-sm text-slate-200">
-                <span>Account number</span>
+                <span>{t("dashboard.accountNumber")}</span>
                 <input
-                  value={form.accountNumber}
+                  value={bankForm.accountNumber}
                   onChange={(event) =>
-                    setForm((current) => ({ ...current, accountNumber: event.target.value }))
+                    setBankForm((current) => ({ ...current, accountNumber: event.target.value }))
                   }
                   className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
-                  placeholder="012345678"
+                  inputMode="numeric"
                   required
                 />
               </label>
 
-              <div className="md:col-span-3 flex justify-end">
-                <Button type="submit">Save bank details</Button>
+              {bankAccountError ? (
+                <p className="text-sm text-red-300 md:col-span-3" role="alert">
+                  {bankAccountError}
+                </p>
+              ) : null}
+
+              <div className="flex justify-end md:col-span-3">
+                <Button type="submit" disabled={isSavingBankAccount}>
+                  {isSavingBankAccount
+                    ? t("dashboard.savingBankDetails")
+                    : t("dashboard.saveBankDetails")}
+                </Button>
               </div>
             </form>
           </CardContent>
         </Card>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Classes</CardTitle>
-            <CardDescription>12 active classes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold text-white">12</p>
-          </CardContent>
-        </Card>
+      {lessonsQuery.isPending ? <Spinner compact /> : null}
+      {lessonsQuery.isError ? (
+        <LessonDataError onRetry={() => void lessonsQuery.refetch()} />
+      ) : null}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Students</CardTitle>
-            <CardDescription>Across all programs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold text-white">148</p>
-          </CardContent>
-        </Card>
+      {lessonsQuery.isSuccess ? (
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("dashboard.scheduledLessons")}</CardTitle>
+              <CardDescription>{t("dashboard.scheduledDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold text-white">{stats.upcomingLessonCount}</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Schedule</CardTitle>
-            <CardDescription>Next lesson in 2h</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold text-white">3:00 PM</p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("dashboard.students")}</CardTitle>
+              <CardDescription>{t("dashboard.studentsDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold text-white">{stats.studentCount}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("dashboard.nextLesson")}</CardTitle>
+              <CardDescription>
+                {stats.nextLesson
+                  ? t("dashboard.nextLessonWithSubject", {
+                      subject: stats.nextLesson.subject,
+                      date: formatLessonDateTime(stats.nextLesson.startTime, i18n.language),
+                    })
+                  : t("dashboard.noUpcomingLesson")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xl font-semibold text-white">
+                {stats.nextLesson
+                  ? formatLessonDateTime(stats.nextLesson.startTime, i18n.language)
+                  : t("common.none")}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -3,13 +3,13 @@ import { z } from "zod";
 export const userRoleSchema = z.enum(["teacher", "student"]);
 
 export const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address."),
+  email: z.string().email("validation.email"),
   password: z
     .string()
-    .min(1, "Password is required.")
+    .min(1, "validation.passwordRequired")
     .refine(
       (password) => new TextEncoder().encode(password).byteLength <= 72,
-      "Password is too long.",
+      "validation.passwordTooLong",
     ),
 });
 

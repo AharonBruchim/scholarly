@@ -1,5 +1,6 @@
 import { type CreateUserValues, createUserSchema, UsersRoles } from "@scholarly/shared";
 import { useForm } from "@tanstack/react-form";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,20 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context-core";
 import { useRegisterMutation } from "@/hooks/useAuthQueries";
 
+const validationKeyByMessage: Record<string, string> = {
+  "מספר טלפון לא תקין": "validation.phone",
+  "שם הבנק הוא שדה חובה": "validation.bankNameRequired",
+  "מספר סניף הוא שדה חובה": "validation.branchNumberRequired",
+  "מספר חשבון הוא שדה חובה": "validation.accountNumberRequired",
+  "שם פרטי הוא שדה חובה": "validation.firstNameRequired",
+  "שם משפחה הוא שדה חובה": "validation.lastNameRequired",
+  "כתובת אימייל לא תקינה": "validation.email",
+  "סיסמה חייבת להכיל לפחות 8 תווים": "validation.passwordMinLength",
+  "הסיסמה ארוכה מדי": "validation.passwordTooLong",
+};
+
 function FieldErrors({ errors }: { errors: readonly unknown[] }) {
+  const { t } = useTranslation();
   const messages = errors.flatMap((error) => {
     if (typeof error === "string") {
       return [error];
@@ -20,17 +34,22 @@ function FieldErrors({ errors }: { errors: readonly unknown[] }) {
     return [];
   });
 
-  return [...new Set(messages)].map((message) => (
-    <p key={message} className="text-xs text-red-400" role="alert">
-      {message}
-    </p>
-  ));
+  return [...new Set(messages)].map((message) => {
+    const translationKey = validationKeyByMessage[message];
+
+    return (
+      <p key={message} className="text-xs text-red-400" role="alert">
+        {translationKey ? t(translationKey) : message}
+      </p>
+    );
+  });
 }
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { register: setSession } = useAuth();
   const mutation = useRegisterMutation();
+  const { t } = useTranslation();
 
   const form = useForm({
     defaultValues: {
@@ -54,8 +73,8 @@ export default function RegisterPage() {
     <div className="flex min-h-[80vh] items-center justify-center px-4">
       <Card className="w-full max-w-lg">
         <CardHeader>
-          <CardTitle>יצירת חשבון</CardTitle>
-          <CardDescription>הרשמה כמורה או כסטודנט</CardDescription>
+          <CardTitle>{t("auth.registerTitle")}</CardTitle>
+          <CardDescription>{t("auth.registerDescription")}</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -73,7 +92,7 @@ export default function RegisterPage() {
               {(field) => (
                 <div className="space-y-1">
                   <label htmlFor="role" className="text-sm font-medium">
-                    תפקיד
+                    {t("auth.role")}
                   </label>
                   <select
                     id="role"
@@ -93,8 +112,8 @@ export default function RegisterPage() {
                     }}
                     className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
                   >
-                    <option value={UsersRoles.STUDENT}>סטודנט</option>
-                    <option value={UsersRoles.TEACHER}>מורה</option>
+                    <option value={UsersRoles.STUDENT}>{t("auth.student")}</option>
+                    <option value={UsersRoles.TEACHER}>{t("auth.teacher")}</option>
                   </select>
                 </div>
               )}
@@ -105,7 +124,7 @@ export default function RegisterPage() {
                 {(field) => (
                   <div className="space-y-1">
                     <label htmlFor="firstName" className="text-sm font-medium">
-                      שם פרטי
+                      {t("auth.firstName")}
                     </label>
                     <Input
                       id="firstName"
@@ -114,7 +133,7 @@ export default function RegisterPage() {
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="ישראל"
+                      placeholder={t("auth.firstNamePlaceholder")}
                     />
                     <FieldErrors errors={field.state.meta.errors} />
                   </div>
@@ -125,7 +144,7 @@ export default function RegisterPage() {
                 {(field) => (
                   <div className="space-y-1">
                     <label htmlFor="lastName" className="text-sm font-medium">
-                      שם משפחה
+                      {t("auth.lastName")}
                     </label>
                     <Input
                       id="lastName"
@@ -134,7 +153,7 @@ export default function RegisterPage() {
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="ישראלי"
+                      placeholder={t("auth.lastNamePlaceholder")}
                     />
                     <FieldErrors errors={field.state.meta.errors} />
                   </div>
@@ -146,7 +165,7 @@ export default function RegisterPage() {
               {(field) => (
                 <div className="space-y-1">
                   <label htmlFor="email" className="text-sm font-medium">
-                    אימייל
+                    {t("auth.email")}
                   </label>
                   <Input
                     id="email"
@@ -167,7 +186,7 @@ export default function RegisterPage() {
               {(field) => (
                 <div className="space-y-1">
                   <label htmlFor="phone" className="text-sm font-medium">
-                    מספר טלפון
+                    {t("auth.phone")}
                   </label>
                   <Input
                     id="phone"
@@ -189,7 +208,7 @@ export default function RegisterPage() {
               {(field) => (
                 <div className="space-y-1">
                   <label htmlFor="password" className="text-sm font-medium">
-                    סיסמה
+                    {t("auth.password")}
                   </label>
                   <Input
                     id="password"
@@ -199,7 +218,7 @@ export default function RegisterPage() {
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="לפחות 8 תווים"
+                    placeholder={t("auth.passwordRequirement")}
                   />
                   <FieldErrors errors={field.state.meta.errors} />
                 </div>
@@ -222,7 +241,7 @@ export default function RegisterPage() {
                       onChange={(e) => field.handleChange(e.target.checked)}
                       className="h-4 w-4 rounded border-slate-700"
                     />
-                    אני מאשר/ת קבלת הודעות ב־WhatsApp
+                    {t("auth.whatsappConsent")}
                   </label>
                 )}
               </form.Field>
@@ -242,7 +261,7 @@ export default function RegisterPage() {
                       onChange={(e) => field.handleChange(e.target.checked)}
                       className="h-4 w-4 rounded border-slate-700"
                     />
-                    אני מאשר/ת קבלת הודעות SMS
+                    {t("auth.smsConsent")}
                   </label>
                 )}
               </form.Field>
@@ -253,14 +272,14 @@ export default function RegisterPage() {
                 role === UsersRoles.TEACHER ? (
                   <div className="space-y-3 rounded-md border border-slate-800 p-3 bg-slate-900/40">
                     <h4 className="text-sm font-semibold text-slate-200">
-                      פרטי חשבון בנק (למורים)
+                      {t("auth.bankDetails")}
                     </h4>
 
                     <form.Field name={"bankAccount.bankName" as never}>
                       {(field) => (
                         <div className="space-y-1">
                           <label htmlFor="bankName" className="text-xs font-medium">
-                            שם הבנק
+                            {t("auth.bankName")}
                           </label>
                           <Input
                             id="bankName"
@@ -281,7 +300,7 @@ export default function RegisterPage() {
                         {(field) => (
                           <div className="space-y-1">
                             <label htmlFor="branchNumber" className="text-xs font-medium">
-                              מספר סניף
+                              {t("auth.branchNumber")}
                             </label>
                             <Input
                               id="branchNumber"
@@ -302,7 +321,7 @@ export default function RegisterPage() {
                         {(field) => (
                           <div className="space-y-1">
                             <label htmlFor="accountNumber" className="text-xs font-medium">
-                              מספר חשבון
+                              {t("auth.accountNumber")}
                             </label>
                             <Input
                               id="accountNumber"
@@ -331,20 +350,22 @@ export default function RegisterPage() {
                   className="w-full"
                   disabled={!canSubmit || isSubmitting || mutation.isPending}
                 >
-                  {mutation.isPending || isSubmitting ? "יוצר חשבון..." : "הרשמה"}
+                  {mutation.isPending || isSubmitting
+                    ? t("auth.creatingAccount")
+                    : t("common.register")}
                 </Button>
               )}
             </form.Subscribe>
 
             {mutation.isError ? (
-              <p className="text-sm text-red-400">{mutation.error?.message ?? "הרשמה נכשלה."}</p>
+              <p className="text-sm text-red-400">{t("auth.registerFailed")}</p>
             ) : null}
           </form>
 
           <p className="mt-4 text-center text-sm text-slate-300">
-            כבר יש לך חשבון?{" "}
+            {t("auth.haveAccount")}{" "}
             <Link to="/login" className="font-medium text-sky-400 hover:text-sky-300">
-              התחברות
+              {t("common.login")}
             </Link>
           </p>
         </CardContent>

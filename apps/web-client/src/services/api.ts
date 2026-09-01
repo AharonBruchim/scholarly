@@ -1,13 +1,13 @@
 import type { CreateUserValues } from "@scholarly/shared";
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
-import type { AuthSession } from "@/types/auth";
+import type { AuthSession, BankAccount } from "@/types/auth";
 
-const API_GATEWAY_URL = import.meta.env.VITE_AUTH_API_URL ?? "/api";
+const API_BASE_URL = import.meta.env.VITE_AUTH_API_URL ?? "/api";
 
 const STORAGE_KEY = "scholarly.auth.session";
 
 export const apiClient = axios.create({
-  baseURL: API_GATEWAY_URL,
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -79,22 +79,33 @@ export const authApi = {
   },
 };
 
-export async function fetchTeacherOverview() {
-  const response = await apiClient.get<{
-    teacherId: string;
-    classes: string[];
-    students: string[];
-    nextLesson: string;
-  }>(`/teachers/overview`);
+export type LessonStatus = "scheduled" | "completed" | "cancelled";
+
+export interface Lesson {
+  _id: string;
+  studentId: string;
+  teacherId: string;
+  startTime: string;
+  endTime: string;
+  subject: string;
+  status: LessonStatus;
+  price: number;
+  notes?: string;
+}
+
+interface LessonFilters {
+  studentId?: string;
+  teacherId?: string;
+}
+
+export async function fetchLessons(filters: LessonFilters): Promise<Lesson[]> {
+  const response = await apiClient.get<Lesson[]>("/lessons", { params: filters });
   return response.data;
 }
 
-export async function fetchStudentOverview() {
-  const response = await apiClient.get<{
-    studentId: string;
-    classes: string[];
-    schedule: string[];
-    grades: { course: string; score: number }[];
-  }>(`/students/overview`);
-  return response.data;
+export async function updateTeacherBankAccount(
+  userId: string,
+  bankAccount: BankAccount,
+): Promise<void> {
+  await apiClient.patch(`/users/${userId}`, { bankAccount });
 }

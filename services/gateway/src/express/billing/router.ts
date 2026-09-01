@@ -5,14 +5,15 @@ import { config } from '../../config';
 export const billingRouter = Router();
 
 const {
-    billing: { uri },
+    billing: { uri, baseRoute },
     service,
 } = config;
+const target = `${uri.replace(/\/$/, '')}${baseRoute}`;
 
 billingRouter.use(
     '/',
     createProxyMiddleware({
-        target: uri,
+        target,
         on: {
             proxyReq: fixRequestBody,
         },

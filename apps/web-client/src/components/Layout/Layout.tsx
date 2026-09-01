@@ -2,11 +2,14 @@ import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
+import { LanguageToggle } from "@/components/common/LanguageToggle";
 import { useAuth } from "@/context/auth-context-core";
+import { useTranslation } from "react-i18next";
 
 export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     logout();
@@ -21,26 +24,28 @@ export function Layout({ children }: { children: ReactNode }) {
             to={isAuthenticated ? (user?.role === "teacher" ? "/teacher" : "/student") : "/login"}
             className="text-lg font-semibold text-white"
           >
-            Scholarly
+            {t("common.brand")}
           </Link>
 
           <nav className="flex items-center gap-2">
             {!isAuthenticated ? (
               <>
+                <LanguageToggle />
                 <Button asChild variant="ghost">
-                  <Link to="/login">Login</Link>
+                  <Link to="/login">{t("common.login")}</Link>
                 </Button>
                 <Button asChild>
-                  <Link to="/register">Register</Link>
+                  <Link to="/register">{t("common.register")}</Link>
                 </Button>
               </>
             ) : (
               <>
+                <LanguageToggle />
                 <span className="hidden rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-200 sm:inline-flex">
                   {user?.name}
                 </span>
                 <Button variant="secondary" onClick={handleLogout}>
-                  Logout
+                  {t("common.logout")}
                 </Button>
               </>
             )}

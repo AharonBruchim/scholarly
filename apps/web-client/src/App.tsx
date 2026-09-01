@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { ToastContainer } from "react-toastify";
 import AppRoutes from "./components/AppRoutes/AppRoutes";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
@@ -6,6 +7,8 @@ import { Spinner } from "./components/common/Spinner";
 import { Layout } from "./components/Layout/Layout";
 
 export default function App() {
+  const { i18n } = useTranslation();
+
   return (
     <>
       <ErrorBoundary>
@@ -27,7 +30,7 @@ export default function App() {
         draggable={false}
         theme="colored"
         hideProgressBar={false}
-        rtl={true}
+        rtl={i18n.dir() === "rtl"}
       />
     </>
   );

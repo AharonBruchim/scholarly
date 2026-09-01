@@ -16,11 +16,7 @@ export const config = {
         baseRoute: env.get('BILLING_BASE_ROUTE').default('/api/billing').asString(),
     },
     lessons: {
-        uri: env.get('LESSONS_SERVICE_URI').default('http://lessons:8000').asString(),
+        uri: env.get('LESSONS_SERVICE_URI').default('http://lessons:6000').asString(),
         baseRoute: env.get('LESSONS_BASE_ROUTE').default('/api/lessons').asString(),
-    },
-    mongo: {
-        uri: env.get('MONGO_URI').default('mongodb://localhost/amanPolls').asString(),
-        usersCollectionName: 'users',
     },
 };

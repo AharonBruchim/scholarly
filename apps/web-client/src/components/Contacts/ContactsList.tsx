@@ -1,14 +1,17 @@
+import { useTranslation } from "react-i18next";
+import ContactCard from "./ContactCard";
+
 type Contact = {
   id: string;
   name: string;
   email: string;
 };
 
-import ContactCard from "./ContactCard";
-
 export default function ContactsList({ contacts }: { contacts: Contact[] }) {
+  const { t } = useTranslation();
+
   if (contacts.length === 0) {
-    return <p className="text-slate-300">No contacts found.</p>;
+    return <p className="text-slate-300">{t("contacts.empty")}</p>;
   }
 
   return (
