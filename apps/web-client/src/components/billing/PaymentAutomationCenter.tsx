@@ -28,8 +28,8 @@ import {
   type PaymentRequestRecord,
 } from "@/services/api";
 
-const automationQueryKeys = [
-  "payment-requests",
+const billingQueryKeys = [
+  "billing",
   "lesson-messages",
   "payment-preview",
   "whatsapp-reminder-tasks",
@@ -193,7 +193,7 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
   const [feedback, setFeedback] = useState("");
 
   const requestsQuery = useQuery({
-    queryKey: ["payment-requests"],
+    queryKey: ["billing"],
     queryFn: fetchPaymentRequests,
   });
   const messagesQuery = useQuery({
@@ -251,13 +251,13 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
       (left, right) => new Date(left.startTime).getTime() - new Date(right.startTime).getTime(),
     );
 
-  const refreshAutomation = async () => {
+  const refreshBilling = async () => {
     await Promise.all(
-      automationQueryKeys.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
+      billingQueryKeys.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
     );
   };
 
-  const automationRefreshing =
+  const billingRefreshing =
     requestsQuery.isFetching ||
     messagesQuery.isFetching ||
     previewQuery.isFetching ||
@@ -282,7 +282,7 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
       setSelectedLessonIds([]);
       setCustomItems([]);
       setPaymentNotes("");
-      await refreshAutomation();
+      await refreshBilling();
     },
     onError: (error) =>
       setFeedback(error instanceof Error ? error.message : "יצירת דרישת התשלום נכשלה."),
@@ -306,18 +306,18 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
       setMessageLessonIds([]);
       setMessageSubject("");
       setMessageBody("");
-      await refreshAutomation();
+      await refreshBilling();
     },
     onError: (error) => setFeedback(error instanceof Error ? error.message : "שמירת ההודעה נכשלה."),
   });
 
   const cancelRequestMutation = useMutation({
     mutationFn: cancelPaymentRequest,
-    onSuccess: refreshAutomation,
+    onSuccess: refreshBilling,
   });
   const cancelMessageMutation = useMutation({
     mutationFn: cancelLessonMessage,
-    onSuccess: refreshAutomation,
+    onSuccess: refreshBilling,
   });
   const disconnectMutation = useMutation({
     mutationFn: disconnectGmail,
@@ -351,10 +351,10 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
               type="button"
               size="sm"
               variant="secondary"
-              onClick={() => void refreshAutomation()}
-              disabled={automationRefreshing}
+              onClick={() => void refreshBilling()}
+              disabled={billingRefreshing}
             >
-              {automationRefreshing ? "מרענן…" : "רענון נתונים"}
+              {billingRefreshing ? "מרענן…" : "רענון נתונים"}
             </Button>
           </div>
         </CardHeader>
@@ -747,7 +747,7 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
                   מועד פעולה: {formatDate(task.scheduledAt)} · {task.status}
                 </p>
               </div>
-              <ManualDeliveryActions delivery={task} onChanged={() => void refreshAutomation()} />
+              <ManualDeliveryActions delivery={task} onChanged={() => void refreshBilling()} />
             </article>
           ))}
           {reminderTasksQuery.isSuccess && reminderTasksQuery.data.length === 0 ? (
@@ -825,7 +825,7 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
                     </span>
                     <ManualDeliveryActions
                       delivery={delivery}
-                      onChanged={() => void refreshAutomation()}
+                      onChanged={() => void refreshBilling()}
                     />
                   </div>
                 ))}
@@ -886,7 +886,7 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
                   </span>
                   <ManualDeliveryActions
                     delivery={delivery}
-                    onChanged={() => void refreshAutomation()}
+                    onChanged={() => void refreshBilling()}
                   />
                 </div>
               ))}

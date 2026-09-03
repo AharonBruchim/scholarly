@@ -35,7 +35,7 @@ export function verifyPaymentDocumentToken(paymentRequestId: string, token: stri
 export function paymentDocumentUrl(paymentRequestId: string): string {
     const publicApiUrl = (process.env.PUBLIC_API_URL ?? 'http://localhost:3000').replace(/\/$/, '');
     const token = createPaymentDocumentToken(paymentRequestId);
-    return `${publicApiUrl}/api/billing/automation/public/payment-requests/${paymentRequestId}/pdf?token=${encodeURIComponent(token)}`;
+    return `${publicApiUrl}/api/billing/public/${paymentRequestId}/pdf?token=${encodeURIComponent(token)}`;
 }
 
 export function createLessonMessageDocumentToken(lessonMessageId: string, expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)): string {
@@ -66,7 +66,7 @@ export function verifyLessonMessageDocumentToken(lessonMessageId: string, token:
 export function lessonMessageDocumentUrl(lessonMessageId: string): string {
     const publicApiUrl = (process.env.PUBLIC_API_URL ?? 'http://localhost:3000').replace(/\/$/, '');
     const token = createLessonMessageDocumentToken(lessonMessageId);
-    return `${publicApiUrl}/api/billing/automation/public/lesson-messages/${lessonMessageId}/pdf?token=${encodeURIComponent(token)}`;
+    return `${publicApiUrl}/api/billing/public/lesson-messages/${lessonMessageId}/pdf?token=${encodeURIComponent(token)}`;
 }
 
 export function createManualDeliveryToken(deliveryId: string, expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)): string {
@@ -91,7 +91,7 @@ export function verifyManualDeliveryToken(deliveryId: string, token: string): vo
 export function manualDeliveryOpenUrl(deliveryId: string): string {
     const publicApiUrl = (process.env.PUBLIC_API_URL ?? 'http://localhost:3000').replace(/\/$/, '');
     const token = createManualDeliveryToken(deliveryId);
-    return `${publicApiUrl}/api/billing/automation/public/manual-deliveries/${deliveryId}/open?token=${encodeURIComponent(token)}`;
+    return `${publicApiUrl}/api/billing/public/manual-deliveries/${deliveryId}/open?token=${encodeURIComponent(token)}`;
 }
 
 function internationalPhoneNumber(phoneNumber: string): string {

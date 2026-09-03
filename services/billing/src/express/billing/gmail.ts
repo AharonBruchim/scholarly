@@ -13,7 +13,7 @@ const GOOGLE_SCOPES = ['openid', 'email', 'https://www.googleapis.com/auth/gmail
 function oauthConfig() {
     const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
-    const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI ?? 'http://localhost:3000/api/billing/automation/google/callback';
+    const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI ?? 'http://localhost:3000/api/billing/google/callback';
     if (!clientId || !clientSecret) {
         throw new ServiceError('Google OAuth is not configured', 503, 'GOOGLE_OAUTH_NOT_CONFIGURED');
     }

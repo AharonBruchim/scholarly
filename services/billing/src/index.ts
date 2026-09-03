@@ -1,8 +1,8 @@
 import { logger } from '@scholarly/utils';
 import mongoose from 'mongoose';
 import { config } from './config';
-import { AutomationManager } from './express/automation/manager';
-import { PaymentRequestModel } from './express/automation/model';
+import { AutomationManager } from './express/billing/manager';
+import { PaymentRequestModel } from './express/billing/model';
 import { Server } from './express/server';
 
 const { mongo, service } = config;

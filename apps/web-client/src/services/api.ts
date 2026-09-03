@@ -327,12 +327,10 @@ export interface WhatsAppReminderTask extends DeliveryRecord {
   studentName: string;
 }
 
-const automationPath = "/billing/automation";
+const billingPath = "/billing";
 
 export async function fetchPaymentRequests(): Promise<PaymentRequestRecord[]> {
-  const response = await apiClient.get<PaymentRequestRecord[]>(
-    `${automationPath}/payment-requests`,
-  );
+  const response = await apiClient.get<PaymentRequestRecord[]>(billingPath);
   return response.data;
 }
 
@@ -344,19 +342,16 @@ export async function createManualPaymentRequest(input: {
   scheduledAt?: string;
   notes?: string;
 }): Promise<PaymentRequestRecord> {
-  const response = await apiClient.post<PaymentRequestRecord>(
-    `${automationPath}/payment-requests`,
-    input,
-  );
+  const response = await apiClient.post<PaymentRequestRecord>(billingPath, input);
   return response.data;
 }
 
 export async function cancelPaymentRequest(id: string): Promise<void> {
-  await apiClient.post(`${automationPath}/payment-requests/${id}/cancel`, {});
+  await apiClient.post(`${billingPath}/${id}/cancel`, {});
 }
 
 export async function openPaymentRequestPdf(id: string): Promise<void> {
-  const response = await apiClient.get<Blob>(`${automationPath}/payment-requests/${id}/pdf`, {
+  const response = await apiClient.get<Blob>(`${billingPath}/${id}/pdf`, {
     responseType: "blob",
   });
   const url = URL.createObjectURL(response.data);
@@ -365,7 +360,7 @@ export async function openPaymentRequestPdf(id: string): Promise<void> {
 }
 
 export async function fetchLessonMessages(): Promise<LessonMessageRecord[]> {
-  const response = await apiClient.get<LessonMessageRecord[]>(`${automationPath}/lesson-messages`);
+  const response = await apiClient.get<LessonMessageRecord[]>(`${billingPath}/lesson-messages`);
   return response.data;
 }
 
@@ -377,18 +372,18 @@ export async function createLessonMessage(input: {
   scheduledAt?: string;
 }): Promise<LessonMessageRecord[]> {
   const response = await apiClient.post<LessonMessageRecord[]>(
-    `${automationPath}/lesson-messages`,
+    `${billingPath}/lesson-messages`,
     input,
   );
   return response.data;
 }
 
 export async function cancelLessonMessage(id: string): Promise<void> {
-  await apiClient.post(`${automationPath}/lesson-messages/${id}/cancel`, {});
+  await apiClient.post(`${billingPath}/lesson-messages/${id}/cancel`, {});
 }
 
 export async function openLessonMessagePdf(id: string): Promise<void> {
-  const response = await apiClient.get<Blob>(`${automationPath}/lesson-messages/${id}/pdf`, {
+  const response = await apiClient.get<Blob>(`${billingPath}/lesson-messages/${id}/pdf`, {
     responseType: "blob",
   });
   const url = URL.createObjectURL(response.data);
@@ -397,27 +392,27 @@ export async function openLessonMessagePdf(id: string): Promise<void> {
 }
 
 export async function fetchAutomaticPaymentPreview(): Promise<AutomaticPaymentPreview> {
-  const response = await apiClient.get<AutomaticPaymentPreview>(`${automationPath}/preview`);
+  const response = await apiClient.get<AutomaticPaymentPreview>(`${billingPath}/preview`);
   return response.data;
 }
 
 export async function fetchWhatsAppReminderTasks(): Promise<WhatsAppReminderTask[]> {
-  const response = await apiClient.get<WhatsAppReminderTask[]>(`${automationPath}/whatsapp/tasks`);
+  const response = await apiClient.get<WhatsAppReminderTask[]>(`${billingPath}/whatsapp/tasks`);
   return response.data;
 }
 
 export async function fetchGmailConnection(): Promise<GmailConnectionStatus> {
-  const response = await apiClient.get<GmailConnectionStatus>(`${automationPath}/google/status`);
+  const response = await apiClient.get<GmailConnectionStatus>(`${billingPath}/google/status`);
   return response.data;
 }
 
 export async function connectGmail(): Promise<void> {
-  const response = await apiClient.post<{ url: string }>(`${automationPath}/google/authorize`, {});
+  const response = await apiClient.post<{ url: string }>(`${billingPath}/google/authorize`, {});
   window.location.assign(response.data.url);
 }
 
 export async function disconnectGmail(): Promise<void> {
-  await apiClient.delete(`${automationPath}/google/connection`);
+  await apiClient.delete(`${billingPath}/google/connection`);
 }
 
 export async function openWhatsAppDelivery(
@@ -426,7 +421,7 @@ export async function openWhatsAppDelivery(
 ): Promise<void> {
   try {
     const response = await apiClient.post<{ url: string }>(
-      `${automationPath}/whatsapp/${id}/open`,
+      `${billingPath}/whatsapp/${id}/open`,
       {},
     );
     if (targetWindow && !targetWindow.closed) {
@@ -445,14 +440,14 @@ export async function openWhatsAppDelivery(
 }
 
 export async function confirmWhatsAppDelivery(id: string): Promise<void> {
-  await apiClient.post(`${automationPath}/whatsapp/${id}/confirm`, {});
+  await apiClient.post(`${billingPath}/whatsapp/${id}/confirm`, {});
 }
 
 export async function openSmsDelivery(id: string): Promise<void> {
-  const response = await apiClient.post<{ url: string }>(`${automationPath}/sms/${id}/open`, {});
+  const response = await apiClient.post<{ url: string }>(`${billingPath}/sms/${id}/open`, {});
   window.location.assign(response.data.url);
 }
 
 export async function confirmSmsDelivery(id: string): Promise<void> {
-  await apiClient.post(`${automationPath}/sms/${id}/confirm`, {});
+  await apiClient.post(`${billingPath}/sms/${id}/confirm`, {});
 }
