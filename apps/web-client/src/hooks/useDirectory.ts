@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   bookLesson,
+  type CreateLessonInput,
+  type CreateLessonSeriesInput,
   cancelLesson,
   createLesson,
   createLessonSeries,
-  type CreateLessonInput,
-  type CreateLessonSeriesInput,
   fetchDirectoryUsers,
   fetchLessons,
   rescheduleLesson,

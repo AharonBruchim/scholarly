@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { billingRouter } from './billing/router';
 import { automationRouter } from './automation/router';
+import { billingRouter } from './billing/router';
 
 export const appRouter = Router();
 

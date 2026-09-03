@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
-import ContactsList from "../../components/Contacts/ContactsList";
-import NewContactButton from "../../components/Contacts/NewContactButton/NewContactButton";
 import { Spinner } from "@/components/common/Spinner";
 import { Button } from "@/components/ui/button";
 import { useContacts } from "@/hooks/useContacts";
+import ContactsList from "../../components/Contacts/ContactsList";
+import NewContactButton from "../../components/Contacts/NewContactButton/NewContactButton";
 
 export default function ContactsPage() {
   const { t } = useTranslation();

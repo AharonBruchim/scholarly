@@ -2,8 +2,8 @@ import { authenticateJWT, validateRequest, wrapController } from '@scholarly/uti
 import { Router } from 'express';
 import { LessonsController } from './controller';
 import {
-    cancelLessonRequestSchema,
     bookLessonRequestSchema,
+    cancelLessonRequestSchema,
     createOneRequestSchema,
     createSeriesRequestSchema,
     getAllRequestSchema,

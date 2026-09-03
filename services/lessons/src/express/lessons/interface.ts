@@ -66,4 +66,5 @@ export interface CreateLessonSeriesInput extends CreateLessonInput {
         untilDate?: Date;
     };
 }
+
 import type { HydratedDocument } from 'mongoose';

@@ -2,8 +2,8 @@ import { type AuthenticatedRequest, type TypedRequest, UnauthorizedError } from 
 import type { Response } from 'express';
 import { LessonManager } from './manager';
 import type {
-    cancelLessonRequestSchema,
     bookLessonRequestSchema,
+    cancelLessonRequestSchema,
     createOneRequestSchema,
     createSeriesRequestSchema,
     getAllRequestSchema,

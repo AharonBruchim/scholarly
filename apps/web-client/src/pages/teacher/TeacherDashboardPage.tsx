@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Spinner } from "@/components/common/Spinner";
 import { PaymentAutomationCenter } from "@/components/billing/PaymentAutomationCenter";
+import { Spinner } from "@/components/common/Spinner";
 import { CreateLessonForm } from "@/components/dashboard/CreateLessonForm";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";

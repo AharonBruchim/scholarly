@@ -1,6 +1,6 @@
 import { UsersRoles } from '@scholarly/shared';
-import { ConflictError, ForbiddenError, NotFoundError, ServiceError } from '@scholarly/utils';
 import type { AuthenticatedUser } from '@scholarly/utils';
+import { ConflictError, ForbiddenError, NotFoundError, ServiceError } from '@scholarly/utils';
 import type { FilterQuery } from 'mongoose';
 import {
     type CreateLessonInput,
@@ -13,9 +13,8 @@ import {
 } from './interface';
 import { LessonModel } from './model';
 import { ReminderJobModel, ReminderJobStatus, ReminderKind } from './reminder-model';
-import { LessonUserModel } from './user-model';
-
 import { isLateCancellation, seriesStartTimes } from './rules';
+import { LessonUserModel } from './user-model';
 
 function assertSupportedRole(actor: AuthenticatedUser): void {
     if (actor.role !== UsersRoles.STUDENT && actor.role !== UsersRoles.TEACHER) throw new ForbiddenError();
