@@ -1,17 +1,17 @@
+import { MongoCollections } from '@scholarly/shared';
 import mongoose from 'mongoose';
-import { config } from '../../config';
 import { LessonChargeStatus, type LessonDocument, LessonStatus } from './interface';
 
 const lessonSchema = new mongoose.Schema<LessonDocument>(
     {
         studentId: {
             type: String,
-            ref: config.mongo.usersCollectionName,
+            ref: MongoCollections.USERS,
         },
         teacherId: {
             type: String,
             required: true,
-            ref: config.mongo.usersCollectionName,
+            ref: MongoCollections.USERS,
         },
         startTime: { type: Date, required: true },
         endTime: { type: Date, required: true },
@@ -45,4 +45,4 @@ const lessonSchema = new mongoose.Schema<LessonDocument>(
 lessonSchema.index({ teacherId: 1, status: 1, startTime: 1, endTime: 1 });
 lessonSchema.index({ studentId: 1, status: 1, startTime: 1, endTime: 1 });
 
-export const LessonModel = mongoose.model<LessonDocument>('Lesson', lessonSchema);
+export const LessonModel = mongoose.model<LessonDocument>('Lesson', lessonSchema, MongoCollections.LESSONS);

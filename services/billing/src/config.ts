@@ -13,6 +13,5 @@ export const config = {
     },
     mongo: {
         uri: env.get('MONGO_URI').default('mongodb://localhost/amanPolls').asString(),
-        usersCollectionName: 'users',
     },
 };

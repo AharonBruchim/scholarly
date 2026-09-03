@@ -1,3 +1,4 @@
+import { MongoCollections } from '@scholarly/shared';
 import mongoose from 'mongoose';
 
 export interface RefreshSessionRecord {
@@ -15,4 +16,8 @@ const refreshSessionSchema = new mongoose.Schema<RefreshSessionRecord>(
     { timestamps: true },
 );
 
-export const RefreshSessionModel = mongoose.model<RefreshSessionRecord>('refresh_sessions', refreshSessionSchema);
+export const RefreshSessionModel = mongoose.model<RefreshSessionRecord>(
+    'RefreshSession',
+    refreshSessionSchema,
+    MongoCollections.USER_REFRESH_SESSIONS,
+);

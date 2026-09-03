@@ -1,6 +1,5 @@
-import { UsersRoles } from '@scholarly/shared';
+import { MongoCollections, UsersRoles } from '@scholarly/shared';
 import mongoose from 'mongoose';
-import { config } from '../../config';
 import type { UserRecord } from './interface';
 
 const phoneSchema = new mongoose.Schema(
@@ -88,7 +87,7 @@ const teacherSchema = new mongoose.Schema<UserRecord>({
     teacherPreferences: { type: teacherPreferencesSchema },
 });
 
-export const UserModel = mongoose.model<UserRecord>(config.mongo.usersCollectionName, userSchema);
+export const UserModel = mongoose.model<UserRecord>('User', userSchema, MongoCollections.USERS);
 
 export const StudentModel = UserModel.discriminator<UserRecord>(UsersRoles.STUDENT, new mongoose.Schema<UserRecord>());
 

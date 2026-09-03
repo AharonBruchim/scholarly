@@ -1,6 +1,5 @@
-import { DeliveryChannel, type ITeacherPreferences, type IUserPhone } from '@scholarly/shared';
+import { DeliveryChannel, type ITeacherPreferences, type IUserPhone, MongoCollections } from '@scholarly/shared';
 import mongoose from 'mongoose';
-import { config } from '../../config';
 
 export interface BillingUserRecord {
     _id: mongoose.Types.ObjectId;
@@ -27,8 +26,8 @@ export interface BillingLessonRecord {
 }
 
 const looseSchema = new mongoose.Schema({}, { strict: false });
-export const BillingUserModel = mongoose.model<BillingUserRecord>('BillingUser', looseSchema, config.mongo.usersCollectionName);
-export const BillingLessonModel = mongoose.model<BillingLessonRecord>('BillingLesson', looseSchema, 'lessons');
+export const BillingUserModel = mongoose.model<BillingUserRecord>('BillingUser', looseSchema, MongoCollections.USERS);
+export const BillingLessonModel = mongoose.model<BillingLessonRecord>('BillingLesson', looseSchema, MongoCollections.LESSONS);
 
 export interface PaymentLineItem {
     lessonId?: string;
@@ -97,7 +96,7 @@ const paymentRequestSchema = new mongoose.Schema<PaymentRequestRecord>(
     { timestamps: true },
 );
 paymentRequestSchema.index({ teacherId: 1, studentId: 1, period: 1 }, { unique: true });
-export const PaymentRequestModel = mongoose.model<PaymentRequestRecord>('PaymentRequest', paymentRequestSchema);
+export const PaymentRequestModel = mongoose.model<PaymentRequestRecord>('PaymentRequest', paymentRequestSchema, MongoCollections.BILLING);
 
 export interface DeliveryOutboxRecord {
     sourceType: 'payment_request' | 'lesson_reminder' | 'lesson_message';
@@ -152,7 +151,11 @@ const deliveryOutboxSchema = new mongoose.Schema<DeliveryOutboxRecord>(
 );
 deliveryOutboxSchema.index({ sourceType: 1, sourceId: 1, channel: 1 }, { unique: true });
 deliveryOutboxSchema.index({ status: 1, scheduledAt: 1 });
-export const DeliveryOutboxModel = mongoose.model<DeliveryOutboxRecord>('DeliveryOutbox', deliveryOutboxSchema);
+export const DeliveryOutboxModel = mongoose.model<DeliveryOutboxRecord>(
+    'DeliveryOutbox',
+    deliveryOutboxSchema,
+    MongoCollections.BILLING_DELIVERY_OUTBOX,
+);
 
 export interface SenderConnectionRecord {
     teacherId: string;
@@ -181,7 +184,11 @@ const senderConnectionSchema = new mongoose.Schema<SenderConnectionRecord>(
     { timestamps: true },
 );
 senderConnectionSchema.index({ teacherId: 1, channel: 1 }, { unique: true });
-export const SenderConnectionModel = mongoose.model<SenderConnectionRecord>('SenderConnection', senderConnectionSchema);
+export const SenderConnectionModel = mongoose.model<SenderConnectionRecord>(
+    'SenderConnection',
+    senderConnectionSchema,
+    MongoCollections.BILLING_SENDER_CONNECTIONS,
+);
 
 export interface OAuthStateRecord {
     stateHash: string;
@@ -198,7 +205,7 @@ const oauthStateSchema = new mongoose.Schema<OAuthStateRecord>(
     { timestamps: true },
 );
 oauthStateSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-export const OAuthStateModel = mongoose.model<OAuthStateRecord>('OAuthState', oauthStateSchema);
+export const OAuthStateModel = mongoose.model<OAuthStateRecord>('OAuthState', oauthStateSchema, MongoCollections.BILLING_OAUTH_STATES);
 
 export interface LessonMessageRecord {
     teacherId: string;
@@ -243,7 +250,7 @@ const lessonMessageSchema = new mongoose.Schema<LessonMessageRecord>(
     { timestamps: true },
 );
 lessonMessageSchema.index({ teacherId: 1, scheduledAt: -1 });
-export const LessonMessageModel = mongoose.model<LessonMessageRecord>('LessonMessage', lessonMessageSchema);
+export const LessonMessageModel = mongoose.model<LessonMessageRecord>('LessonMessage', lessonMessageSchema, MongoCollections.BILLING_LESSON_MESSAGES);
 
 export interface ReminderJobRecord {
     lessonId: string;
@@ -254,4 +261,4 @@ export interface ReminderJobRecord {
     channels: Array<DeliveryChannel.EMAIL | DeliveryChannel.WHATSAPP>;
     status: 'pending' | 'processing' | 'sent' | 'failed' | 'cancelled';
 }
-export const BillingReminderJobModel = mongoose.model<ReminderJobRecord>('BillingReminderJob', looseSchema, 'reminderjobs');
+export const BillingReminderJobModel = mongoose.model<ReminderJobRecord>('BillingReminderJob', looseSchema, MongoCollections.LESSON_REMINDER_JOBS);

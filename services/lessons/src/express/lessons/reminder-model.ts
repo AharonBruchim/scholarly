@@ -1,4 +1,4 @@
-import { DeliveryChannel } from '@scholarly/shared';
+import { DeliveryChannel, MongoCollections } from '@scholarly/shared';
 import mongoose from 'mongoose';
 
 export enum ReminderKind {
@@ -48,4 +48,4 @@ const reminderJobSchema = new mongoose.Schema<ReminderJobRecord>(
 reminderJobSchema.index({ lessonId: 1, kind: 1 }, { unique: true });
 reminderJobSchema.index({ status: 1, dueAt: 1 });
 
-export const ReminderJobModel = mongoose.model<ReminderJobRecord>('ReminderJob', reminderJobSchema);
+export const ReminderJobModel = mongoose.model<ReminderJobRecord>('ReminderJob', reminderJobSchema, MongoCollections.LESSON_REMINDER_JOBS);
