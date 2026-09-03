@@ -45,6 +45,17 @@ export interface IUser {
     phone: IUserPhone;
 }
 
+export interface PublicUser extends IUser {
+    _id: string;
+    bankAccount?: IBankAccount;
+    teacherPreferences?: ITeacherPreferences;
+}
+
+export type DirectoryUser = Pick<PublicUser, '_id' | 'firstName' | 'lastName'> & {
+    role: `${UsersRoles}`;
+    teacherPreferences?: ITeacherPreferences;
+};
+
 export interface IStudent extends IUser {
     role: UsersRoles.STUDENT;
 }

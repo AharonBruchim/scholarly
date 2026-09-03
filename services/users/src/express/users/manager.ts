@@ -1,6 +1,14 @@
-import { type CreateUserValues, type IUserUpdate, type ListUsersQuery, UsersRoles } from '@scholarly/shared';
+import {
+    type CreateUserValues,
+    type DirectoryUser,
+    type IUserUpdate,
+    type ListUsersQuery,
+    type PublicUser,
+    type UserProfile,
+    UsersRoles,
+} from '@scholarly/shared';
 import { ConflictError, ServiceError } from '@scholarly/utils';
-import type { DirectoryUser, PublicUser, SafeUserProfile, UserDocument } from './interface';
+import type { UserDocument } from './interface';
 import { StudentModel, TeacherModel, UserModel } from './model';
 import { hashPassword, verifyPassword } from './password';
 
@@ -30,7 +38,7 @@ const toDirectoryUser = (user: UserDocument): DirectoryUser => ({
     ...(user.role === UsersRoles.TEACHER && user.teacherPreferences ? { teacherPreferences: user.teacherPreferences } : {}),
 });
 
-export const toSafeUserProfile = (user: PublicUser): SafeUserProfile => ({
+export const toSafeUserProfile = (user: PublicUser): UserProfile => ({
     _id: user._id,
     role: user.role,
     firstName: user.firstName,
@@ -89,7 +97,7 @@ export const UserManager = {
         return user ? toPublicUser(user) : null;
     },
 
-    getProfileById: async (id: string): Promise<SafeUserProfile | null> => {
+    getProfileById: async (id: string): Promise<UserProfile | null> => {
         const user = await UserManager.getById(id);
         return user ? toSafeUserProfile(user) : null;
     },
@@ -128,7 +136,7 @@ export const UserManager = {
         }
     },
 
-    updateProfile: async (id: string, userUpdate: IUserUpdate): Promise<SafeUserProfile | null> => {
+    updateProfile: async (id: string, userUpdate: IUserUpdate): Promise<UserProfile | null> => {
         const user = await UserManager.updateOne(id, userUpdate);
         return user ? toSafeUserProfile(user) : null;
     },

@@ -1,9 +1,4 @@
-import type {
-  CreateUserValues,
-  ITeacherPreferences,
-  IUserUpdate,
-  UserProfile,
-} from "@scholarly/shared";
+import type { CreateUserValues, DirectoryUser, IUserUpdate, UserProfile } from "@scholarly/shared";
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import type { AuthSession, BankAccount } from "@/types/auth";
 
@@ -157,13 +152,7 @@ export interface Lesson {
   rescheduledToLessonId?: string;
 }
 
-export interface DirectoryUser {
-  _id: string;
-  role: "student" | "teacher";
-  firstName: string;
-  lastName: string;
-  teacherPreferences?: ITeacherPreferences;
-}
+export type { DirectoryUser } from "@scholarly/shared";
 
 export interface CreateLessonInput {
   studentId?: string;

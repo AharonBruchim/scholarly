@@ -1,8 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
-import type { AuthSession, AuthUser, CreateUserValues } from '@scholarly/shared';
+import type { AuthSession, AuthUser, CreateUserValues, PublicUser } from '@scholarly/shared';
 import { ServiceError, UnauthorizedError } from '@scholarly/utils';
 import jwt from 'jsonwebtoken';
-import type { PublicUser } from '../users/interface';
 import { UserManager } from '../users/manager';
 import { RefreshSessionModel } from './refresh-session-model';
 
