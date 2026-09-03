@@ -79,17 +79,3 @@ export const googleCallbackSchema = z.object({
     query: z.object({ code: z.string().min(1).max(4000), state: z.string().min(20).max(500) }),
     params: z.object({}),
 });
-export const runMonthlySchema = z.object({
-    body: z
-        .object({
-            period: z
-                .string()
-                .regex(/^\d{4}-\d{2}$/)
-                .optional(),
-        })
-        .strict(),
-    query: z.object({}),
-    params: z.object({}),
-});
-export const runRemindersSchema = z.object({ body: z.object({}).strict(), query: z.object({}), params: z.object({}) });
-export const runDeliveriesSchema = z.object({ body: z.object({}).strict(), query: z.object({}), params: z.object({}) });

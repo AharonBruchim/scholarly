@@ -16,9 +16,6 @@ import type {
     idOnlySchema,
     listLessonMessagesSchema,
     listPaymentRequestsSchema,
-    runDeliveriesSchema,
-    runMonthlySchema,
-    runRemindersSchema,
 } from './validations';
 
 const actorFrom = (req: AuthenticatedRequest) => {
@@ -99,14 +96,5 @@ export const AutomationController = {
         await GmailManager.completeAuthorization(req.query.code, req.query.state);
         const webUrl = (process.env.WEB_APP_URL ?? 'http://localhost:5173').replace(/\/$/, '');
         res.redirect(`${webUrl}/teacher?gmail=connected#payments`);
-    },
-    monthly: async (req: TypedRequest<typeof runMonthlySchema>, res: Response) => {
-        res.json(await AutomationManager.generateMonthlyPaymentRequests(req.body.period));
-    },
-    reminders: async (_req: TypedRequest<typeof runRemindersSchema>, res: Response) => {
-        res.json(await AutomationManager.queueDueReminders());
-    },
-    deliveries: async (_req: TypedRequest<typeof runDeliveriesSchema>, res: Response) => {
-        res.json(await AutomationManager.processDueDeliveries());
     },
 };

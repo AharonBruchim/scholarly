@@ -1,5 +1,4 @@
 import { authenticateJWT, validateRequest, wrapController } from '@scholarly/utils';
-import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
 import { AutomationController } from './controller';
 import {
@@ -16,25 +15,9 @@ import {
     idOnlySchema,
     listLessonMessagesSchema,
     listPaymentRequestsSchema,
-    runDeliveriesSchema,
-    runMonthlySchema,
-    runRemindersSchema,
 } from './validations';
 
 export const automationRouter = Router();
-
-const requireInternalKey = (req: Request, res: Response, next: NextFunction) => {
-    const expected = process.env.INTERNAL_AUTOMATION_KEY;
-    if (!expected || expected.length < 32) {
-        res.status(503).json({ message: 'Automation key is not configured' });
-        return;
-    }
-    if (req.header('x-internal-api-key') !== expected) {
-        res.status(401).json({ message: 'Unauthorized' });
-        return;
-    }
-    next();
-};
 
 automationRouter.get('/payment-requests', authenticateJWT, validateRequest(listPaymentRequestsSchema), wrapController(AutomationController.list));
 automationRouter.post(
@@ -118,12 +101,4 @@ automationRouter.get(
     '/public/manual-deliveries/:id/open',
     validateRequest(getPublicManualDeliverySchema),
     wrapController(AutomationController.publicManualDelivery),
-);
-automationRouter.post('/internal/monthly', requireInternalKey, validateRequest(runMonthlySchema), wrapController(AutomationController.monthly));
-automationRouter.post('/internal/reminders', requireInternalKey, validateRequest(runRemindersSchema), wrapController(AutomationController.reminders));
-automationRouter.post(
-    '/internal/deliveries',
-    requireInternalKey,
-    validateRequest(runDeliveriesSchema),
-    wrapController(AutomationController.deliveries),
 );
