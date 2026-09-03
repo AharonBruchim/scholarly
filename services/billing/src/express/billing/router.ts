@@ -1,10 +1,10 @@
-import { validateRequest, wrapController } from '@scholarly/utils';
+import { authenticateJWT } from '@scholarly/utils';
 import { Router } from 'express';
-import multer from 'multer';
-import { BillingController } from './controller';
-import { createOneRequestSchema } from './validations';
 
 export const billingRouter = Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
-billingRouter.post('/', upload.single('pdfFile'), validateRequest(createOneRequestSchema), wrapController(BillingController.createOne));
+billingRouter.post('/', authenticateJWT, (_req, res) => {
+    res.status(410).json({
+        message: 'Manual payment requests were replaced by automatic monthly payment requests.',
+    });
+});

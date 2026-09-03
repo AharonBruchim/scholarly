@@ -5,8 +5,6 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
   timeout: 10000,
 });
-console.log("VITE_BACKEND_URL:", import.meta.env.VITE_BACKEND_URL);
-console.log("VITE_IS_ALIVE_URL:", import.meta.env.VITE_IS_ALIVE_URL);
 export const mailApi = {
   paymentURL: import.meta.env.VITE_IS_ALIVE_URL,
   async isAlive() {
@@ -50,18 +48,6 @@ export const useIsAlive = () => {
   useEffect(() => {
     checkIsAlive();
   }, [checkIsAlive]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (!state.isSuccess && !state.isLoading) {
-      interval = setInterval(checkIsAlive, 30000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [state.isSuccess, state.isLoading, checkIsAlive]);
 
   return {
     ...state,

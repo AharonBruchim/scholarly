@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-
+import { Spinner } from "@/components/common/Spinner";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
+import { StudentBookingForm } from "@/components/dashboard/StudentBookingForm";
 import { TeacherDirectory } from "@/components/dashboard/TeacherDirectory";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";
-import { Spinner } from "@/components/common/Spinner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboardLessons } from "@/hooks/useDashboard";
@@ -15,6 +16,26 @@ export default function StudentDashboardPage() {
   const lessonsQuery = useDashboardLessons();
   const teachersQuery = useDirectoryUsers("teacher");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
+  const selectedTeacher = (teachersQuery.data ?? []).find(
+    (teacher) => teacher._id === selectedTeacherId,
+  );
+  const selectedTeacherName = selectedTeacher
+    ? `${selectedTeacher.firstName} ${selectedTeacher.lastName}`
+    : null;
+  const visibleLessons = selectedTeacherId
+    ? (lessonsQuery.data ?? []).filter((lesson) => lesson.teacherId === selectedTeacherId)
+    : (lessonsQuery.data ?? []);
+
+  const selectTeacher = (teacherId: string) => {
+    setSelectedTeacherId(teacherId);
+    window.requestAnimationFrame(() => {
+      document.getElementById("teacher-lessons")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -85,16 +106,44 @@ export default function StudentDashboardPage() {
             </Card>
           </div>
 
-          <UpcomingLessonsList
-            lessons={lessonsQuery.data}
-            people={teachersQuery.data ?? []}
-            personIdKey="teacherId"
-            personLabel={t("lessons.teacher")}
-          />
+          <div id="teacher-lessons" className="scroll-mt-6 space-y-4">
+            {selectedTeacherName ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky-500/30 bg-sky-500/10 p-4">
+                <p className="text-sm text-sky-100">
+                  {t("lessons.teacherFilter", { name: selectedTeacherName })}
+                </p>
+                <Button type="button" variant="ghost" onClick={() => setSelectedTeacherId(null)}>
+                  {t("lessons.showAll")}
+                </Button>
+              </div>
+            ) : null}
+
+            {selectedTeacher ? (
+              <StudentBookingForm key={selectedTeacher._id} teacher={selectedTeacher} />
+            ) : null}
+
+            <UpcomingLessonsList
+              lessons={visibleLessons}
+              people={teachersQuery.data ?? []}
+              personIdKey="teacherId"
+              personLabel={t("lessons.teacher")}
+              title={
+                selectedTeacherName
+                  ? t("lessons.withTeacherTitle", { name: selectedTeacherName })
+                  : undefined
+              }
+              description={selectedTeacherName ? t("lessons.withTeacherDescription") : undefined}
+              emptyMessage={selectedTeacherName ? t("lessons.emptyWithTeacher") : undefined}
+              allowActions
+            />
+          </div>
         </>
       ) : null}
 
-      <TeacherDirectory />
+      <TeacherDirectory
+        selectedTeacherId={selectedTeacherId}
+        onSelectTeacher={(teacher) => selectTeacher(teacher._id)}
+      />
     </div>
   );
 }

@@ -19,6 +19,7 @@ const toPublicUser = (user: UserDocument): PublicUser => ({
     email: user.email,
     phone: user.phone,
     ...(user.bankAccount ? { bankAccount: user.bankAccount } : {}),
+    ...(user.teacherPreferences ? { teacherPreferences: user.teacherPreferences } : {}),
 });
 
 const toDirectoryUser = (user: UserDocument): DirectoryUser => ({
@@ -26,6 +27,7 @@ const toDirectoryUser = (user: UserDocument): DirectoryUser => ({
     role: user.role,
     firstName: user.firstName,
     lastName: user.lastName,
+    ...(user.role === UsersRoles.TEACHER && user.teacherPreferences ? { teacherPreferences: user.teacherPreferences } : {}),
 });
 
 export const toSafeUserProfile = (user: PublicUser): SafeUserProfile => ({
@@ -36,6 +38,7 @@ export const toSafeUserProfile = (user: PublicUser): SafeUserProfile => ({
     email: user.email,
     phone: user.phone,
     hasBankAccount: Boolean(user.bankAccount),
+    ...(user.teacherPreferences ? { teacherPreferences: user.teacherPreferences } : {}),
 });
 
 export const UserManager = {
@@ -106,6 +109,10 @@ export const UserManager = {
             throw new ServiceError('Only teachers can have bank details', 400);
         }
 
+        if (userUpdate.teacherPreferences && user.role !== UsersRoles.TEACHER) {
+            throw new ServiceError('Only teachers can configure lesson and delivery preferences', 400);
+        }
+
         const normalizedUpdate = userUpdate.email ? { ...userUpdate, email: normalizeEmail(userUpdate.email) } : userUpdate;
 
         try {
@@ -128,7 +135,7 @@ export const UserManager = {
 
     getAll: async (filters: ListUsersQuery): Promise<DirectoryUser[]> => {
         const users = (await UserModel.find(filters.role ? { role: filters.role } : {}).select(
-            'role firstName lastName',
+            'role firstName lastName teacherPreferences',
         )) as unknown as UserDocument[];
         return users.map(toDirectoryUser);
     },

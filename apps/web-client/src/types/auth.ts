@@ -43,6 +43,7 @@ export interface AuthUser {
   };
   role: UserRole;
   hasBankAccount: boolean;
+  hasTeacherPreferences: boolean;
 }
 
 export interface AuthSession {

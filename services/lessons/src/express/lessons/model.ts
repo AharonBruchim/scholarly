@@ -1,12 +1,11 @@
 import mongoose from 'mongoose';
 import { config } from '../../config';
-import { type LessonDocument, LessonStatus } from './interface';
+import { type LessonDocument, LessonChargeStatus, LessonStatus } from './interface';
 
 const lessonSchema = new mongoose.Schema<LessonDocument>(
     {
         studentId: {
             type: String,
-            required: true,
             ref: config.mongo.usersCollectionName,
         },
         teacherId: {
@@ -25,10 +24,25 @@ const lessonSchema = new mongoose.Schema<LessonDocument>(
         },
         price: { type: Number, required: true },
         notes: { type: String },
+        durationMinutes: { type: Number, required: true, min: 15, max: 240 },
+        chargeStatus: {
+            type: String,
+            enum: Object.values(LessonChargeStatus),
+            default: LessonChargeStatus.NONE,
+            required: true,
+        },
+        cancelledAt: { type: Date },
+        cancelledBy: { type: String },
+        cancellationReason: { type: String, maxlength: 500 },
+        rescheduledFromLessonId: { type: String },
+        rescheduledToLessonId: { type: String },
     },
     {
         timestamps: true,
     },
 );
+
+lessonSchema.index({ teacherId: 1, status: 1, startTime: 1, endTime: 1 });
+lessonSchema.index({ studentId: 1, status: 1, startTime: 1, endTime: 1 });
 
 export const LessonModel = mongoose.model<LessonDocument>('Lesson', lessonSchema);

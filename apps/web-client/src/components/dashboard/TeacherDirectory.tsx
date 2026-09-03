@@ -1,13 +1,19 @@
-import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
+import type { DirectoryUser } from "@/services/api";
 
-export function TeacherDirectory() {
+interface TeacherDirectoryProps {
+  selectedTeacherId: string | null;
+  onSelectTeacher: (teacher: DirectoryUser) => void;
+}
+
+export function TeacherDirectory({ selectedTeacherId, onSelectTeacher }: TeacherDirectoryProps) {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const teachersQuery = useDirectoryUsers("teacher");
@@ -66,12 +72,27 @@ export function TeacherDirectory() {
             {teachers.map((teacher) => (
               <li
                 key={teacher._id}
-                className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"
+                className={`overflow-hidden rounded-xl border transition-colors ${
+                  selectedTeacherId === teacher._id
+                    ? "border-sky-400 bg-sky-500/10"
+                    : "border-slate-700 bg-slate-950/50 hover:border-slate-500"
+                }`}
               >
-                <p className="font-semibold text-white">
-                  {teacher.firstName} {teacher.lastName}
-                </p>
-                <p className="mt-1 text-sm text-slate-400">{t("directory.teacher")}</p>
+                <button
+                  type="button"
+                  className="block w-full p-4 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-400"
+                  aria-pressed={selectedTeacherId === teacher._id}
+                  onClick={() => onSelectTeacher(teacher)}
+                >
+                  <span className="block font-semibold text-white">
+                    {teacher.firstName} {teacher.lastName}
+                  </span>
+                  <span className="mt-1 block text-sm text-slate-400">
+                    {selectedTeacherId === teacher._id
+                      ? t("directory.selected")
+                      : t("directory.viewLessons")}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>

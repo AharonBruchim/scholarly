@@ -35,6 +35,7 @@ const toAuthUser = (user: PublicUser): AuthUser => ({
     phone: user.phone,
     role: user.role,
     hasBankAccount: Boolean(user.bankAccount),
+    hasTeacherPreferences: Boolean(user.teacherPreferences),
 });
 
 const hashRefreshToken = (refreshToken: string): string => createHash('sha256').update(refreshToken).digest('hex');

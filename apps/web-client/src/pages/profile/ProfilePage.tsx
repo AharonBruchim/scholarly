@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { Spinner } from "@/components/common/Spinner";
+import { TeacherAutomationSettings } from "@/components/profile/TeacherAutomationSettings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -219,6 +220,7 @@ export default function ProfilePage() {
           </form>
         </CardContent>
       </Card>
+      {user?.role === "teacher" ? <TeacherAutomationSettings userId={user.id} /> : null}
     </div>
   );
 }

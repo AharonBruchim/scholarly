@@ -3,6 +3,27 @@ export enum UsersRoles {
     TEACHER = 'teacher',
 }
 
+export enum DeliveryChannel {
+    EMAIL = 'email',
+    WHATSAPP = 'whatsapp',
+    SMS = 'sms',
+}
+
+export interface ITeacherSubjectSetting {
+    subject: string;
+    durationMinutes?: number;
+    price?: number;
+}
+
+export interface ITeacherPreferences {
+    defaultLessonDurationMinutes: number;
+    defaultLessonPrice: number;
+    subjectSettings: ITeacherSubjectSetting[];
+    paymentRequestChannels: DeliveryChannel[];
+    reminderChannels: Array<DeliveryChannel.EMAIL | DeliveryChannel.WHATSAPP>;
+    timezone: string;
+}
+
 export interface IUserPhone {
     number?: string;
     allowWhatsApp?: boolean;
@@ -31,6 +52,7 @@ export interface IStudent extends IUser {
 export interface ITeacher extends IUser {
     role: UsersRoles.TEACHER;
     bankAccount: IBankAccount;
+    teacherPreferences?: ITeacherPreferences;
 }
 
 export interface ListUsersQuery {
@@ -43,6 +65,7 @@ export interface IUserUpdate {
     email?: string;
     phone?: IUserPhone;
     bankAccount?: Partial<IBankAccount>;
+    teacherPreferences?: ITeacherPreferences;
 }
 
 export interface AuthUser {
@@ -54,6 +77,7 @@ export interface AuthUser {
     phone: IUserPhone;
     role: UsersRoles;
     hasBankAccount: boolean;
+    hasTeacherPreferences: boolean;
 }
 
 export interface AuthSession {
@@ -64,4 +88,5 @@ export interface AuthSession {
 export type UserProfile = Pick<IUser, 'role' | 'firstName' | 'lastName' | 'email' | 'phone'> & {
     _id: string;
     hasBankAccount: boolean;
+    teacherPreferences?: ITeacherPreferences;
 };

@@ -1,19 +1,25 @@
-import { useState } from "react";
+import type { ITeacherPreferences } from "@scholarly/shared";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { DualDateTimePicker } from "@/components/calendar/DualDateTimePicker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context-core";
-import { useCreateLesson, useDirectoryUsers } from "@/hooks/useDirectory";
+import { useCreateLesson, useCreateLessonSeries, useDirectoryUsers } from "@/hooks/useDirectory";
+import { fetchUserProfile } from "@/services/api";
 
 const emptyLessonForm = {
   studentId: "",
   subject: "",
   startTime: "",
-  endTime: "",
-  price: "",
   notes: "",
+  recurring: false,
+  intervalWeeks: "1",
+  occurrences: "8",
+  durationMinutes: "",
+  price: "",
 };
 
 export function CreateLessonForm() {
@@ -21,8 +27,29 @@ export function CreateLessonForm() {
   const { user } = useAuth();
   const studentsQuery = useDirectoryUsers("student");
   const createLessonMutation = useCreateLesson();
+  const createSeriesMutation = useCreateLessonSeries();
   const [form, setForm] = useState(emptyLessonForm);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [preferences, setPreferences] = useState<ITeacherPreferences | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    void fetchUserProfile(user.id).then((profile) => {
+      if (!active || !profile.teacherPreferences) return;
+      setPreferences(profile.teacherPreferences);
+      setForm((current) => ({
+        ...current,
+        durationMinutes:
+          current.durationMinutes ||
+          String(profile.teacherPreferences?.defaultLessonDurationMinutes ?? ""),
+        price: current.price || String(profile.teacherPreferences?.defaultLessonPrice ?? ""),
+      }));
+    });
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -32,13 +59,7 @@ export function CreateLessonForm() {
     }
 
     const startTime = new Date(form.startTime);
-    const endTime = new Date(form.endTime);
-
-    if (
-      Number.isNaN(startTime.getTime()) ||
-      Number.isNaN(endTime.getTime()) ||
-      endTime.getTime() <= startTime.getTime()
-    ) {
+    if (Number.isNaN(startTime.getTime()) || startTime.getTime() <= Date.now()) {
       setValidationError(t("lessonForm.invalidTimeRange"));
       return;
     }
@@ -46,16 +67,31 @@ export function CreateLessonForm() {
     setValidationError(null);
 
     try {
-      await createLessonMutation.mutateAsync({
-        studentId: form.studentId,
+      const lesson = {
+        ...(form.studentId ? { studentId: form.studentId } : {}),
         teacherId: user.id,
         subject: form.subject.trim(),
         startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        durationMinutes: Number(form.durationMinutes),
         price: Number(form.price),
         ...(form.notes.trim() ? { notes: form.notes.trim() } : {}),
+      };
+      if (form.recurring) {
+        await createSeriesMutation.mutateAsync({
+          ...lesson,
+          recurrence: {
+            intervalWeeks: Number(form.intervalWeeks),
+            occurrences: Number(form.occurrences),
+          },
+        });
+      } else {
+        await createLessonMutation.mutateAsync(lesson);
+      }
+      setForm({
+        ...emptyLessonForm,
+        durationMinutes: preferences ? String(preferences.defaultLessonDurationMinutes) : "",
+        price: preferences ? String(preferences.defaultLessonPrice) : "",
       });
-      setForm(emptyLessonForm);
     } catch {
       // The localized mutation error is rendered below.
     }
@@ -73,7 +109,7 @@ export function CreateLessonForm() {
             htmlFor="lesson-student"
             className="space-y-2 text-sm text-slate-200 md:col-span-2"
           >
-            <span>{t("lessonForm.student")}</span>
+            <span>{t("lessonForm.studentOptional")}</span>
             <select
               id="lesson-student"
               value={form.studentId}
@@ -82,9 +118,8 @@ export function CreateLessonForm() {
               }
               className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
               disabled={studentsQuery.isPending || (studentsQuery.data?.length ?? 0) === 0}
-              required
             >
-              <option value="">{t("lessonForm.chooseStudent")}</option>
+              <option value="">{t("lessonForm.openSlot")}</option>
               {(studentsQuery.data ?? []).map((student) => (
                 <option key={student._id} value={student._id}>
                   {student.firstName} {student.lastName}
@@ -101,50 +136,59 @@ export function CreateLessonForm() {
             <Input
               id="lesson-subject"
               value={form.subject}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, subject: event.target.value }))
-              }
+              onChange={(event) => {
+                const subject = event.target.value;
+                const override = preferences?.subjectSettings.find(
+                  (item) =>
+                    item.subject.localeCompare(subject, undefined, { sensitivity: "base" }) === 0,
+                );
+                setForm((current) => ({
+                  ...current,
+                  subject,
+                  durationMinutes: String(
+                    override?.durationMinutes ??
+                      preferences?.defaultLessonDurationMinutes ??
+                      current.durationMinutes,
+                  ),
+                  price: String(
+                    override?.price ?? preferences?.defaultLessonPrice ?? current.price,
+                  ),
+                }));
+              }}
               required
             />
           </label>
 
-          <label htmlFor="lesson-start-time" className="space-y-2 text-sm text-slate-200">
+          <div className="space-y-2 text-sm text-slate-200 md:col-span-2">
             <span>{t("lessonForm.startTime")}</span>
-            <Input
+            <DualDateTimePicker
               id="lesson-start-time"
-              type="datetime-local"
-              dir="ltr"
               value={form.startTime}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, startTime: event.target.value }))
-              }
-              required
+              onChange={(startTime) => setForm((current) => ({ ...current, startTime }))}
             />
-          </label>
+          </div>
 
-          <label htmlFor="lesson-end-time" className="space-y-2 text-sm text-slate-200">
-            <span>{t("lessonForm.endTime")}</span>
+          <label htmlFor="lesson-duration" className="space-y-2 text-sm text-slate-200">
+            <span>{t("lessonForm.durationMinutes")}</span>
             <Input
-              id="lesson-end-time"
-              type="datetime-local"
-              dir="ltr"
-              value={form.endTime}
+              id="lesson-duration"
+              type="number"
+              min="15"
+              max="240"
+              value={form.durationMinutes}
               onChange={(event) =>
-                setForm((current) => ({ ...current, endTime: event.target.value }))
+                setForm((current) => ({ ...current, durationMinutes: event.target.value }))
               }
               required
             />
           </label>
-
           <label htmlFor="lesson-price" className="space-y-2 text-sm text-slate-200">
             <span>{t("lessonForm.price")}</span>
             <Input
               id="lesson-price"
               type="number"
-              inputMode="decimal"
-              min="0.01"
+              min="1"
               step="0.01"
-              dir="ltr"
               value={form.price}
               onChange={(event) =>
                 setForm((current) => ({ ...current, price: event.target.value }))
@@ -152,6 +196,50 @@ export function CreateLessonForm() {
               required
             />
           </label>
+          <fieldset className="space-y-3 rounded-md border border-slate-700 p-3 md:col-span-2">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.recurring}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, recurring: event.target.checked }))
+                }
+              />
+              {t("lessonForm.recurring")}
+            </label>
+            {form.recurring ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label htmlFor="lesson-repeat-weeks" className="space-y-1 text-sm">
+                  <span>{t("lessonForm.everyWeeks")}</span>
+                  <Input
+                    id="lesson-repeat-weeks"
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={form.intervalWeeks}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, intervalWeeks: event.target.value }))
+                    }
+                    required
+                  />
+                </label>
+                <label htmlFor="lesson-occurrences" className="space-y-1 text-sm">
+                  <span>{t("lessonForm.occurrences")}</span>
+                  <Input
+                    id="lesson-occurrences"
+                    type="number"
+                    min="2"
+                    max="104"
+                    value={form.occurrences}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, occurrences: event.target.value }))
+                    }
+                    required
+                  />
+                </label>
+              </div>
+            ) : null}
+          </fieldset>
 
           <label htmlFor="lesson-notes" className="space-y-2 text-sm text-slate-200 md:col-span-2">
             <span>{t("lessonForm.notes")}</span>
@@ -171,20 +259,17 @@ export function CreateLessonForm() {
               {t("lessonForm.studentsLoadError")}
             </p>
           ) : null}
-          {studentsQuery.isSuccess && studentsQuery.data.length === 0 ? (
-            <p className="text-sm text-amber-300 md:col-span-2">{t("lessonForm.noStudents")}</p>
-          ) : null}
           {validationError ? (
             <p className="text-sm text-red-400 md:col-span-2" role="alert">
               {validationError}
             </p>
           ) : null}
-          {createLessonMutation.isError ? (
+          {createLessonMutation.isError || createSeriesMutation.isError ? (
             <p className="text-sm text-red-400 md:col-span-2" role="alert">
               {t("lessonForm.createError")}
             </p>
           ) : null}
-          {createLessonMutation.isSuccess ? (
+          {createLessonMutation.isSuccess || createSeriesMutation.isSuccess ? (
             <p className="text-sm text-emerald-300 md:col-span-2" role="status">
               {t("lessonForm.createSuccess")}
             </p>
@@ -195,11 +280,15 @@ export function CreateLessonForm() {
               type="submit"
               disabled={
                 createLessonMutation.isPending ||
+                createSeriesMutation.isPending ||
                 studentsQuery.isPending ||
-                (studentsQuery.data?.length ?? 0) === 0
+                !form.durationMinutes ||
+                !form.price
               }
             >
-              {createLessonMutation.isPending ? t("lessonForm.creating") : t("lessonForm.create")}
+              {createLessonMutation.isPending || createSeriesMutation.isPending
+                ? t("lessonForm.creating")
+                : t("lessonForm.create")}
             </Button>
           </div>
         </form>

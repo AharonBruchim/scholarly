@@ -12,6 +12,35 @@ const phoneSchema = new mongoose.Schema(
     { _id: false },
 );
 
+const subjectSettingSchema = new mongoose.Schema(
+    {
+        subject: { type: String, required: true, trim: true },
+        durationMinutes: { type: Number, min: 15, max: 240 },
+        price: { type: Number, min: 1 },
+    },
+    { _id: false },
+);
+
+const teacherPreferencesSchema = new mongoose.Schema(
+    {
+        defaultLessonDurationMinutes: { type: Number, required: true, min: 15, max: 240 },
+        defaultLessonPrice: { type: Number, required: true, min: 1 },
+        subjectSettings: { type: [subjectSettingSchema], default: [] },
+        paymentRequestChannels: {
+            type: [String],
+            enum: ['email', 'whatsapp', 'sms'],
+            required: true,
+        },
+        reminderChannels: {
+            type: [String],
+            enum: ['email', 'whatsapp'],
+            required: true,
+        },
+        timezone: { type: String, required: true, default: 'Asia/Jerusalem' },
+    },
+    { _id: false },
+);
+
 const userSchema = new mongoose.Schema<UserRecord>(
     {
         firstName: { type: String, required: true, trim: true },
@@ -56,6 +85,7 @@ const teacherSchema = new mongoose.Schema<UserRecord>({
         branchNumber: { type: String, required: true },
         accountNumber: { type: String, required: true },
     },
+    teacherPreferences: { type: teacherPreferencesSchema },
 });
 
 export const UserModel = mongoose.model<UserRecord>(config.mongo.usersCollectionName, userSchema);

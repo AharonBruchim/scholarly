@@ -18,7 +18,9 @@ export function getLessonDashboardStats(
     subjectCount: new Set(
       nonCancelledLessons.map((lesson) => lesson.subject.trim()).filter(Boolean),
     ).size,
-    studentCount: new Set(nonCancelledLessons.map((lesson) => lesson.studentId)).size,
+    studentCount: new Set(
+      nonCancelledLessons.flatMap((lesson) => (lesson.studentId ? [lesson.studentId] : [])),
+    ).size,
     upcomingLessonCount: upcomingLessons.length,
     nextLesson: upcomingLessons[0] ?? null,
   };
@@ -28,7 +30,8 @@ export function getUpcomingLessons(lessons: Lesson[], now: Date = new Date()): L
   return lessons
     .filter(
       (lesson) =>
-        lesson.status === "scheduled" && new Date(lesson.startTime).getTime() >= now.getTime(),
+        (lesson.status === "scheduled" || lesson.status === "available") &&
+        new Date(lesson.startTime).getTime() >= now.getTime(),
     )
     .sort(
       (firstLesson, secondLesson) =>

@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: profile.email,
         phone: profile.phone,
         hasBankAccount: profile.hasBankAccount,
+        hasTeacherPreferences: Boolean(profile.teacherPreferences),
       },
     });
   }, []);

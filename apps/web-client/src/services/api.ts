@@ -1,4 +1,9 @@
-import type { CreateUserValues, IUserUpdate, UserProfile } from "@scholarly/shared";
+import type {
+  CreateUserValues,
+  ITeacherPreferences,
+  IUserUpdate,
+  UserProfile,
+} from "@scholarly/shared";
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import type { AuthSession, BankAccount } from "@/types/auth";
 
@@ -133,11 +138,11 @@ export const authApi = {
   },
 };
 
-export type LessonStatus = "scheduled" | "completed" | "cancelled";
+export type LessonStatus = "available" | "scheduled" | "completed" | "cancelled";
 
 export interface Lesson {
   _id: string;
-  studentId: string;
+  studentId?: string;
   teacherId: string;
   startTime: string;
   endTime: string;
@@ -145,6 +150,11 @@ export interface Lesson {
   status: LessonStatus;
   price: number;
   notes?: string;
+  durationMinutes: number;
+  chargeStatus: "none" | "full";
+  cancelledAt?: string;
+  rescheduledFromLessonId?: string;
+  rescheduledToLessonId?: string;
 }
 
 export interface DirectoryUser {
@@ -152,21 +162,24 @@ export interface DirectoryUser {
   role: "student" | "teacher";
   firstName: string;
   lastName: string;
+  teacherPreferences?: ITeacherPreferences;
 }
 
 export interface CreateLessonInput {
-  studentId: string;
+  studentId?: string;
   teacherId: string;
   startTime: string;
-  endTime: string;
   subject: string;
-  price: number;
   notes?: string;
+  durationMinutes?: number;
+  price?: number;
 }
 
 interface LessonFilters {
   studentId?: string;
   teacherId?: string;
+  status?: LessonStatus;
+  available?: "true";
 }
 
 export async function fetchLessons(filters: LessonFilters): Promise<Lesson[]> {
@@ -181,6 +194,37 @@ export async function fetchDirectoryUsers(role: DirectoryUser["role"]): Promise<
 
 export async function createLesson(input: CreateLessonInput): Promise<Lesson> {
   const response = await apiClient.post<Lesson>("/lessons", input);
+  return response.data;
+}
+
+export interface CreateLessonSeriesInput extends CreateLessonInput {
+  recurrence: { intervalWeeks: number; occurrences?: number; untilDate?: string };
+}
+
+export async function createLessonSeries(input: CreateLessonSeriesInput): Promise<Lesson[]> {
+  const response = await apiClient.post<Lesson[]>("/lessons/series", input);
+  return response.data;
+}
+
+export async function bookLesson(lessonId: string): Promise<Lesson> {
+  const response = await apiClient.post<Lesson>(`/lessons/${lessonId}/book`, {});
+  return response.data;
+}
+
+export async function cancelLesson(lessonId: string, reason?: string): Promise<Lesson> {
+  const response = await apiClient.post<Lesson>(`/lessons/${lessonId}/cancel`, { reason });
+  return response.data;
+}
+
+export async function rescheduleLesson(
+  lessonId: string,
+  targetLessonId: string,
+  reason?: string,
+): Promise<{ cancelledLesson: Lesson; newLesson: Lesson }> {
+  const response = await apiClient.post<{ cancelledLesson: Lesson; newLesson: Lesson }>(
+    `/lessons/${lessonId}/reschedule`,
+    { targetLessonId, reason },
+  );
   return response.data;
 }
 
@@ -202,4 +246,224 @@ export async function updateUserProfile(
 ): Promise<UserProfile> {
   const response = await apiClient.patch<UserProfile>(`/users/${userId}`, profile);
   return response.data;
+}
+
+export type DeliveryStatus =
+  | "waiting_for_connection"
+  | "queued"
+  | "processing"
+  | "manual_action_required"
+  | "manual_opened"
+  | "sent"
+  | "failed"
+  | "skipped_no_consent"
+  | "cancelled";
+
+export interface DeliveryRecord {
+  _id: string;
+  channel: "email" | "whatsapp" | "sms";
+  status: DeliveryStatus;
+  scheduledAt: string;
+  sentAt?: string;
+  openUrl?: string;
+}
+
+export interface PaymentRequestLine {
+  lessonId?: string;
+  date?: string;
+  subject: string;
+  durationMinutes?: number;
+  amount: number;
+  kind: "completed" | "late_cancellation" | "custom";
+}
+
+export interface PaymentRequestRecord {
+  _id: string;
+  teacherId: string;
+  studentId: string;
+  period: string;
+  source: "automatic" | "manual";
+  requestNumber: string;
+  notes?: string;
+  lineItems: PaymentRequestLine[];
+  total: number;
+  channels: Array<"email" | "whatsapp" | "sms">;
+  status:
+    | "scheduled"
+    | "pending_delivery"
+    | "partially_delivered"
+    | "delivered"
+    | "failed"
+    | "cancelled";
+  scheduledAt: string;
+  generatedAt: string;
+  deliveries: DeliveryRecord[];
+}
+
+export interface LessonMessageRecord {
+  _id: string;
+  studentId: string;
+  lessonId?: string;
+  lessonIds?: string[];
+  subject: string;
+  message: string;
+  pdfFilename?: string;
+  channels: Array<"email" | "whatsapp" | "sms">;
+  scheduledAt: string;
+  status: PaymentRequestRecord["status"];
+  deliveries: DeliveryRecord[];
+}
+
+export interface AutomaticPaymentPreview {
+  nextScheduledAt: string;
+  period: string;
+  lessonCount: number;
+  studentCount: number;
+  estimatedTotal: number;
+}
+
+export interface GmailConnectionStatus {
+  configured: boolean;
+  connected: boolean;
+  senderAddress?: string;
+  status: "connected" | "expired" | "revoked" | "not_connected";
+  connectedAt?: string;
+}
+
+export interface WhatsAppReminderTask extends DeliveryRecord {
+  lessonId: string;
+  reminderKind: "thirty_hours" | "thirty_minutes";
+  lessonSubject: string;
+  lessonStartTime: string;
+  studentName: string;
+}
+
+const automationPath = "/billing/automation";
+
+export async function fetchPaymentRequests(): Promise<PaymentRequestRecord[]> {
+  const response = await apiClient.get<PaymentRequestRecord[]>(
+    `${automationPath}/payment-requests`,
+  );
+  return response.data;
+}
+
+export async function createManualPaymentRequest(input: {
+  studentId: string;
+  lessonIds: string[];
+  customItems: Array<{ description: string; amount: number; date?: string }>;
+  channels: Array<"email" | "whatsapp" | "sms">;
+  scheduledAt?: string;
+  notes?: string;
+}): Promise<PaymentRequestRecord> {
+  const response = await apiClient.post<PaymentRequestRecord>(
+    `${automationPath}/payment-requests`,
+    input,
+  );
+  return response.data;
+}
+
+export async function cancelPaymentRequest(id: string): Promise<void> {
+  await apiClient.post(`${automationPath}/payment-requests/${id}/cancel`, {});
+}
+
+export async function openPaymentRequestPdf(id: string): Promise<void> {
+  const response = await apiClient.get<Blob>(`${automationPath}/payment-requests/${id}/pdf`, {
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(response.data);
+  window.open(url, "_blank", "noopener,noreferrer");
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+export async function fetchLessonMessages(): Promise<LessonMessageRecord[]> {
+  const response = await apiClient.get<LessonMessageRecord[]>(`${automationPath}/lesson-messages`);
+  return response.data;
+}
+
+export async function createLessonMessage(input: {
+  lessonIds: string[];
+  subject: string;
+  message: string;
+  channels: Array<"email" | "whatsapp" | "sms">;
+  scheduledAt?: string;
+}): Promise<LessonMessageRecord[]> {
+  const response = await apiClient.post<LessonMessageRecord[]>(
+    `${automationPath}/lesson-messages`,
+    input,
+  );
+  return response.data;
+}
+
+export async function cancelLessonMessage(id: string): Promise<void> {
+  await apiClient.post(`${automationPath}/lesson-messages/${id}/cancel`, {});
+}
+
+export async function openLessonMessagePdf(id: string): Promise<void> {
+  const response = await apiClient.get<Blob>(`${automationPath}/lesson-messages/${id}/pdf`, {
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(response.data);
+  window.open(url, "_blank", "noopener,noreferrer");
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+export async function fetchAutomaticPaymentPreview(): Promise<AutomaticPaymentPreview> {
+  const response = await apiClient.get<AutomaticPaymentPreview>(`${automationPath}/preview`);
+  return response.data;
+}
+
+export async function fetchWhatsAppReminderTasks(): Promise<WhatsAppReminderTask[]> {
+  const response = await apiClient.get<WhatsAppReminderTask[]>(`${automationPath}/whatsapp/tasks`);
+  return response.data;
+}
+
+export async function fetchGmailConnection(): Promise<GmailConnectionStatus> {
+  const response = await apiClient.get<GmailConnectionStatus>(`${automationPath}/google/status`);
+  return response.data;
+}
+
+export async function connectGmail(): Promise<void> {
+  const response = await apiClient.post<{ url: string }>(`${automationPath}/google/authorize`, {});
+  window.location.assign(response.data.url);
+}
+
+export async function disconnectGmail(): Promise<void> {
+  await apiClient.delete(`${automationPath}/google/connection`);
+}
+
+export async function openWhatsAppDelivery(
+  id: string,
+  targetWindow?: Window | null,
+): Promise<void> {
+  try {
+    const response = await apiClient.post<{ url: string }>(
+      `${automationPath}/whatsapp/${id}/open`,
+      {},
+    );
+    if (targetWindow && !targetWindow.closed) {
+      try {
+        targetWindow.location.href = response.data.url;
+        return;
+      } catch {
+        targetWindow.close();
+      }
+    }
+    window.location.assign(response.data.url);
+  } catch (error) {
+    targetWindow?.close();
+    throw error;
+  }
+}
+
+export async function confirmWhatsAppDelivery(id: string): Promise<void> {
+  await apiClient.post(`${automationPath}/whatsapp/${id}/confirm`, {});
+}
+
+export async function openSmsDelivery(id: string): Promise<void> {
+  const response = await apiClient.post<{ url: string }>(`${automationPath}/sms/${id}/open`, {});
+  window.location.assign(response.data.url);
+}
+
+export async function confirmSmsDelivery(id: string): Promise<void> {
+  await apiClient.post(`${automationPath}/sms/${id}/confirm`, {});
 }

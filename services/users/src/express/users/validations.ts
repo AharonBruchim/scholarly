@@ -1,4 +1,4 @@
-import { bankAccountSchema, createUserSchema, phoneSchema, UsersRoles } from '@scholarly/shared';
+import { bankAccountSchema, createUserSchema, phoneSchema, teacherPreferencesSchema, UsersRoles } from '@scholarly/shared';
 import { zodMongoObjectId } from '@scholarly/utils';
 import { z } from 'zod';
 
@@ -34,6 +34,7 @@ export const updateOneRequestSchema = z.object({
             email: z.string().trim().email().optional(),
             phone: phoneSchema.partial().optional(),
             bankAccount: bankAccountSchema.partial().optional(),
+            teacherPreferences: teacherPreferencesSchema.optional(),
         })
         .strict(),
     query: z.object({}),

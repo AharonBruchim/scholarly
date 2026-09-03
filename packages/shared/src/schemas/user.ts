@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UsersRoles } from '../types/user';
+import { DeliveryChannel, UsersRoles } from '../types/user';
 
 export const phoneSchema = z.object({
     number: z.string().min(9, 'מספר טלפון לא תקין'),
@@ -11,6 +11,21 @@ export const bankAccountSchema = z.object({
     bankName: z.string().min(1, 'שם הבנק הוא שדה חובה'),
     branchNumber: z.string().min(1, 'מספר סניף הוא שדה חובה'),
     accountNumber: z.string().min(1, 'מספר חשבון הוא שדה חובה'),
+});
+
+export const teacherSubjectSettingSchema = z.object({
+    subject: z.string().trim().min(1).max(120),
+    durationMinutes: z.number().int().min(15).max(240).optional(),
+    price: z.number().min(1).max(100000).optional(),
+});
+
+export const teacherPreferencesSchema = z.object({
+    defaultLessonDurationMinutes: z.number().int().min(15).max(240),
+    defaultLessonPrice: z.number().min(1).max(100000),
+    subjectSettings: z.array(teacherSubjectSettingSchema).max(100).default([]),
+    paymentRequestChannels: z.array(z.nativeEnum(DeliveryChannel)).min(1),
+    reminderChannels: z.array(z.enum([DeliveryChannel.EMAIL, DeliveryChannel.WHATSAPP])).min(1),
+    timezone: z.string().trim().min(1).max(100).default('Asia/Jerusalem'),
 });
 
 export const baseUserSchema = z.object({
