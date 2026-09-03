@@ -6,6 +6,9 @@ export const config = {
         port: env.get('PORT').default(3000).asPortNumber(),
         requestTimeout: env.get('REQUEST_TIMEOUT').default(10000).asIntPositive(),
     },
+    cors: {
+        origins: env.get('CORS_ORIGIN').required().asArray(),
+    },
     users: {
         uri: env.get('USERS_SERVICE_URI').default('http://users:5000').asString(),
         baseRoute: env.get('USERS_BASE_ROUTE').default('/api/users').asString(),

@@ -4,6 +4,7 @@ import { errorMiddleware, loggerMiddleware } from '@scholarly/utils';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import { config } from '../config';
 import { appRouter } from './router';
 
 export class Server {
@@ -19,7 +20,8 @@ export class Server {
         const app = express();
         app.use(
             cors({
-                origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN : ['http://localhost:5000'],
+                origin: config.cors.origins,
+                credentials: true,
             }),
         );
 

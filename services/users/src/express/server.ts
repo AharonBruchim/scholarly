@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import { config } from '../config';
 import { appRouter } from '../express/router';
 
 export class Server {
@@ -20,7 +21,7 @@ export class Server {
         const app = express();
         app.use(
             cors({
-                origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) : ['http://localhost:5173'],
+                origin: config.cors.origins,
                 credentials: true,
             }),
         );

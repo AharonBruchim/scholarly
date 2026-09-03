@@ -1,5 +1,6 @@
 import { type AuthenticatedRequest, type TypedRequest, UnauthorizedError } from '@scholarly/utils';
 import type { Response } from 'express';
+import { config } from '../../config';
 import { GmailManager } from './gmail';
 import { AutomationManager } from './manager';
 import type {
@@ -94,7 +95,6 @@ export const AutomationController = {
     },
     googleCallback: async (req: TypedRequest<typeof googleCallbackSchema>, res: Response) => {
         await GmailManager.completeAuthorization(req.query.code, req.query.state);
-        const webUrl = (process.env.WEB_APP_URL ?? 'http://localhost:5173').replace(/\/$/, '');
-        res.redirect(`${webUrl}/teacher?gmail=connected#payments`);
+        res.redirect(`${config.web.appUrl}/teacher?gmail=connected#payments`);
     },
 };
