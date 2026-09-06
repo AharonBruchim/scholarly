@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context-core";
 import { useCreateLesson, useCreateLessonSeries, useDirectoryUsers } from "@/hooks/useDirectory";
-import { fetchUserProfile } from "@/services/api";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const emptyLessonForm = {
   studentId: "",
@@ -26,30 +26,22 @@ export function CreateLessonForm() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const studentsQuery = useDirectoryUsers("student");
+  const profileQuery = useUserProfile(user?.id);
   const createLessonMutation = useCreateLesson();
   const createSeriesMutation = useCreateLessonSeries();
   const [form, setForm] = useState(emptyLessonForm);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [preferences, setPreferences] = useState<ITeacherPreferences | null>(null);
+  const preferences: ITeacherPreferences | null = profileQuery.data?.teacherPreferences ?? null;
 
   useEffect(() => {
-    if (!user) return;
-    let active = true;
-    void fetchUserProfile(user.id).then((profile) => {
-      if (!active || !profile.teacherPreferences) return;
-      setPreferences(profile.teacherPreferences);
-      setForm((current) => ({
-        ...current,
-        durationMinutes:
-          current.durationMinutes ||
-          String(profile.teacherPreferences?.defaultLessonDurationMinutes ?? ""),
-        price: current.price || String(profile.teacherPreferences?.defaultLessonPrice ?? ""),
-      }));
-    });
-    return () => {
-      active = false;
-    };
-  }, [user]);
+    if (!preferences) return;
+
+    setForm((current) => ({
+      ...current,
+      durationMinutes: current.durationMinutes || String(preferences.defaultLessonDurationMinutes),
+      price: current.price || String(preferences.defaultLessonPrice),
+    }));
+  }, [preferences]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

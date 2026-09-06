@@ -56,16 +56,6 @@ export type DirectoryUser = Pick<PublicUser, '_id' | 'firstName' | 'lastName'> &
     teacherPreferences?: ITeacherPreferences;
 };
 
-export interface IStudent extends IUser {
-    role: UsersRoles.STUDENT;
-}
-
-export interface ITeacher extends IUser {
-    role: UsersRoles.TEACHER;
-    bankAccount: IBankAccount;
-    teacherPreferences?: ITeacherPreferences;
-}
-
 export interface ListUsersQuery {
     role?: UsersRoles;
 }

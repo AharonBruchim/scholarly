@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context-core";
-import { fetchUserProfile, updateUserProfile } from "@/services/api";
+import { useUpdateUserProfile, useUserProfile } from "@/hooks/useUserProfile";
 
 interface ProfileForm {
   firstName: string;
@@ -35,54 +35,34 @@ export default function ProfilePage() {
   const userId = user?.id;
   const homePath = user?.role === "teacher" ? "/teacher" : "/student";
   const [form, setForm] = useState<ProfileForm>(emptyProfile);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const profileQuery = useUserProfile(userId);
+  const updateProfileMutation = useUpdateUserProfile(userId ?? "");
 
   useEffect(() => {
-    if (!userId) return;
-    let active = true;
+    const profile = profileQuery.data;
+    if (!profile) return;
 
-    void fetchUserProfile(userId)
-      .then((profile) => {
-        if (!active) return;
-        setForm({
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          email: profile.email,
-          phoneNumber: profile.phone.number ?? "",
-          allowWhatsApp: profile.phone.allowWhatsApp ?? false,
-          allowSMS: profile.phone.allowSMS ?? false,
-        });
-      })
-      .catch(() => {
-        if (active) setError(t("profile.loadFailed"));
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [t, userId]);
+    setForm({
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email: profile.email,
+      phoneNumber: profile.phone.number ?? "",
+      allowWhatsApp: profile.phone.allowWhatsApp ?? false,
+      allowSMS: profile.phone.allowSMS ?? false,
+    });
+  }, [profileQuery.data]);
 
   const setField = <Key extends keyof ProfileForm>(key: Key, value: ProfileForm[Key]) => {
     setForm((current) => ({ ...current, [key]: value }));
-    setSaved(false);
+    updateProfileMutation.reset();
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!user) return;
 
-    setIsSaving(true);
-    setError(null);
-    setSaved(false);
-
     try {
-      const profile = await updateUserProfile(user.id, {
+      const profile = await updateProfileMutation.mutateAsync({
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email,
@@ -93,15 +73,22 @@ export default function ProfilePage() {
         },
       });
       updateProfile(profile);
-      setSaved(true);
     } catch {
-      setError(t("profile.saveFailed"));
-    } finally {
-      setIsSaving(false);
+      // The localized mutation error is rendered below.
     }
   };
 
-  if (isLoading) return <Spinner />;
+  if (profileQuery.isPending) return <Spinner />;
+  if (profileQuery.isError) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-3" role="alert">
+        <p className="text-sm text-red-400">{t("profile.loadFailed")}</p>
+        <Button type="button" variant="secondary" onClick={() => void profileQuery.refetch()}>
+          {t("common.retry")}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -201,20 +188,20 @@ export default function ProfilePage() {
               </label>
             </div>
 
-            {error ? (
+            {updateProfileMutation.isError ? (
               <p className="text-sm text-red-400" role="alert">
-                {error}
+                {t("profile.saveFailed")}
               </p>
             ) : null}
-            {saved ? (
+            {updateProfileMutation.isSuccess ? (
               <p className="text-sm text-emerald-400" role="status">
                 {t("profile.saved")}
               </p>
             ) : null}
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? t("profile.saving") : t("profile.save")}
+              <Button type="submit" disabled={updateProfileMutation.isPending}>
+                {updateProfileMutation.isPending ? t("profile.saving") : t("profile.save")}
               </Button>
             </div>
           </form>

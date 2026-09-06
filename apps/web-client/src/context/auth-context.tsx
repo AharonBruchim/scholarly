@@ -1,4 +1,5 @@
 import type { UserProfile } from "@scholarly/shared";
+import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 import { authApi, getCurrentSession, setCurrentSession, subscribeToSession } from "@/services/api";
@@ -6,10 +7,18 @@ import type { AuthSession } from "@/types/auth";
 import { AuthContext, type AuthContextValue } from "./auth-context-core";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [session, setSession] = useState<AuthSession | null>(() => getCurrentSession());
   const [isInitializing, setIsInitializing] = useState(true);
 
-  useEffect(() => subscribeToSession(setSession), []);
+  useEffect(
+    () =>
+      subscribeToSession((nextSession) => {
+        setSession(nextSession);
+        if (!nextSession) queryClient.clear();
+      }),
+    [queryClient],
+  );
 
   useEffect(() => {
     let active = true;
@@ -52,12 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const markBankAccountConfigured = useCallback(() => {
-    const current = getCurrentSession();
-    if (current?.user.role !== "teacher") return;
-    setCurrentSession({ ...current, user: { ...current.user, hasBankAccount: true } });
-  }, []);
-
   const logout = useCallback(async () => {
     await authApi.logout();
   }, []);
@@ -71,10 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       updateProfile,
-      markBankAccountConfigured,
       logout,
     }),
-    [isInitializing, login, logout, markBankAccountConfigured, register, session, updateProfile],
+    [isInitializing, login, logout, register, session, updateProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

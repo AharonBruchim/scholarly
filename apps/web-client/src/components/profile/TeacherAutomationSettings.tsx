@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context-core";
-import { fetchUserProfile, updateUserProfile } from "@/services/api";
+import { useUpdateUserProfile, useUserProfile } from "@/hooks/useUserProfile";
 
 const defaultSettings: ITeacherPreferences = {
   defaultLessonDurationMinutes: 60,
@@ -27,18 +27,14 @@ export function TeacherAutomationSettings({ userId }: { userId: string }) {
   const { t } = useTranslation();
   const { updateProfile } = useAuth();
   const [settings, setSettings] = useState<ITeacherPreferences>(defaultSettings);
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<"saved" | "error" | null>(null);
+  const profileQuery = useUserProfile(userId);
+  const updateProfileMutation = useUpdateUserProfile(userId);
 
   useEffect(() => {
-    let active = true;
-    void fetchUserProfile(userId).then((profile) => {
-      if (active && profile.teacherPreferences) setSettings(profile.teacherPreferences);
-    });
-    return () => {
-      active = false;
-    };
-  }, [userId]);
+    if (profileQuery.data?.teacherPreferences) {
+      setSettings(profileQuery.data.teacherPreferences);
+    }
+  }, [profileQuery.data?.teacherPreferences]);
 
   const setSubject = (index: number, next: ITeacherSubjectSetting) => {
     setSettings((current) => ({
@@ -77,16 +73,12 @@ export function TeacherAutomationSettings({ userId }: { userId: string }) {
 
   const save = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsSaving(true);
-    setMessage(null);
+    updateProfileMutation.reset();
     try {
-      const profile = await updateUserProfile(userId, { teacherPreferences: settings });
+      const profile = await updateProfileMutation.mutateAsync({ teacherPreferences: settings });
       updateProfile(profile);
-      setMessage("saved");
     } catch {
-      setMessage("error");
-    } finally {
-      setIsSaving(false);
+      // The localized mutation error is rendered below.
     }
   };
 
@@ -243,19 +235,19 @@ export function TeacherAutomationSettings({ userId }: { userId: string }) {
           <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
             {t("automation.connectionRequired")}
           </div>
-          {message === "saved" ? (
+          {updateProfileMutation.isSuccess ? (
             <p role="status" className="text-sm text-emerald-300">
               {t("automation.saved")}
             </p>
           ) : null}
-          {message === "error" ? (
+          {profileQuery.isError || updateProfileMutation.isError ? (
             <p role="alert" className="text-sm text-red-400">
               {t("automation.saveFailed")}
             </p>
           ) : null}
           <div className="flex justify-end">
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? t("profile.saving") : t("automation.save")}
+            <Button type="submit" disabled={updateProfileMutation.isPending}>
+              {updateProfileMutation.isPending ? t("profile.saving") : t("automation.save")}
             </Button>
           </div>
         </form>

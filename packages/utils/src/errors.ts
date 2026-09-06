@@ -16,12 +16,6 @@ export class UserNotFoundError extends ServiceError {
     }
 }
 
-export class ValidationError extends ServiceError {
-    constructor(message: string) {
-        super(message, 400, 'VALIDATION_ERROR');
-    }
-}
-
 export class UnauthorizedError extends ServiceError {
     constructor(message = 'Unauthorized') {
         super(message, 401, 'UNAUTHORIZED');

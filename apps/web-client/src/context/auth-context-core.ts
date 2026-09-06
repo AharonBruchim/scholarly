@@ -10,7 +10,6 @@ export interface AuthContextValue {
   login: (session: AuthSession) => void;
   register: (session: AuthSession) => void;
   updateProfile: (profile: UserProfile) => void;
-  markBankAccountConfigured: () => void;
   logout: () => Promise<void>;
 }
 

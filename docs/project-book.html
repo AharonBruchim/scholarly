@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scholarly — ספר פרויקט</title>
+  <style>
+    @font-face {
+      font-family: "Assistant Local";
+      src: url("../apps/web-client/public/fonts/Assistant-Regular.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    :root {
+      --ink: #14213d;
+      --muted: #53627a;
+      --blue: #2563eb;
+      --sky: #38bdf8;
+      --navy: #07152e;
+      --paper: #ffffff;
+      --wash: #eef6ff;
+      --line: #dbe7f5;
+      --green: #0f766e;
+      --amber: #b45309;
+      --red: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: #dce5ef; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Assistant Local", Assistant, Arial, sans-serif;
+      font-size: 10.4pt;
+      line-height: 1.43;
+      counter-reset: project-page;
+    }
+
+    .page {
+      position: relative;
+      width: 210mm;
+      min-height: 297mm;
+      margin: 10mm auto;
+      padding: 17mm 17mm 18mm;
+      overflow: hidden;
+      background: var(--paper);
+      box-shadow: 0 12px 35px rgba(15, 23, 42, .18);
+      break-after: page;
+      page-break-after: always;
+      counter-increment: project-page;
+    }
+
+    .page::before {
+      content: "SCHOLARLY  /  ספר פרויקט";
+      position: absolute;
+      top: 7mm;
+      left: 17mm;
+      color: #7890ad;
+      font-size: 7.5pt;
+      letter-spacing: .08em;
+    }
+
+    .page::after {
+      content: counter(project-page);
+      position: absolute;
+      bottom: 6.5mm;
+      left: 17mm;
+      color: #7890ad;
+      font-size: 8pt;
+    }
+
+    .cover {
+      color: white;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(56, 189, 248, .32), transparent 28%),
+        radial-gradient(circle at 88% 78%, rgba(37, 99, 235, .34), transparent 32%),
+        linear-gradient(145deg, #020817 0%, #0b1e3f 55%, #102b58 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24mm;
+    }
+
+    .cover::before, .cover::after { display: none; }
+    .eyebrow { color: #7dd3fc; font-size: 10pt; font-weight: 700; letter-spacing: .18em; }
+    .cover h1 { margin: 18mm 0 4mm; font-size: 52pt; line-height: .95; letter-spacing: -.04em; }
+    .cover h2 { margin: 0; color: #c8e8ff; font-size: 25pt; font-weight: 500; }
+    .cover-lead { max-width: 128mm; margin-top: 11mm; color: #d8eaff; font-size: 15pt; line-height: 1.55; }
+    .cover-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+    .cover-chip { min-height: 28mm; padding: 5mm; border: 1px solid rgba(125, 211, 252, .28); border-radius: 4mm; background: rgba(255,255,255,.055); }
+    .cover-chip strong { display: block; color: #7dd3fc; font-size: 11.5pt; }
+
+    h1, h2, h3, h4, p { margin-top: 0; }
+    h1 { margin-bottom: 8mm; font-size: 28pt; line-height: 1.05; letter-spacing: -.025em; }
+    h2 { margin: 7mm 0 3mm; color: #123a72; font-size: 18pt; line-height: 1.15; }
+    h3 { margin: 5mm 0 2mm; color: #1d4f91; font-size: 12.5pt; }
+    h4 { margin: 3mm 0 1mm; font-size: 10.5pt; }
+    p { margin-bottom: 3mm; }
+    ul, ol { margin: 2mm 0 4mm; padding-right: 6mm; }
+    li { margin-bottom: 1.2mm; }
+    code { direction: ltr; unicode-bidi: embed; color: #0f3a70; font-family: Consolas, monospace; font-size: 8.8pt; }
+
+    .chapter-kicker { margin-bottom: 2mm; color: var(--blue); font-size: 8.5pt; font-weight: 800; letter-spacing: .12em; }
+    .lead { color: #31435f; font-size: 13pt; line-height: 1.55; }
+    .muted { color: var(--muted); }
+    .small { font-size: 8.7pt; }
+    .ltr { direction: ltr; text-align: left; }
+    .no-break { break-inside: avoid; page-break-inside: avoid; }
+
+    .rule { width: 22mm; height: 1.2mm; margin: 0 0 7mm auto; border-radius: 2mm; background: linear-gradient(90deg, var(--sky), var(--blue)); }
+    .callout { margin: 4mm 0; padding: 4mm 5mm; border-right: 1.4mm solid var(--blue); border-radius: 2.5mm; background: var(--wash); }
+    .callout.green { border-color: var(--green); background: #eefbf8; }
+    .callout.amber { border-color: var(--amber); background: #fff8eb; }
+    .callout.red { border-color: var(--red); background: #fff1f2; }
+    .quote { color: #173f77; font-size: 15pt; font-weight: 650; line-height: 1.5; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4mm; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3mm; }
+    .card { padding: 4mm; border: .35mm solid var(--line); border-radius: 3.5mm; background: #fbfdff; break-inside: avoid; }
+    .card strong.title { display: block; margin-bottom: 1mm; color: #164e8a; font-size: 11pt; }
+    .metric { padding: 4mm; border-radius: 3mm; color: white; background: linear-gradient(135deg, #102b58, #164a8c); }
+    .metric strong { display: block; font-size: 22pt; line-height: 1; }
+
+    table { width: 100%; margin: 3mm 0 5mm; border-collapse: collapse; font-size: 9pt; }
+    th, td { padding: 2.4mm 2.7mm; border-bottom: .3mm solid var(--line); text-align: right; vertical-align: top; }
+    th { color: #0f417e; background: #edf6ff; font-weight: 750; }
+    tr:nth-child(even) td { background: #fbfdff; }
+
+    .toc { columns: 2; column-gap: 12mm; list-style: none; padding: 0; }
+    .toc li { display: flex; justify-content: space-between; gap: 3mm; padding: 2mm 0; border-bottom: .25mm dotted #b9c8da; break-inside: avoid; }
+    .toc span:last-child { color: var(--blue); font-weight: 700; }
+
+    .diagram { direction: ltr; margin: 5mm 0; padding: 5mm; border: .35mm solid var(--line); border-radius: 4mm; background: linear-gradient(180deg, #f8fbff, #f1f7ff); }
+    .flow { display: flex; align-items: stretch; justify-content: center; gap: 2mm; }
+    .flow.vertical { flex-direction: column; align-items: center; }
+    .node { display: flex; min-height: 18mm; min-width: 29mm; flex: 1; align-items: center; justify-content: center; padding: 3mm; border: .35mm solid #a9c9ee; border-radius: 3mm; color: #143d72; background: white; text-align: center; font-weight: 700; }
+    .node.dark { color: white; border-color: #123e78; background: #123e78; }
+    .node.green { color: #075e57; border-color: #8bd4c8; background: #effbf8; }
+    .node.amber { color: #884008; border-color: #f0c98f; background: #fff8e9; }
+    .arrow { display: flex; align-items: center; justify-content: center; color: var(--blue); font-size: 18pt; font-weight: 800; }
+    .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; margin-top: 3mm; }
+    .service { padding: 4mm 2mm; border-radius: 3mm; color: white; background: #164a8c; text-align: center; }
+    .service small { display: block; margin-top: 1mm; color: #d9efff; }
+
+    .tree { direction: ltr; padding: 4mm 6mm; border-radius: 3mm; color: #dbeafe; background: #07152e; font-family: Consolas, monospace; font-size: 8.6pt; line-height: 1.55; white-space: pre-wrap; }
+    .tag { display: inline-block; margin: 0 0 1.5mm 1mm; padding: 1mm 2.2mm; border-radius: 10mm; color: #174679; background: #e8f3ff; font-size: 8.2pt; font-weight: 700; }
+    .tag.core { color: #075e57; background: #def7f0; }
+    .tag.tool { color: #81440d; background: #fff1d6; }
+    .tag.inactive { color: #6b3c55; background: #fae8f1; }
+
+    .screen { overflow: hidden; border: .45mm solid #b8cbe0; border-radius: 4mm; background: #07152e; box-shadow: 0 4mm 8mm rgba(18, 56, 97, .12); }
+    .screen-bar { display: flex; direction: ltr; gap: 1.4mm; padding: 2.2mm 3mm; background: #dce8f5; }
+    .dot { width: 2.2mm; height: 2.2mm; border-radius: 50%; background: #9ab0c7; }
+    .screen-body { min-height: 58mm; padding: 5mm; color: white; background: radial-gradient(circle at top, #183764, #07152e 55%); }
+    .mini-nav { display: flex; justify-content: space-between; margin-bottom: 5mm; color: #bae6fd; font-size: 8pt; }
+    .mini-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2mm; }
+    .mini-card { min-height: 18mm; padding: 2mm; border: .25mm solid #385377; border-radius: 2mm; background: rgba(15, 23, 42, .7); font-size: 7.5pt; }
+    .mini-card b { display: block; margin-top: 1mm; color: white; font-size: 15pt; }
+    .screen-note { padding: 3mm 4mm; color: #3a4b62; background: white; font-size: 8.4pt; }
+
+    .api { direction: ltr; text-align: left; font-family: Consolas, monospace; font-size: 8.3pt; }
+    .method { display: inline-block; min-width: 14mm; padding: .5mm 1mm; border-radius: 1mm; color: white; text-align: center; font-weight: 800; }
+    .get { background: #087f5b; } .post { background: #1d4ed8; } .patch { background: #a16207; } .delete { background: #b91c1c; }
+
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { position: relative; padding-right: 7mm; }
+    .checklist li::before { content: "✓"; position: absolute; right: 0; color: var(--green); font-weight: 900; }
+
+    @media print {
+      @page { size: A4; margin: 0; }
+      html, body { background: white; }
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .page { width: 210mm; height: 297mm; min-height: 297mm; margin: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <section class="page cover">
+    <div>
+      <div class="eyebrow">FULL‑STACK PROJECT DOCUMENTATION</div>
+      <h1>Scholarly</h1>
+      <h2>ספר פרויקט</h2>
+      <p class="cover-lead">מערכת חכמה לניהול שיעורים פרטיים, קביעת מועדים, תקשורת ודרישות תשלום בין מורים לתלמידים.</p>
+    </div>
+    <div class="cover-grid">
+      <div class="cover-chip"><strong>Frontend</strong>React 19, TypeScript, Vite, Tailwind CSS</div>
+      <div class="cover-chip"><strong>Data layer</strong>TanStack Query, Axios, MongoDB, Mongoose</div>
+      <div class="cover-chip"><strong>Architecture</strong>Microservices, API Gateway, shared packages</div>
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">תוכן עניינים</div>
+    <h1>מפת הספר</h1>
+    <div class="rule"></div>
+    <ol class="toc">
+      <li><span>תקציר מנהלים</span><span>3</span></li>
+      <li><span>הבעיה והפתרון</span><span>4</span></li>
+      <li><span>מטרות וקהל יעד</span><span>5</span></li>
+      <li><span>דרישות פונקציונליות</span><span>6</span></li>
+      <li><span>דרישות איכות</span><span>7</span></li>
+      <li><span>תרחישי שימוש</span><span>8</span></li>
+      <li><span>ארכיטקטורת המערכת</span><span>9</span></li>
+      <li><span>מבנה ה־Monorepo</span><span>10</span></li>
+      <li><span>Frontend</span><span>11</span></li>
+      <li><span>TanStack Query</span><span>12</span></li>
+      <li><span>ממשק, שפות ולוח שנה</span><span>13</span></li>
+      <li><span>API Gateway ושירותי Backend</span><span>14</span></li>
+      <li><span>משתמשים והזדהות</span><span>15</span></li>
+      <li><span>ניהול שיעורים</span><span>16</span></li>
+      <li><span>ביטול והזזה</span><span>17</span></li>
+      <li><span>חיובים ודרישות תשלום</span><span>18</span></li>
+      <li><span>תזכורות ושליחות</span><span>19</span></li>
+      <li><span>Google ו־Gmail</span><span>20</span></li>
+      <li><span>אבטחת מידע</span><span>21</span></li>
+      <li><span>מודל הנתונים</span><span>22</span></li>
+      <li><span>ממשקי API</span><span>23</span></li>
+      <li><span>מסכי המערכת</span><span>24</span></li>
+      <li><span>מפת טכנולוגיות מלאה</span><span>25</span></li>
+      <li><span>כלי פיתוח ותלויות משלימות</span><span>27</span></li>
+      <li><span>איכות, תקלות ולוגים</span><span>28</span></li>
+      <li><span>התקנה והפעלה</span><span>29</span></li>
+      <li><span>מגבלות והמשך פיתוח</span><span>30</span></li>
+      <li><span>סיכום</span><span>31</span></li>
+    </ol>
+    <div class="callout">המסמך מתאר את מצב הקוד שנבדק. טכנולוגיות שמוגדרות כתלות אך אינן מחוברות למסלול פעיל מסומנות בנפרד, כדי להבחין בין יכולת קיימת לבין שימוש בפועל.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">01 / מבוא</div>
+    <h1>תקציר מנהלים</h1>
+    <div class="rule"></div>
+    <p class="lead">Scholarly מרכזת במקום אחד את מחזור החיים המלא של שיעור פרטי: יצירת חשבון, איתור מורה, קביעת שיעור, שינוי מועד, תזכורות, הודעות ודרישת תשלום.</p>
+    <p>המערכת מיועדת לשני סוגי משתמשים — מורים ותלמידים — ומציגה לכל תפקיד ממשק והרשאות המתאימים לפעולות שלו. המורה מגדיר מחיר ומשך, יוצר שיעורים או משבצות פנויות, מנהל תשלומים ומחבר Gmail. התלמיד מחפש מורים, מזמין משבצת פנויה וצופה בשיעוריו.</p>
+    <div class="grid-3">
+      <div class="metric"><strong>2</strong>תפקידי משתמש</div>
+      <div class="metric"><strong>4</strong>שירותי Backend</div>
+      <div class="metric"><strong>3</strong>ערוצי שליחה</div>
+    </div>
+    <h2>ערך מרכזי</h2>
+    <div class="grid-2">
+      <div class="card"><strong class="title">למורה</strong>פחות עבודה ידנית סביב תיאום, תזכורות, מעקב ושליחת דרישות תשלום.</div>
+      <div class="card"><strong class="title">לתלמיד</strong>חוויית קביעה ברורה, צפייה במועדים ועדכון שיעור מול אותה מורה.</div>
+      <div class="card"><strong class="title">למערכת</strong>הפרדת אחריות בין שירותים, חוזי נתונים משותפים ומנגנוני אבטחה עקביים.</div>
+      <div class="card"><strong class="title">לתפעול</strong>תזמון אוטומטי, תור שליחות, סטטוסים מפורטים ולוגים של בקשות.</div>
+    </div>
+    <div class="callout green"><strong>התוצאה:</strong> פלטפורמה דו־לשונית ורספונסיבית שמחברת בין ניהול פדגוגי בסיסי לבין האוטומציה האדמיניסטרטיבית שסביב השיעור.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">02 / הצורך</div>
+    <h1>הבעיה והפתרון</h1>
+    <div class="rule"></div>
+    <h2>הבעיה</h2>
+    <p>מורים פרטיים מנהלים בדרך כלל יומן, הודעות, ביטולים ותשלומים במספר כלים נפרדים. פיצול זה יוצר כפילויות, קושי לדעת מי קבע מה, שכחה של תזכורות ואיסוף ידני של שיעורים לצורך חיוב.</p>
+    <div class="grid-2">
+      <div class="card"><strong class="title">תיאום מפוזר</strong>מועדים עוברים בהודעות ואין מקור נתונים יחיד.</div>
+      <div class="card"><strong class="title">התנגשויות</strong>ללא בדיקה מרכזית ניתן לקבוע מורה או תלמיד פעמיים.</div>
+      <div class="card"><strong class="title">שינויים מאוחרים</strong>קשה לשמור מדיניות ביטול עקבית ולתעד חיוב.</div>
+      <div class="card"><strong class="title">גבייה ידנית</strong>איסוף שיעורים, חישוב סכום ושליחת מסמך דורשים זמן.</div>
+    </div>
+    <h2>הפתרון של Scholarly</h2>
+    <p>המערכת שומרת את המשתמשים, השיעורים והשליחויות במודלים מוגדרים; אוכפת כללי הרשאה והתנגשות בצד השרת; ומציגה בלקוח מידע עדכני באמצעות שכבת נתונים מבוססת TanStack Query.</p>
+    <div class="diagram">
+      <div class="flow">
+        <div class="node">יצירת מועד</div><div class="arrow">→</div>
+        <div class="node">קביעה</div><div class="arrow">→</div>
+        <div class="node">תזכורות</div><div class="arrow">→</div>
+        <div class="node">השלמה / ביטול</div><div class="arrow">→</div>
+        <div class="node dark">דרישת תשלום</div>
+      </div>
+    </div>
+    <p class="muted">כל שלב נשען על הרשומה הקודמת ולכן נשמר קשר בין הפעולה התפעולית, מצב השיעור ומצב החיוב.</p>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">03 / אפיון</div>
+    <h1>מטרות וקהל יעד</h1>
+    <div class="rule"></div>
+    <h2>קהל יעד</h2>
+    <div class="grid-2">
+      <div class="card"><strong class="title">מורים פרטיים</strong>מנהלים תלמידים, שיעורים חוזרים, זמינות, תמחור, תזכורות וגבייה.</div>
+      <div class="card"><strong class="title">תלמידים</strong>מחפשים מורה רשומה, בוחרים משבצת פנויה ומנהלים את השיעורים שנקבעו להם.</div>
+    </div>
+    <h2>מטרות מוצר</h2>
+    <ol>
+      <li><strong>מקור אמת יחיד:</strong> כל שיעור נשמר עם משתתפים, זמן, נושא, מחיר וסטטוס.</li>
+      <li><strong>שירות עצמי:</strong> תלמיד יכול להזמין משבצת בלי תיאום ידני ממושך.</li>
+      <li><strong>אוטומציה:</strong> יצירת משימות תזכורת ודרישות תשלום על בסיס נתוני השיעורים.</li>
+      <li><strong>פרטיות והרשאות:</strong> כל משתמש רואה ומשנה רק נתונים המותרים לתפקידו.</li>
+      <li><strong>התאמה מקומית:</strong> עברית RTL, אזור הזמן Asia/Jerusalem ולוח עברי לצד הלועזי.</li>
+      <li><strong>שימושיות:</strong> ממשק עקבי, משוב לפעולות, מצבי טעינה והודעות שגיאה.</li>
+    </ol>
+    <h2>גבולות המוצר הנוכחי</h2>
+    <p>המערכת אינה מערכת ציונים או מערכת הנהלת חשבונות. מסמך התשלום מוגדר כדרישת תשלום ולא כחשבונית מס או קבלה. WhatsApp ו־SMS מבוססים בשלב זה על משימה ידנית וקישור פתיחה, בעוד Gmail מסוגל לשלוח באמצעות API לאחר חיבור חשבון המורה.</p>
+    <div class="callout amber"><strong>עיקרון תכנון:</strong> הקוד מתעדף זרימת שיעור וגבייה אמינה על פני הרחבת המוצר לתחומים שאינם בליבת הבעיה.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">04 / דרישות</div>
+    <h1>דרישות פונקציונליות</h1>
+    <div class="rule"></div>
+    <table>
+      <thead><tr><th>תחום</th><th>דרישה</th><th>מימוש מרכזי</th></tr></thead>
+      <tbody>
+        <tr><td>חשבונות</td><td>הרשמה והתחברות כמורה או תלמיד</td><td>Users Service, JWT, טפסי React</td></tr>
+        <tr><td>הרשאות</td><td>מסכים ופעולות לפי תפקיד</td><td>ProtectedRoute + בדיקות שרת</td></tr>
+        <tr><td>שיעורים</td><td>יצירת שיעור, משבצת או סדרה חוזרת</td><td>Lessons Service + Luxon</td></tr>
+        <tr><td>קביעה</td><td>תלמיד מזמין משבצת של מורה</td><td>עדכון אטומי של משבצת זמינה</td></tr>
+        <tr><td>שינויים</td><td>ביטול והזזה למועד חלופי</td><td>מדיניות 24 שעות וקישורי מקור/יעד</td></tr>
+        <tr><td>התאמה</td><td>מחיר ומשך ברירת מחדל או לפי נושא</td><td>Teacher Preferences</td></tr>
+        <tr><td>תשלומים</td><td>דרישה ידנית או חודשית</td><td>Billing Service + PDF</td></tr>
+        <tr><td>הודעות</td><td>הודעה מיידית או מתוזמנת</td><td>Delivery Outbox</td></tr>
+        <tr><td>ערוצים</td><td>מייל, WhatsApp ו־SMS</td><td>Gmail API וקישורים מאובטחים</td></tr>
+        <tr><td>פרופיל</td><td>עדכון פרטים והעדפות אישיות</td><td>גישה עצמית בלבד</td></tr>
+        <tr><td>שפות</td><td>עברית ואנגלית</td><td>i18next + כיוון RTL/LTR</td></tr>
+        <tr><td>לוח שנה</td><td>הצגת תאריך עברי ולועזי</td><td>Hebcal</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">הדרישות נאכפות גם בצד הלקוח לטובת חוויית המשתמש וגם בצד השרת לטובת שלמות ואבטחת הנתונים.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">05 / דרישות</div>
+    <h1>דרישות איכות ולא־פונקציונליות</h1>
+    <div class="rule"></div>
+    <div class="grid-2">
+      <div class="card"><strong class="title">אבטחה</strong>סיסמאות מגובבות, אסימונים קצרים, refresh token בעוגיית HttpOnly, הרשאות ובדיקת קלט.</div>
+      <div class="card"><strong class="title">עקביות</strong>בדיקת התנגשויות ושינויים אטומיים מונעים הזמנה כפולה.</div>
+      <div class="card"><strong class="title">ביצועים</strong>Cache בצד הלקוח, אינדקסים במסד וטעינה עצלה של דפים.</div>
+      <div class="card"><strong class="title">תחזוקתיות</strong>TypeScript strict, חבילות משותפות, שירותים מופרדים ו־Biome.</div>
+      <div class="card"><strong class="title">זמינות תפעולית</strong>נתיבי health, retries מבוקרים וסטטוס לכל שליחה.</div>
+      <div class="card"><strong class="title">נגישות לשונית</strong>עברית כברירת מחדל, אנגלית, RTL/LTR ועיצוב רספונסיבי.</div>
+    </div>
+    <h2>עקרונות אמינות בקוד</h2>
+    <ul class="checklist">
+      <li>תור שליחות מפריד בין יצירת המסמך לבין ניסיון המסירה.</li>
+      <li>יצירת סדרת שיעורים מתגלגלת לאחור אם אחד המופעים נכשל.</li>
+      <li>כשל ביצירת תזכורות מחזיר משבצת למצב הקודם.</li>
+      <li>TanStack Query מרענן cache רק לאחר mutation מוצלח.</li>
+      <li>Axios מבצע ניסיון רענון session יחיד גם כאשר מספר בקשות נכשלות יחד.</li>
+      <li>Zod מחזיר שגיאות קלט עקביות לפני הפעלת לוגיקת התחום.</li>
+    </ul>
+    <div class="callout amber">בדיקה סטטית אינה תחליף לבדיקות אוטומטיות. הפרויקט מגדיר Vitest ו־Supertest, אך בסריקה הנוכחית לא נמצאו קובצי בדיקה פעילים; זהו יעד ברור להמשך.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">06 / משתמשים</div>
+    <h1>תרחישי שימוש מרכזיים</h1>
+    <div class="rule"></div>
+    <div class="grid-2">
+      <div class="card">
+        <strong class="title">מורה יוצר משבצת</strong>
+        <ol><li>המורה מתחבר.</li><li>מגדיר נושא ומועד.</li><li>המערכת פותרת מחיר ומשך.</li><li>נבדקות התנגשויות.</li><li>המשבצת נשמרת כזמינה.</li></ol>
+      </div>
+      <div class="card">
+        <strong class="title">תלמיד קובע שיעור</strong>
+        <ol><li>התלמיד מחפש מורה.</li><li>נשלפות משבצות זמינות.</li><li>התלמיד בוחר מועד.</li><li>השרת בודק שהמשבצת עדיין פנויה.</li><li>נוצרות משימות תזכורת.</li></ol>
+      </div>
+      <div class="card">
+        <strong class="title">שינוי מועד</strong>
+        <ol><li>נבחר שיעור קיים.</li><li>נבחר מועד חלופי אצל אותה מורה.</li><li>המועד החדש נתפס.</li><li>הישן מבוטל ונפתח מחדש.</li><li>שתי הרשומות מקושרות.</li></ol>
+      </div>
+      <div class="card">
+        <strong class="title">דרישת תשלום</strong>
+        <ol><li>המורה בוחר שיעורים וסעיפים.</li><li>מחושב סכום כולל.</li><li>נוצר PDF ממותג.</li><li>נוצרות משימות לפי ערוץ.</li><li>הסטטוס מתעדכן לפי המסירה.</li></ol>
+      </div>
+    </div>
+    <h2>הפרדת תפקידים</h2>
+    <table>
+      <thead><tr><th>פעולה</th><th>מורה</th><th>תלמיד</th></tr></thead>
+      <tbody>
+        <tr><td>יצירת שיעור או סדרה</td><td>כן, עבור עצמו</td><td>לא</td></tr>
+        <tr><td>קביעת משבצת</td><td>לא נדרש</td><td>כן, עבור עצמו</td></tr>
+        <tr><td>ביטול / הזזה</td><td>כשמשתתף בשיעור</td><td>כשמשתתף בשיעור</td></tr>
+        <tr><td>חיובים ושליחות</td><td>כן</td><td>לא</td></tr>
+        <tr><td>עדכון פרופיל</td><td>עצמי בלבד</td><td>עצמי בלבד</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">07 / ארכיטקטורה</div>
+    <h1>ארכיטקטורת המערכת</h1>
+    <div class="rule"></div>
+    <p class="lead">המערכת בנויה כ־Monorepo ובתוכה לקוח אחד, API Gateway ושלושה שירותי תחום.</p>
+    <div class="diagram">
+      <div class="flow"><div class="node dark">React Web Client<br><small>Vite · TanStack Query · Axios</small></div><div class="arrow">→</div><div class="node">API Gateway<br><small>:3000</small></div></div>
+      <div class="service-grid">
+        <div class="service">Users Service<small>:5000 · Auth · Profiles</small></div>
+        <div class="service">Lessons Service<small>:6000 · Scheduling</small></div>
+        <div class="service">Billing Service<small>:8000 · PDF · Delivery</small></div>
+      </div>
+      <div class="flow" style="margin-top:3mm"><div class="node green">MongoDB<br><small>אוספים משותפים</small></div><div class="node amber">Google APIs<br><small>OAuth · Gmail</small></div><div class="node">WhatsApp / SMS<br><small>פתיחה ידנית</small></div></div>
+    </div>
+    <h2>אחריות רכיבים</h2>
+    <ul>
+      <li><strong>Web Client:</strong> ממשק, ניווט, טפסים, cache וקריאות API.</li>
+      <li><strong>Gateway:</strong> נקודת כניסה יחידה וניתוב שקוף לשירות המתאים.</li>
+      <li><strong>Users:</strong> זהויות, פרופילים, הרשמה, התחברות ו־sessions.</li>
+      <li><strong>Lessons:</strong> זמינות, שיעורים, סדרות, ביטולים, הזזות ותזכורות.</li>
+      <li><strong>Billing:</strong> מסמכים, דרישות תשלום, הודעות, OAuth ותור שליחות.</li>
+      <li><strong>Shared / Utils:</strong> טיפוסים, סכמות, middleware, שגיאות ולוגים משותפים.</li>
+    </ul>
+    <div class="callout green">היתרון המרכזי הוא הפרדת אחריות. ניתן לשנות את מנגנון החיוב בלי לערב את ממשק ההזדהות, וכל השירותים משתמשים בחוזים משותפים.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">08 / ארכיטקטורה</div>
+    <h1>מבנה ה־Monorepo</h1>
+    <div class="rule"></div>
+    <div class="tree">scholarly/
+├── apps/
+│   └── web-client/          React + Vite
+├── services/
+│   ├── gateway/             API reverse proxy
+│   ├── users/               users + authentication
+│   ├── lessons/             scheduling + reminders
+│   └── billing/             payments + PDF + delivery
+├── packages/
+│   ├── shared/              schemas, enums, shared types
+│   └── utils/               auth, errors, logging, DB helpers
+├── scripts/                 build utility
+├── package.json             npm workspaces + root scripts
+├── tsconfig.json            shared TypeScript configuration
+└── biome.json               formatting and lint rules</div>
+    <h2>למה Monorepo?</h2>
+    <div class="grid-2">
+      <div class="card"><strong class="title">חוזים משותפים</strong>תפקידי משתמש, ערוצי שליחה וסכמות Zod מוגדרים פעם אחת.</div>
+      <div class="card"><strong class="title">פקודות אחידות</strong>build ו־typecheck רצים על כל workspaces מהשורש.</div>
+      <div class="card"><strong class="title">פיתוח מקביל</strong>Concurrently מפעיל לקוח וארבעה שירותים יחד.</div>
+      <div class="card"><strong class="title">גבולות ברורים</strong>כל שירות מחזיק package, config, router ו־Dockerfile משלו.</div>
+    </div>
+    <h2>חבילות פנימיות</h2>
+    <p><code>@scholarly/shared</code> מספקת טיפוסים וסכמות משותפים. <code>@scholarly/utils</code> מספקת אימות JWT, עטיפות controllers, טיפול בשגיאות, לוגים ועזרי Mongoose. כך נמנע שכפול לוגיקה בין השירותים.</p>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">09 / Frontend</div>
+    <h1>מבנה צד הלקוח</h1>
+    <div class="rule"></div>
+    <div class="grid-2">
+      <div>
+        <h2>שכבות</h2>
+        <ol>
+          <li><strong>Pages:</strong> כניסה, הרשמה, לוח מורה, לוח תלמיד ופרופיל.</li>
+          <li><strong>Components:</strong> שיעורים, קביעה, חיובים, לוח שנה ורכיבי UI.</li>
+          <li><strong>Hooks:</strong> עטיפה של queries ו־mutations לפי תחום.</li>
+          <li><strong>Services:</strong> Axios client וחוזי API.</li>
+          <li><strong>Context:</strong> session פעיל ופרטי המשתמש.</li>
+          <li><strong>i18n:</strong> משאבי עברית ואנגלית.</li>
+        </ol>
+      </div>
+      <div>
+        <h2>טכנולוגיות</h2>
+        <span class="tag core">React 19</span><span class="tag core">TypeScript</span>
+        <span class="tag core">Vite 6</span><span class="tag core">Tailwind CSS 4</span>
+        <span class="tag">React Router 7</span><span class="tag">Axios</span>
+        <span class="tag">TanStack Query 5</span><span class="tag">TanStack React Form</span>
+        <span class="tag">React Hook Form</span><span class="tag">Zod</span>
+        <span class="tag">Radix UI</span><span class="tag">Lucide</span>
+        <span class="tag">i18next</span><span class="tag">React Toastify</span>
+      </div>
+    </div>
+    <h2>אתחול האפליקציה</h2>
+    <div class="diagram"><div class="flow"><div class="node">BrowserRouter</div><div class="arrow">→</div><div class="node">QueryClientProvider</div><div class="arrow">→</div><div class="node">AuthProvider</div><div class="arrow">→</div><div class="node dark">App</div></div></div>
+    <p>הדפים נטענים באמצעות <code>React.lazy</code> ו־<code>Suspense</code>. נתיבים מוגנים עטופים ב־<code>ProtectedRoute</code>, אך ההרשאה האמיתית נאכפת שוב בשירותי השרת.</p>
+    <div class="callout">Vite מפנה בקשות <code>/api</code> בזמן פיתוח אל ה־Gateway המקומי, ולכן רכיבי הלקוח אינם צריכים להכיר את כתובת כל microservice.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">10 / Frontend Data</div>
+    <h1>TanStack Query במערכת</h1>
+    <div class="rule"></div>
+    <p class="lead">TanStack Query היא שכבת ניהול מצב השרת המרכזית של Scholarly — לא רק ספריית עזר לטעינת נתונים.</p>
+    <h2>אחריות בפועל</h2>
+    <div class="grid-2">
+      <div class="card"><strong class="title">Queries</strong>טעינת שיעורים, ספריית משתמשים, זמינות, פרופיל, חיובים, הודעות, תצוגה מקדימה וחיבור Gmail.</div>
+      <div class="card"><strong class="title">Mutations</strong>כניסה, הרשמה, קביעה, ביטול, הזזה, עדכון פרופיל, יצירת מסמך ואישור שליחה.</div>
+      <div class="card"><strong class="title">Cache</strong>מפתחות כגון <code>dashboard-lessons</code>, <code>billing</code> ו־<code>gmail-connection</code> מבודדים תחומי מידע.</div>
+      <div class="card"><strong class="title">Invalidation</strong>לאחר שינוי מוצלח מרועננים רק המפתחות שהושפעו.</div>
+    </div>
+    <h2>הגדרות QueryClient</h2>
+    <table>
+      <thead><tr><th>הגדרה</th><th>ערך</th><th>משמעות</th></tr></thead>
+      <tbody>
+        <tr><td><code>staleTime</code></td><td>60 שניות</td><td>הפחתת בקשות חוזרות קצרות</td></tr>
+        <tr><td><code>retry</code></td><td>1</td><td>ניסיון נוסף יחיד בכשל זמני</td></tr>
+        <tr><td><code>refetchOnWindowFocus</code></td><td>false</td><td>ללא רענון מפתיע בחזרה לחלון</td></tr>
+        <tr><td><code>refetchOnReconnect</code></td><td>false</td><td>שליטה מפורשת ברענון לאחר רשת</td></tr>
+      </tbody>
+    </table>
+    <div class="diagram"><div class="flow"><div class="node">UI action</div><div class="arrow">→</div><div class="node">useMutation</div><div class="arrow">→</div><div class="node">Axios / API</div><div class="arrow">→</div><div class="node">invalidateQueries</div><div class="arrow">→</div><div class="node dark">UI updated</div></div></div>
+    <p class="muted">בעת התנתקות ה־Query Cache מנוקה, כדי למנוע מעבר מידע בין משתמשים באותו דפדפן.</p>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">11 / חוויית משתמש</div>
+    <h1>ממשק, שפות ולוח שנה</h1>
+    <div class="rule"></div>
+    <h2>שפה ועיצוב</h2>
+    <p>עברית היא שפת ברירת המחדל, ואנגלית זמינה בבורר השפה. i18next ו־react‑i18next מנהלים תרגומים; שינוי השפה מעדכן גם את <code>lang</code> ואת <code>dir</code> של מסמך ה־HTML. העדפת השפה נשמרת ב־localStorage, בעוד נתוני ההזדהות אינם נשמרים שם.</p>
+    <div class="grid-2">
+      <div class="card"><strong class="title">RTL / LTR</strong>יישור וכיוון מתחלפים לפי השפה הפעילה.</div>
+      <div class="card"><strong class="title">עיצוב רספונסיבי</strong>Grid, Flex ו־Tailwind מתאימים את הכרטיסים למסכים שונים.</div>
+      <div class="card"><strong class="title">משוב מיידי</strong>Toast, spinner, disabled states ו־Error Boundary.</div>
+      <div class="card"><strong class="title">רכיבים עקביים</strong>Button, Card, Input, Label ו־Form מקומיים מעל Radix UI.</div>
+    </div>
+    <h2>לוח שנה כפול</h2>
+    <p><code>@hebcal/core</code> ממיר כל יום לייצוג עברי, כולל גימטריה וחגים. רכיב בחירת המועד משלב יום לועזי, תאריך עברי ושעה. כללי סדרות וזמני מערכת משתמשים ב־Luxon ובאזור הזמן <code>Asia/Jerusalem</code>.</p>
+    <div class="grid-3">
+      <div class="card"><strong class="title">React Toastify</strong>הודעות הצלחה וכשל.</div>
+      <div class="card"><strong class="title">Lucide React</strong>אייקוני ניווט וחיפוש.</div>
+      <div class="card"><strong class="title">Assistant</strong>גופן מקומי התומך בעברית.</div>
+    </div>
+    <div class="callout green">ההתאמה לעברית אינה שכבת תרגום בלבד: היא כוללת כיוון מסמך, תאריכים מקומיים, מטבע ₪ ואזור זמן ישראלי.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">12 / Backend</div>
+    <h1>API Gateway ושירותי Backend</h1>
+    <div class="rule"></div>
+    <p>כל שירות הוא יישום Express עצמאי עם config, server, router, controller, manager ו־model. ה־Gateway משתמש ב־<code>http-proxy-middleware</code> ומנתב לפי קידומת.</p>
+    <table>
+      <thead><tr><th>נתיב חיצוני</th><th>שירות יעד</th><th>פורט ברירת מחדל</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/auth</code></td><td>Users</td><td>5000</td></tr>
+        <tr><td><code>/api/users</code></td><td>Users</td><td>5000</td></tr>
+        <tr><td><code>/api/lessons</code></td><td>Lessons</td><td>6000</td></tr>
+        <tr><td><code>/api/billing</code></td><td>Billing</td><td>8000</td></tr>
+        <tr><td><code>/health</code></td><td>כל שירות</td><td>לפי השירות</td></tr>
+      </tbody>
+    </table>
+    <h2>Middleware משותף</h2>
+    <div class="grid-2">
+      <div class="card"><strong class="title">CORS</strong>רשימת origins מורשים ותמיכה ב־credentials.</div>
+      <div class="card"><strong class="title">Helmet</strong>כותרות HTTP מקשיחות את ברירת המחדל.</div>
+      <div class="card"><strong class="title">Zod validation</strong>בדיקת body, query ו־params לפני controller.</div>
+      <div class="card"><strong class="title">Error middleware</strong>מיפוי ZodError ו־ServiceError לתגובה עקבית.</div>
+      <div class="card"><strong class="title">Logging</strong>Express Winston מתעד בקשות וסטטוס.</div>
+      <div class="card"><strong class="title">Environment</strong>dotenv ו־env-var טוענים ומאמתים הגדרות.</div>
+    </div>
+    <p class="muted">REQUEST_TIMEOUT של ה־Gateway ניתן להגדרה, וברירת המחדל היא 10 שניות.</p>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">13 / Users Service</div>
+    <h1>משתמשים והזדהות</h1>
+    <div class="rule"></div>
+    <h2>מודל משתמש</h2>
+    <p>אוסף המשתמשים משתמש ב־Mongoose discriminator עבור <strong>teacher</strong> ו־<strong>student</strong>. לכל משתמש שם, אימייל, טלפון, הסכמות וסיסמה מגובבת. למורה נוספים חשבון בנק והעדפות שיעור.</p>
+    <h2>מחזור session</h2>
+    <div class="diagram"><div class="flow"><div class="node">Login / Register</div><div class="arrow">→</div><div class="node">bcrypt verify</div><div class="arrow">→</div><div class="node">JWT · 15m</div><div class="arrow">+</div><div class="node">Refresh · 7d</div></div></div>
+    <ul>
+      <li>Access token נשמר בזיכרון היישום בלבד ומצורף כ־Bearer token.</li>
+      <li>Refresh token אקראי נשמר בדפדפן בעוגיית HttpOnly ו־SameSite=Lax.</li>
+      <li>במסד נשמר SHA‑256 של refresh token, לא האסימון הגולמי.</li>
+      <li>פעולת refresh מוחקת את הרשומה הקודמת ויוצרת session חדש.</li>
+      <li>Axios interceptor מרענן session אחרי 401 ומנסה שוב את הבקשה המקורית.</li>
+    </ul>
+    <h2>פרטיות</h2>
+    <p>רשימת המורים/תלמידים מחזירה נתוני directory מצומצמים. גישה לפרופיל ולעדכון משתמש דורשת התאמה בין מזהה הנתיב לבין ה־<code>sub</code> שב־JWT. פרטי בנק אינם מוחזרים ב־session או במסך הפרופיל.</p>
+    <div class="callout red"><strong>הגנה כפולה:</strong> ProtectedRoute משפר את חוויית המשתמש, אך כל API רגיש מאמת JWT והרשאה בצד השרת — המקום היחיד שניתן לסמוך עליו.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">14 / Lessons Service</div>
+    <h1>ניהול שיעורים</h1>
+    <div class="rule"></div>
+    <h2>מצבי שיעור</h2>
+    <div class="diagram"><div class="flow"><div class="node">available<br><small>משבצת פתוחה</small></div><div class="arrow">→</div><div class="node dark">scheduled<br><small>משויך לתלמיד</small></div><div class="arrow">→</div><div class="node green">completed</div><div class="arrow">או</div><div class="node amber">cancelled</div></div></div>
+    <h2>יצירה ותמחור</h2>
+    <p>המורה יכול ליצור משבצת ללא תלמיד או שיעור משויך. משך ומחיר נקבעים לפי סדר עדיפויות: ערך שנשלח בפעולה, override של הנושא, ואז ברירת המחדל של המורה. משך שיעור מוגבל ל־15–240 דקות.</p>
+    <h2>כללי תקינות</h2>
+    <ul class="checklist">
+      <li>רק מורה רשאי ליצור שיעור, ורק עם <code>teacherId</code> שלו.</li>
+      <li>מועד חדש חייב להיות בעתיד.</li>
+      <li>לא ניתן ליצור חפיפה למורה או לתלמיד.</li>
+      <li>תלמיד יכול לראות משבצות זמינות של מורה ולתפוס משבצת עבור עצמו בלבד.</li>
+      <li>הקביעה נעשית בתנאי שהרשומה עדיין זמינה וללא תלמיד.</li>
+      <li>לאחר קביעה נוצרות תזכורות ל־30 שעות ול־30 דקות לפני המועד.</li>
+    </ul>
+    <h2>סדרות חוזרות</h2>
+    <p>Luxon מחשבת מופעים באזור הזמן של המורה לפי מרווח שבועות, מספר מופעים או תאריך סיום. נדרשים לפחות שני מופעים, וברירת המחדל העליונה היא 104. אם מופע אחד נכשל, המופעים והתזכורות שכבר נוצרו נמחקים.</p>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">15 / Lessons Service</div>
+    <h1>ביטול והזזת שיעור</h1>
+    <div class="rule"></div>
+    <h2>ביטול</h2>
+    <p>רק מורה או תלמיד המשתתפים בשיעור יכולים לבטלו. שיעור מתוכנן עובר ל־<code>cancelled</code>, משימות התזכורת שלו מבוטלות והמערכת פותחת משבצת חלופית באותו זמן עבור המורה.</p>
+    <div class="grid-2">
+      <div class="card"><strong class="title">יותר מ־24 שעות</strong><code>chargeStatus = none</code>; אין חיוב אוטומטי בגין הביטול.</div>
+      <div class="card"><strong class="title">24 שעות או פחות</strong><code>chargeStatus = full</code>; דרישת התשלום יכולה לכלול ביטול מאוחר.</div>
+    </div>
+    <h2>הזזה</h2>
+    <div class="diagram">
+      <div class="flow"><div class="node">שיעור קיים</div><div class="arrow">→</div><div class="node">בדיקת השתתפות</div><div class="arrow">→</div><div class="node">תפיסת מועד חדש</div><div class="arrow">→</div><div class="node">ביטול הישן</div><div class="arrow">→</div><div class="node dark">קישור הרשומות</div></div>
+    </div>
+    <ul>
+      <li>המועד החדש חייב להיות משבצת זמינה של אותה מורה.</li>
+      <li>נבדקת חפיפה לתלמיד לפני תפיסת המועד.</li>
+      <li>אם ביטול הישן נכשל, המשבצת החדשה מוחזרת לזמינות והתזכורות שלה נמחקות.</li>
+      <li><code>rescheduledFromLessonId</code> ו־<code>rescheduledToLessonId</code> שומרים עקיבות.</li>
+    </ul>
+    <div class="callout green">המימוש שומר על consistency באמצעות פעולות פיצוי מפורשות. זה אינו transaction רב־שירותי, אך הוא מצמצם מצב ביניים לא תקין.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">16 / Billing Service</div>
+    <h1>חיובים ודרישות תשלום</h1>
+    <div class="rule"></div>
+    <p class="lead">שירות החיובים הופך רשומות שיעור למסמך ברור, מתוזמן ובר־מעקב.</p>
+    <h2>יצירה ידנית</h2>
+    <p>המורה בוחר תלמיד, שיעורים וסעיפים מותאמים אישית. כל שורה מתויגת כשיעור שהושלם, ביטול מאוחר או סעיף נוסף. המערכת מחשבת סכום, יוצרת מספר דרישה ייחודי ושומרת PDF.</p>
+    <h2>יצירה אוטומטית</h2>
+    <p>Scheduler בודק אחת לשש שעות האם נדרשות דרישות תשלום חודשיות. קיימת גם תצוגה מקדימה של התקופה, מספר התלמידים, מספר השיעורים והסכום המשוער.</p>
+    <h2>הפקת PDF</h2>
+    <div class="diagram"><div class="flow"><div class="node">Billing data</div><div class="arrow">→</div><div class="node">HTML template</div><div class="arrow">→</div><div class="node">Playwright Core</div><div class="arrow">→</div><div class="node">Chromium</div><div class="arrow">→</div><div class="node dark">PDF Buffer</div></div></div>
+    <p>ה־PDF נוצר בצד השרת, כולל תמונת רקע אופציונלית, פרטי השיעורים, סכום כולל ופרטי העברה בנקאית. נשמרים גם שם קובץ, גרסה ומועד הפקה.</p>
+    <h2>סטטוסים</h2>
+    <p><code>scheduled</code>, <code>pending_delivery</code>, <code>partially_delivered</code>, <code>delivered</code>, <code>failed</code> או <code>cancelled</code>. הסטטוס הכולל נגזר ממצבי השליחה בכל ערוץ.</p>
+    <div class="callout amber">המסמך מציין במפורש שהוא דרישת תשלום ואינו חשבונית מס או קבלה.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">17 / Automation</div>
+    <h1>תזכורות, הודעות ותור שליחות</h1>
+    <div class="rule"></div>
+    <h2>Outbox Pattern</h2>
+    <p>במקום לנסות לשלוח בזמן יצירת הפעולה, Billing Service יוצר רשומת Delivery Outbox לכל ערוץ. Scheduler בודק שליחויות כל 15 שניות ותזכורות כל דקה.</p>
+    <div class="diagram"><div class="flow"><div class="node">Payment / Reminder / Message</div><div class="arrow">→</div><div class="node">Delivery Outbox</div><div class="arrow">→</div><div class="node">Scheduler</div><div class="arrow">→</div><div class="node dark">Channel handler</div></div></div>
+    <h2>סטטוסי מסירה</h2>
+    <table>
+      <thead><tr><th>סטטוס</th><th>משמעות</th></tr></thead>
+      <tbody>
+        <tr><td><code>waiting_for_connection</code></td><td>מייל ממתין לחיבור Gmail</td></tr>
+        <tr><td><code>queued / processing</code></td><td>ממתין לטיפול או נמצא בטיפול</td></tr>
+        <tr><td><code>manual_action_required</code></td><td>WhatsApp/SMS דורשים פתיחה על ידי המורה</td></tr>
+        <tr><td><code>sent / failed</code></td><td>מסירה הסתיימה בהצלחה או בכשל</td></tr>
+        <tr><td><code>skipped_no_consent</code></td><td>דילוג בגלל היעדר הסכמה לערוץ</td></tr>
+        <tr><td><code>cancelled</code></td><td>המקור או המשימה בוטלו</td></tr>
+      </tbody>
+    </table>
+    <h2>תזכורות</h2>
+    <p>לכל שיעור משויך נוצרות משימות 30 שעות ו־30 דקות לפני ההתחלה. הערוצים נלקחים מהעדפות המורה ומוגבלים למייל ול־WhatsApp. הסכמות התלמיד נבדקות לפני הוספת משימת ערוץ.</p>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">18 / Integration</div>
+    <h1>Google OAuth ו־Gmail API</h1>
+    <div class="rule"></div>
+    <p>מורה יכול לחבר את כתובת Gmail השמורה בפרופיל. המערכת משתמשת ב־OAuth 2.0, ב־OpenID Connect לקבלת זהות וב־scope המצומצם <code>gmail.send</code>.</p>
+    <div class="diagram"><div class="flow"><div class="node">Teacher</div><div class="arrow">→</div><div class="node">Google consent</div><div class="arrow">→</div><div class="node">OAuth callback</div><div class="arrow">→</div><div class="node">Encrypted refresh token</div><div class="arrow">→</div><div class="node dark">Gmail API</div></div></div>
+    <h2>הגנות בתהליך</h2>
+    <ul class="checklist">
+      <li>OAuth state אקראי נשמר כ־hash עם תוקף ונמחק לאחר שימוש.</li>
+      <li>כתובת Gmail שחוברה חייבת להתאים לכתובת המורה בפרופיל.</li>
+      <li>Refresh token מוצפן ב־AES‑256‑GCM לפני שמירה במסד.</li>
+      <li>Access token מתקבל רק כאשר נדרשת שליחה.</li>
+      <li>ניתוק מבטל את ההרשאה אצל Google ומעדכן משימות ממתינות.</li>
+      <li>הודעות נבנות כ־MIME ויכולות לכלול PDF מצורף.</li>
+    </ul>
+    <h2>WhatsApp ו־SMS</h2>
+    <p>ערוצים אלה אינם משתמשים בספק שליחה אוטומטי. המערכת מפיקה קישור חתום שפותח הודעה מוכנה ומאפשר למורה לאשר שהפעולה בוצעה. הגישה מתאימה לשלב מוצר שבו רוצים אוטומציה של ההכנה בלי תלות בספק חיצוני בתשלום.</p>
+    <div class="callout green">החיבור ל־Google ממומש ישירות באמצעות Fetch API של Node.js, ללא SDK חיצוני של Google.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">19 / Security</div>
+    <h1>אבטחת מידע</h1>
+    <div class="rule"></div>
+    <div class="grid-2">
+      <div class="card"><strong class="title">סיסמאות</strong>bcrypt עם מספר rounds ניתן להגדרה ומגבלת 72 בתים.</div>
+      <div class="card"><strong class="title">JWT</strong>issuer, audience, tokenType, תוקף 15 דקות וסוד מינימלי של 32 תווים.</div>
+      <div class="card"><strong class="title">Refresh sessions</strong>אסימון אקראי של 48 בתים, hash במסד, תוקף 7 ימים וסיבוב בכל refresh.</div>
+      <div class="card"><strong class="title">Cookies</strong>HttpOnly, SameSite=Lax, Secure בסביבת production ונתיב מוגבל.</div>
+      <div class="card"><strong class="title">Authorization</strong>בדיקות role, self ו־participant בכל תחום.</div>
+      <div class="card"><strong class="title">Input validation</strong>Zod בצד הלקוח ובכניסה לנתיבי Express.</div>
+      <div class="card"><strong class="title">Signed links</strong>HMAC‑SHA‑256 והשוואה קבועת זמן למסמכים וקישורי פתיחה.</div>
+      <div class="card"><strong class="title">OAuth secrets</strong>AES‑256‑GCM, IV ו־authentication tag עבור refresh token.</div>
+    </div>
+    <h2>הקשחת HTTP ופרטיות</h2>
+    <p>Helmet מוסיף כותרות אבטחה, CORS מגביל origins ומאפשר credentials רק למקורות מוגדרים. תגובות משתמש מצומצמות לפי הקשר, סיסמה אינה נבחרת כברירת מחדל במודל, ופרטי בנק אינם נשלחים ב־session.</p>
+    <div class="callout amber"><strong>ניהול סודות:</strong> JWT secret, מפתח הצפנה ופרטי OAuth מגיעים ממשתני סביבה ואינם אמורים להישמר בקוד המקור.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">20 / Data</div>
+    <h1>מודל הנתונים</h1>
+    <div class="rule"></div>
+    <table>
+      <thead><tr><th>Collection</th><th>מטרה</th><th>קשרים מרכזיים</th></tr></thead>
+      <tbody>
+        <tr><td><code>users</code></td><td>מורים, תלמידים והעדפות</td><td>מזהי משתמש מופיעים בשיעורים ובחיובים</td></tr>
+        <tr><td><code>users_refresh_sessions</code></td><td>Sessions פעילים</td><td>userId → users</td></tr>
+        <tr><td><code>lessons</code></td><td>מועדים, סטטוס, מחיר וחיוב</td><td>teacherId / studentId → users</td></tr>
+        <tr><td><code>lessons_reminder_jobs</code></td><td>תזכורות לשיעור</td><td>lessonId → lessons</td></tr>
+        <tr><td><code>billing</code></td><td>דרישות תשלום ו־PDF</td><td>teacherId, studentId, lessonIds</td></tr>
+        <tr><td><code>billing_delivery_outbox</code></td><td>משימות מסירה לפי ערוץ</td><td>sourceType + sourceId</td></tr>
+        <tr><td><code>billing_sender_connections</code></td><td>חיבור Gmail מוצפן</td><td>teacherId + channel</td></tr>
+        <tr><td><code>billing_oauth_states</code></td><td>state זמני ל־OAuth</td><td>teacherId, TTL index</td></tr>
+        <tr><td><code>billing_lesson_messages</code></td><td>הודעות ומסמכים לתלמיד</td><td>teacherId, studentId, lessonIds</td></tr>
+      </tbody>
+    </table>
+    <h2>אינדקסים חשובים</h2>
+    <ul>
+      <li>שיעורים לפי מורה/תלמיד, סטטוס, התחלה וסיום — לתצוגה ולבדיקת חפיפה.</li>
+      <li>Outbox לפי סטטוס ומועד מתוזמן — לעיבוד יעיל של משימות שהגיע זמנן.</li>
+      <li>ייחודיות מקור + ערוץ — למניעת יצירת אותה שליחה פעמיים.</li>
+      <li>OAuth state עם TTL — מחיקה אוטומטית לאחר פקיעת תוקף.</li>
+    </ul>
+    <div class="callout">השירותים משתמשים באותו MongoDB ובאוספים משותפים דרך מודלים מצומצמים לפי הצורך. זו הפרדת קוד ברורה, אך לא הפרדת מסדי נתונים מלאה.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">21 / API</div>
+    <h1>ממשקי API מרכזיים</h1>
+    <div class="rule"></div>
+    <table class="api">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method post">POST</span></td><td>/api/auth/register</td><td>Create user and session</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/auth/login</td><td>Authenticate</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/auth/refresh</td><td>Rotate session</td></tr>
+        <tr><td><span class="method get">GET</span></td><td>/api/users</td><td>Privacy-limited directory</td></tr>
+        <tr><td><span class="method patch">PATCH</span></td><td>/api/users/:id</td><td>Update own profile</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/lessons</td><td>Create lesson / slot</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/lessons/series</td><td>Create recurring series</td></tr>
+        <tr><td><span class="method get">GET</span></td><td>/api/lessons</td><td>Role-scoped listing</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/lessons/:id/book</td><td>Book available slot</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/lessons/:id/cancel</td><td>Cancel lesson</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/lessons/:id/reschedule</td><td>Move to another slot</td></tr>
+        <tr><td><span class="method get">GET</span></td><td>/api/billing</td><td>List payment requests</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/billing</td><td>Create manual request</td></tr>
+        <tr><td><span class="method get">GET</span></td><td>/api/billing/:id/pdf</td><td>Download secured PDF</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/billing/lesson-messages</td><td>Create message document</td></tr>
+        <tr><td><span class="method post">POST</span></td><td>/api/billing/google/authorize</td><td>Start Gmail connection</td></tr>
+      </tbody>
+    </table>
+    <p class="small muted">בנוסף קיימים נתיבי preview, WhatsApp/SMS tasks, אישור שליחה, ביטול, סטטוס Gmail, callback וקישורים ציבוריים חתומים למסמכים.</p>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">22 / UI</div>
+    <h1>מסכי המערכת</h1>
+    <div class="rule"></div>
+    <div class="grid-2">
+      <div class="screen">
+        <div class="screen-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <div class="screen-body"><div class="mini-nav"><span>SCHOLARLY</span><span>פרופיל · התנתקות</span></div><div style="font-size:17pt;font-weight:700">סקירה כללית</div><div class="mini-cards"><div class="mini-card">שיעורים קרובים<b>6</b></div><div class="mini-card">תלמידים<b>4</b></div><div class="mini-card">השיעור הבא<b style="font-size:8pt">מתמטיקה · 16:00</b></div></div></div>
+        <div class="screen-note"><strong>לוח מורה:</strong> מדדים, יצירת שיעור, רשימת שיעורים ומרכז תשלומים ושליחות.</div>
+      </div>
+      <div class="screen">
+        <div class="screen-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <div class="screen-body"><div class="mini-nav"><span>SCHOLARLY</span><span>English</span></div><div style="font-size:17pt;font-weight:700">הלמידה שלי</div><div class="mini-cards"><div class="mini-card">נושאי לימוד<b>3</b></div><div class="mini-card">שיעורים קרובים<b>2</b></div><div class="mini-card">חיפוש מורים<b style="font-size:8pt">בחירת מורה</b></div></div></div>
+        <div class="screen-note"><strong>לוח תלמיד:</strong> שיעורים, חיפוש מורים, זמינות וקביעת מועד.</div>
+      </div>
+      <div class="screen">
+        <div class="screen-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <div class="screen-body"><div class="mini-nav"><span>SCHOLARLY</span><span>תשלומים ושליחות</span></div><div style="font-size:16pt;font-weight:700">דרישת תשלום</div><div class="mini-cards"><div class="mini-card">בחירת תלמיד</div><div class="mini-card">שיעורים וסעיפים</div><div class="mini-card">ערוצי שליחה</div></div></div>
+        <div class="screen-note"><strong>מרכז חיובים:</strong> הפקה, תזמון, PDF, היסטוריה וחיבור Gmail.</div>
+      </div>
+      <div class="screen">
+        <div class="screen-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <div class="screen-body"><div class="mini-nav"><span>SCHOLARLY</span><span>עברית / English</span></div><div style="font-size:16pt;font-weight:700">הפרופיל שלי</div><div class="mini-cards"><div class="mini-card">פרטים אישיים</div><div class="mini-card">העדפות הודעות</div><div class="mini-card">הגדרות שיעור</div></div></div>
+        <div class="screen-note"><strong>פרופיל והגדרות:</strong> פרטים, הסכמות, תמחור ואוטומציה.</div>
+      </div>
+    </div>
+    <p class="small muted">האיורים הם מפת מסכים סכמטית המבוססת על רכיבי הממשק הפעילים ואינה כוללת מידע אישי או נתוני משתמש אמיתיים.</p>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">23 / Technology Map</div>
+    <h1>מפת טכנולוגיות — מוצר</h1>
+    <div class="rule"></div>
+    <table>
+      <thead><tr><th>שכבה</th><th>טכנולוגיות פעילות</th><th>תפקיד</th></tr></thead>
+      <tbody>
+        <tr><td>UI</td><td>React 19, React DOM</td><td>רכיבים ורינדור</td></tr>
+        <tr><td>שפה ובנייה</td><td>TypeScript, Vite, TSX</td><td>טיפוסים, bundling והרצת פיתוח</td></tr>
+        <tr><td>עיצוב</td><td>Tailwind CSS 4, CSS, Assistant</td><td>layout, responsive ו־RTL</td></tr>
+        <tr><td>Server state</td><td>TanStack Query</td><td>queries, mutations, cache ו־invalidation</td></tr>
+        <tr><td>טפסים</td><td>TanStack React Form, React Hook Form</td><td>ניהול טפסי הרשמה וכניסה</td></tr>
+        <tr><td>Validation</td><td>Zod, Hookform Resolvers, zod-validation-error</td><td>חוזים ושגיאות קלט</td></tr>
+        <tr><td>Routing / HTTP</td><td>React Router, Axios</td><td>ניווט וקריאות API</td></tr>
+        <tr><td>UI utilities</td><td>Radix UI, Lucide, React Toastify</td><td>primitives, icons ומשוב</td></tr>
+        <tr><td>CSS utilities</td><td>CVA, clsx, tailwind-merge</td><td>variants ומיזוג מחלקות</td></tr>
+        <tr><td>Localization</td><td>i18next, react-i18next</td><td>עברית, אנגלית ו־RTL/LTR</td></tr>
+        <tr><td>Calendar</td><td>Hebcal, Luxon, Intl</td><td>לוח עברי, timezone ופורמט תאריך</td></tr>
+        <tr><td>API server</td><td>Node.js, Express</td><td>שירותי HTTP ולוגיקת תחום</td></tr>
+        <tr><td>Database</td><td>MongoDB, Mongoose</td><td>מסמכים, סכמות ואינדקסים</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">24 / Technology Map</div>
+    <h1>מפת טכנולוגיות — תשתית ואינטגרציות</h1>
+    <div class="rule"></div>
+    <table>
+      <thead><tr><th>תחום</th><th>טכנולוגיות</th><th>שימוש בפועל</th></tr></thead>
+      <tbody>
+        <tr><td>ארכיטקטורה</td><td>Microservices, API Gateway, npm Workspaces</td><td>חלוקת תחומים וניהול Monorepo</td></tr>
+        <tr><td>Proxy</td><td>http-proxy-middleware</td><td>ניתוב Gateway לשירותים</td></tr>
+        <tr><td>Authentication</td><td>jsonwebtoken, bcrypt, cookie-parser</td><td>JWT, סיסמאות ו־refresh cookie</td></tr>
+        <tr><td>Security</td><td>Helmet, CORS, Node Crypto</td><td>HTTP headers, origins, AES/HMAC</td></tr>
+        <tr><td>Google</td><td>OAuth 2.0, OpenID Connect, Gmail REST API</td><td>חיבור מורה ושליחת מייל</td></tr>
+        <tr><td>Documents</td><td>Playwright Core, Chromium</td><td>רינדור HTML ל־PDF</td></tr>
+        <tr><td>Messaging</td><td>MIME, WhatsApp links, SMS links</td><td>מסמכים והודעות רב־ערוציות</td></tr>
+        <tr><td>Logging</td><td>Winston, Express Winston</td><td>לוגים ובקשות HTTP</td></tr>
+        <tr><td>Configuration</td><td>dotenv, env-var</td><td>טעינה ואימות משתני סביבה</td></tr>
+        <tr><td>Containers</td><td>Docker</td><td>Dockerfile נפרד לכל שירות</td></tr>
+        <tr><td>Quality</td><td>Biome, TypeScript strict</td><td>lint, format ובדיקת טיפוסים</td></tr>
+        <tr><td>Orchestration</td><td>Concurrently</td><td>הפעלת חמשת תהליכי הפיתוח</td></tr>
+        <tr><td>Package management</td><td>npm</td><td>workspaces, scripts ותלויות</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">25 / Dependencies</div>
+    <h1>כלי פיתוח ותלויות משלימות</h1>
+    <div class="rule"></div>
+    <h2>מוגדרות ומשמשות בקוד משני</h2>
+    <div class="grid-2">
+      <div class="card"><strong class="title">Firebase / Firestore</strong>מימוש CRUD עבור מודול אנשי קשר. הקוד קיים, אך ContactsPage אינו מחובר כרגע ל־AppRoutes הפעיל.</div>
+      <div class="card"><strong class="title">Vitest / Supertest</strong>מוגדרים כתלויות וכלי test בשירותים. בסריקה הנוכחית לא נמצאו קובצי בדיקה.</div>
+    </div>
+    <h2>מוגדרות ב־package.json אך ללא import פעיל שנמצא</h2>
+    <p><span class="tag inactive">@lottiefiles/dotlottie-react</span><span class="tag inactive">@tanstack/react-query-devtools</span><span class="tag inactive">@tanstack/zod-form-adapter</span><span class="tag inactive">lodash</span><span class="tag inactive">p-map</span></p>
+    <p>נוסף גם קובץ animation בפורמט Lottie בתיקיית public, אך אין רכיב פעיל שמייבא אותו. הצגת ההבחנה מונעת ניפוח מלאכותי של מחסנית הטכנולוגיות.</p>
+    <h2>כלי פיתוח נוספים</h2>
+    <ul>
+      <li><strong>@vitejs/plugin-react:</strong> שילוב React בתהליך הבנייה של Vite.</li>
+      <li><strong>@tailwindcss/vite:</strong> עיבוד Tailwind כחלק מ־Vite.</li>
+      <li><strong>fix-esm-imports.mjs:</strong> התאמת imports בפלט TypeScript להפעלת ESM.</li>
+      <li><strong>Type packages:</strong> הגדרות TypeScript עבור Node, Express, React, Mongoose וכלי צד שלישי.</li>
+    </ul>
+    <div class="callout amber"><strong>מסקנה:</strong> כל התלויות מוזכרות במסמך, אך רק טכנולוגיה שנמצאה מחוברת לזרימה פעילה מוצגת כטכנולוגיית ליבה.</div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">26 / Quality</div>
+    <h1>איכות, טיפול בתקלות ולוגים</h1>
+    <div class="rule"></div>
+    <h2>בצד הלקוח</h2>
+    <ul>
+      <li>Error Boundary מונע מקריסת רכיב להשאיר דף ריק.</li>
+      <li>TanStack Query מספק מצבי pending, error ו־success וניסיון חוזר מוגבל.</li>
+      <li>Toast מציג משוב לפעולה, וכפתורים ננעלים במהלך mutation.</li>
+      <li>Axios ממיר שגיאת שרת ל־Error אחיד ומטפל ב־401 דרך refresh.</li>
+    </ul>
+    <h2>בצד השרת</h2>
+    <ul>
+      <li>שגיאות תחום כוללות status code וקוד פנימי.</li>
+      <li>ZodError מוחזר כ־400 עם הסבר ברור.</li>
+      <li>Express Winston מתעד בקשות לפי status level.</li>
+      <li>נתיבי health מאפשרים בדיקת חיות בסיסית.</li>
+      <li>Scheduler לוכד שגיאות מכל מחזור וממשיך לפעול.</li>
+    </ul>
+    <h2>בדיקות מומלצות</h2>
+    <div class="grid-2">
+      <div class="card"><strong class="title">Unit</strong>כללי ביטול, סדרות, חישוב סכום וחתימת קישורים.</div>
+      <div class="card"><strong class="title">API integration</strong>הרשאות, קביעה מתחרה, session rotation ו־outbox.</div>
+      <div class="card"><strong class="title">Frontend</strong>טפסים, תפקידי משתמש ו־cache invalidation.</div>
+      <div class="card"><strong class="title">E2E</strong>מסלול הרשמה → שיעור → ביטול → דרישת תשלום.</div>
+    </div>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">27 / Operations</div>
+    <h1>התקנה והפעלה</h1>
+    <div class="rule"></div>
+    <h2>דרישות מקדימות</h2>
+    <p>Node.js ו־npm, מופע MongoDB, Chromium/Chrome עבור PDF, ופרטי Google OAuth אם רוצים שליחת Gmail.</p>
+    <h2>שלבים</h2>
+    <ol>
+      <li>התקנת כל workspaces באמצעות <code>npm install</code> בשורש.</li>
+      <li>יצירת קובצי <code>.env</code> לפי <code>.env.example</code> בכל שירות.</li>
+      <li>הגדרת <code>JWT_SECRET</code> זהה ובאורך 32 תווים לפחות בשירותים הרלוונטיים.</li>
+      <li>הגדרת <code>MONGO_URI</code>, מקורות CORS וכתובות השירותים ב־Gateway.</li>
+      <li>בחיובים: הגדרת מפתח הצפנה, סוד מסמכים, כתובות Web/API ו־Chromium.</li>
+      <li>הפעלת סביבת הפיתוח באמצעות <code>npm run dev</code>.</li>
+    </ol>
+    <h2>פקודות מרכזיות</h2>
+    <table class="api">
+      <tbody>
+        <tr><td>npm run dev</td><td>Start client + gateway + 3 services</td></tr>
+        <tr><td>npm run build</td><td>Build all workspaces</td></tr>
+        <tr><td>npm run typecheck</td><td>TypeScript validation</td></tr>
+        <tr><td>npm run lint</td><td>Biome lint</td></tr>
+        <tr><td>npm run format:check</td><td>Formatting validation</td></tr>
+      </tbody>
+    </table>
+    <h2>Docker</h2>
+    <p>לכל שירות Backend יש Dockerfile רב־שלבי. בסביבת production יש להשוות את גרסאות Node בין השירותים, להזריק משתני סביבה בצורה מאובטחת ולהגדיר networking ו־health checks ברמת orchestrator.</p>
+  </section>
+
+  <section class="page">
+    <div class="chapter-kicker">28 / Review</div>
+    <h1>מגבלות והמשך פיתוח</h1>
+    <div class="rule"></div>
+    <h2>מצב נוכחי</h2>
+    <ul>
+      <li>WhatsApp ו־SMS דורשים פעולה ידנית; אין ספק מסירה אוטומטי.</li>
+      <li>Vitest ו־Supertest מוגדרים, אך חסרה כרגע חבילת בדיקות פעילה.</li>
+      <li>קיים מודול Firestore לאנשי קשר שאינו מחובר למסלולים הפעילים.</li>
+      <li>שירותים נפרדים קוראים מאותו MongoDB; אין בידוד נתונים מלא לכל שירות.</li>
+      <li>קובצי README של השירותים הם תבנית ישנה ואינם מתארים את המימוש העדכני.</li>
+      <li>Dockerfiles משתמשים בגרסאות Node שונות ויש לאחד אותן לפני פריסה אחידה.</li>
+    </ul>
+    <h2>המשך מומלץ</h2>
+    <div class="grid-2">
+      <div class="card"><strong class="title">בדיקות</strong>Unit, integration ו־E2E לזרימות הקריטיות.</div>
+      <div class="card"><strong class="title">CI/CD</strong>build, lint, typecheck ובדיקות בכל pull request.</div>
+      <div class="card"><strong class="title">Observability</strong>מזהה correlation, metrics, tracing והתראות.</div>
+      <div class="card"><strong class="title">Messaging provider</strong>חיבור ספק WhatsApp/SMS עם webhooks.</div>
+      <div class="card"><strong class="title">Data ownership</strong>API פנימי או אירועים במקום קריאה ישירה באוספים.</div>
+      <div class="card"><strong class="title">Documentation</strong>OpenAPI ו־README ייעודי לכל שירות.</div>
+    </div>
+    <div class="callout green">הבסיס הארכיטקטוני מאפשר את השיפורים באופן הדרגתי: כל תחום כבר מופרד בשירות ובמודלים משלו.</div>
+  </section>
+
+  <section class="page cover" style="justify-content:center">
+    <div>
+      <div class="eyebrow">סיכום</div>
+      <h1 style="font-size:40pt;line-height:1.08">מערכת אחת.<br>כל מחזור החיים של השיעור.</h1>
+      <p class="cover-lead">Scholarly משלבת חוויית React מודרנית, ניהול נתוני שרת באמצעות TanStack Query, שירותי Node.js מופרדים, MongoDB ואוטומציית מסמכים ושליחות — עם התאמה מלאה לעברית ולצרכים של מורים ותלמידים.</p>
+      <div class="cover-grid" style="margin-top:15mm">
+        <div class="cover-chip"><strong>ברורה</strong>תפקידים, מסכים וזרימות ממוקדות</div>
+        <div class="cover-chip"><strong>מאובטחת</strong>JWT, הרשאות, הצפנה וחתימות</div>
+        <div class="cover-chip"><strong>ניתנת להרחבה</strong>Microservices וחוזים משותפים</div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

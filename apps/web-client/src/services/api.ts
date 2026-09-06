@@ -1,6 +1,6 @@
 import type { CreateUserValues, DirectoryUser, IUserUpdate, UserProfile } from "@scholarly/shared";
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
-import type { AuthSession, BankAccount } from "@/types/auth";
+import type { AuthSession } from "@/types/auth";
 
 const API_BASE_URL = import.meta.env.VITE_AUTH_API_URL ?? "/api";
 
@@ -215,13 +215,6 @@ export async function rescheduleLesson(
     { targetLessonId, reason },
   );
   return response.data;
-}
-
-export async function updateTeacherBankAccount(
-  userId: string,
-  bankAccount: BankAccount,
-): Promise<void> {
-  await apiClient.patch(`/users/${userId}`, { bankAccount });
 }
 
 export async function fetchUserProfile(userId: string): Promise<UserProfile> {

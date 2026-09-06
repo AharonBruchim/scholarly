@@ -12,19 +12,14 @@
   "dependencies": {
     "@hebcal/core": "^5.10.1",
     "@hookform/resolvers": "^5.0.0",
-    "@lottiefiles/dotlottie-react": "^0.15.2",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.1.2",
     "@scholarly/shared": "*",
-    "@scholarly/utils": "*",
     "@tanstack/react-form": "^1.33.5",
     "@tanstack/react-query": "^5.0.0",
-    "@tanstack/react-query-devtools": "^5.0.0",
-    "@tanstack/zod-form-adapter": "^0.42.1",
     "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "firebase": "^11.6.0",
     "i18next": "^26.4.1",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
@@ -34,8 +29,7 @@
     "react-router-dom": "^7.4.1",
     "react-toastify": "^11.0.5",
     "tailwind-merge": "^2.6.0",
-    "zod": "^3.24.1",
-    "zustand": "^5.0.8"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.11",
