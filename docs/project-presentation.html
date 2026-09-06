@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scholarly — מצגת פרויקט</title>
+  <style>
+    @font-face {
+      font-family: "Assistant Local";
+      src: url("../apps/web-client/public/fonts/Assistant-Regular.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    :root {
+      --navy: #020817;
+      --navy-2: #0b1e3f;
+      --panel: rgba(15, 32, 62, .84);
+      --line: rgba(148, 189, 235, .25);
+      --text: #f5f9ff;
+      --muted: #b8cee7;
+      --sky: #7dd3fc;
+      --blue: #3b82f6;
+      --green: #5eead4;
+      --amber: #fbbf24;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: #111827; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: #111827;
+      font-family: "Assistant Local", Assistant, Arial, sans-serif;
+      counter-reset: slide;
+    }
+
+    .slide {
+      position: relative;
+      display: flex;
+      width: 13.333in;
+      height: 7.5in;
+      margin: 18px auto;
+      padding: .58in .68in .52in;
+      overflow: hidden;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at 12% 6%, rgba(56, 189, 248, .20), transparent 27%),
+        radial-gradient(circle at 94% 95%, rgba(37, 99, 235, .20), transparent 32%),
+        linear-gradient(145deg, var(--navy), var(--navy-2));
+      box-shadow: 0 18px 55px rgba(0,0,0,.42);
+      break-after: page;
+      page-break-after: always;
+      counter-increment: slide;
+    }
+
+    .slide::before {
+      content: "SCHOLARLY";
+      position: absolute;
+      top: .23in;
+      left: .68in;
+      color: #70a8dc;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .22em;
+    }
+
+    .slide::after {
+      content: counter(slide, decimal-leading-zero);
+      position: absolute;
+      right: .68in;
+      bottom: .23in;
+      color: #70a8dc;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .cover { justify-content: center; }
+    .cover::before, .cover::after { display: none; }
+    .kicker { margin-bottom: 11px; color: var(--sky); font-size: 15px; font-weight: 800; letter-spacing: .16em; }
+    h1 { margin: 0 0 14px; font-size: 45px; line-height: 1.02; letter-spacing: -.025em; }
+    h2 { margin: 0 0 18px; font-size: 35px; line-height: 1.08; letter-spacing: -.02em; }
+    h3 { margin: 0 0 8px; color: var(--sky); font-size: 19px; }
+    p { margin: 0 0 12px; color: var(--muted); font-size: 18px; line-height: 1.45; }
+    ul, ol { margin: 5px 0 0; padding-right: 23px; }
+    li { margin-bottom: 8px; color: #dcecff; font-size: 17px; line-height: 1.34; }
+    code { direction: ltr; unicode-bidi: embed; color: #bfe7ff; font-family: Consolas, monospace; font-size: .82em; }
+    strong { color: white; }
+    small { font-size: 12px; }
+
+    .lead { max-width: 10.6in; color: #d8ecff; font-size: 24px; line-height: 1.42; }
+    .rule { width: 72px; height: 5px; margin-bottom: 21px; border-radius: 8px; background: linear-gradient(90deg, var(--sky), var(--blue)); }
+    .cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .cols-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .card { padding: 17px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+    .card p { margin: 0; font-size: 15.5px; }
+    .card ul { padding-right: 18px; }
+    .card li { margin-bottom: 4px; font-size: 14.5px; }
+    .stat { display: flex; min-height: 105px; align-items: center; justify-content: center; flex-direction: column; border: 1px solid var(--line); border-radius: 16px; background: rgba(15, 41, 82, .78); text-align: center; }
+    .stat b { color: var(--sky); font-size: 39px; line-height: 1; }
+    .stat span { margin-top: 7px; color: var(--muted); font-size: 15px; }
+    .accent { color: var(--sky); }
+    .green { color: var(--green); }
+    .amber { color: var(--amber); }
+
+    .flow { direction: ltr; display: flex; align-items: stretch; gap: 9px; }
+    .node { display: flex; min-height: 82px; flex: 1; align-items: center; justify-content: center; flex-direction: column; padding: 12px; border: 1px solid #3e6d9f; border-radius: 13px; color: #dff3ff; background: rgba(9, 30, 61, .9); text-align: center; font-size: 16px; font-weight: 750; }
+    .node br { display: none; }
+    .node small { display: block; margin-top: 4px; color: #bdd9f3; font-weight: 500; }
+    .node.primary { color: white; border-color: #3b82f6; background: #174c92; }
+    .node.good { color: #cffff6; border-color: #298f81; background: #0b4d49; }
+    .arrow { display: flex; align-items: center; color: var(--sky); font-size: 29px; font-weight: 900; }
+    .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; direction: ltr; }
+    .service { padding: 16px; border: 1px solid #3b82f6; border-radius: 13px; background: rgba(23, 76, 146, .72); text-align: center; font-size: 17px; font-weight: 750; }
+    .service small { display: block; margin-top: 5px; color: #cdeaff; font-weight: 500; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; }
+    th { color: var(--sky); background: rgba(59, 130, 246, .12); }
+    td { color: #d9e9fa; }
+    .compact th, .compact td { padding: 5px 7px; font-size: 12.5px; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+    .tag { padding: 6px 10px; border: 1px solid #32649a; border-radius: 999px; color: #dff2ff; background: #0d294f; font-size: 13px; font-weight: 700; }
+    .tag.core { color: #d7fff8; border-color: #217f75; background: #0b4644; }
+    .tag.tool { color: #ffe9b5; border-color: #996b16; background: #4b370d; }
+    .tag.inactive { color: #edcfdf; border-color: #7c4a66; background: #42283a; }
+
+    .screen { overflow: hidden; border: 1px solid #527ca9; border-radius: 15px; background: #07152e; }
+    .screen-top { direction: ltr; display: flex; gap: 5px; padding: 8px 11px; background: #bdd0e2; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #7391ad; }
+    .screen-body { min-height: 160px; padding: 18px; background: radial-gradient(circle at top, #183764, #07152e 58%); }
+    .screen-nav { display: flex; justify-content: space-between; margin-bottom: 18px; color: #a8defa; font-size: 11px; }
+    .mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+    .mini div { min-height: 55px; padding: 8px; border: 1px solid #3b5778; border-radius: 8px; color: #b9d3ee; background: rgba(12, 26, 51, .8); font-size: 10px; }
+    .mini b { display: block; margin-top: 4px; font-size: 19px; }
+    .caption { padding: 10px 13px; color: #bed4e9; background: #0d203e; font-size: 13px; }
+
+    .tree { direction: ltr; padding: 18px 22px; border: 1px solid var(--line); border-radius: 14px; color: #d6eaff; background: rgba(3, 14, 32, .82); font-family: Consolas, monospace; font-size: 15px; line-height: 1.45; white-space: pre-wrap; }
+    .note { margin-top: auto; padding: 10px 14px; border-right: 4px solid var(--sky); border-radius: 7px; color: #d5eaff; background: rgba(37, 99, 235, .12); font-size: 14px; }
+    .quote { max-width: 10.8in; color: white; font-size: 34px; font-weight: 720; line-height: 1.35; }
+    .dense > * { flex-shrink: 0; }
+    .dense { padding-top: .46in; }
+    .dense .kicker { margin-bottom: 7px; font-size: 12px; }
+    .dense h2 { margin-bottom: 10px; font-size: 30px; }
+    .dense .rule { margin-bottom: 12px; }
+    .dense .cols-2 { gap: 14px; }
+    .dense .card { padding: 12px 14px; }
+    .dense .card h3 { margin-bottom: 5px; font-size: 17px; }
+    .dense .card p { font-size: 12.5px; }
+    .dense .tags { gap: 5px; }
+    .dense .tag { padding: 4px 7px; font-size: 11px; }
+
+    @media print {
+      @page { size: 13.333in 7.5in; margin: 0; }
+      html, body { background: white; }
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .slide { margin: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <section class="slide cover">
+    <div class="kicker">FULL‑STACK PROJECT</div>
+    <h1 style="font-size:76px">Scholarly</h1>
+    <p class="lead">מערכת לניהול שיעורים פרטיים, קביעת מועדים, תזכורות, הודעות ודרישות תשלום.</p>
+    <div class="cols-3" style="margin-top:32px">
+      <div class="stat"><b>2</b><span>תפקידי משתמש</span></div>
+      <div class="stat"><b>4</b><span>שירותי Backend</span></div>
+      <div class="stat"><b>3</b><span>ערוצי שליחה</span></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">01 / האתגר</div>
+    <h2>ניהול שיעורים מפוזר בין יותר מדי כלים</h2>
+    <div class="rule"></div>
+    <div class="cols-4">
+      <div class="card"><h3>תיאום</h3><p>מועדים נקבעים בהודעות וללא מקור אמת יחיד.</p></div>
+      <div class="card"><h3>שינויים</h3><p>ביטולים והזזות קשים למעקב ולחיוב עקבי.</p></div>
+      <div class="card"><h3>תזכורות</h3><p>שליחה ידנית צורכת זמן ועלולה להישכח.</p></div>
+      <div class="card"><h3>גבייה</h3><p>צריך לאסוף שיעורים, לחשב ולשלוח מסמך.</p></div>
+    </div>
+    <div class="quote" style="margin-top:35px">המטרה: להפוך את כל מחזור החיים של השיעור לזרימה אחת, ברורה ומאובטחת.</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">02 / הפתרון</div>
+    <h2>מקביעה ועד תשלום — במקום אחד</h2>
+    <div class="rule"></div>
+    <div class="flow">
+      <div class="node">יצירת מועד</div><div class="arrow">→</div>
+      <div class="node">קביעת שיעור</div><div class="arrow">→</div>
+      <div class="node">תזכורות</div><div class="arrow">→</div>
+      <div class="node">השלמה / ביטול</div><div class="arrow">→</div>
+      <div class="node primary">דרישת תשלום</div>
+    </div>
+    <div class="cols-3" style="margin-top:25px">
+      <div class="card"><h3>מקור אמת</h3><p>משתמשים, שיעורים, מסמכים וסטטוסי שליחה נשמרים במודלים מוגדרים.</p></div>
+      <div class="card"><h3>שירות עצמי</h3><p>תלמיד מחפש מורה וקובע משבצת פנויה באופן עצמאי.</p></div>
+      <div class="card"><h3>אוטומציה</h3><p>המערכת מתזמנת תזכורות ויוצרת דרישות תשלום.</p></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">03 / משתמשים</div>
+    <h2>שני תפקידים, שתי חוויות מותאמות</h2>
+    <div class="rule"></div>
+    <div class="cols-2">
+      <div class="card">
+        <h3>מורה</h3>
+        <ul><li>יצירת שיעור, משבצת או סדרה</li><li>מחיר ומשך לפי נושא</li><li>ניהול שיעורים ושינויים</li><li>דרישות תשלום והודעות</li><li>חיבור Gmail ואוטומציה</li></ul>
+      </div>
+      <div class="card">
+        <h3>תלמיד</h3>
+        <ul><li>חיפוש מורים רשומים</li><li>צפייה במשבצות זמינות</li><li>קביעת שיעור</li><li>ביטול או הזזה</li><li>צפייה בשיעורים הקרובים</li></ul>
+      </div>
+    </div>
+    <div class="note">React Router מגן על המסכים לפי תפקיד; שירותי השרת מאמתים מחדש כל פעולה רגישה.</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">04 / שיעורים</div>
+    <h2>מחזור החיים של שיעור</h2>
+    <div class="rule"></div>
+    <div class="flow">
+      <div class="node"><span dir="ltr">available</span><small dir="rtl">משבצת פתוחה</small></div><div class="arrow">→</div>
+      <div class="node primary"><span dir="ltr">scheduled</span><small dir="rtl">נקבע לתלמיד</small></div><div class="arrow">→</div>
+      <div class="node good"><span dir="ltr">completed</span></div><div class="arrow">או</div>
+      <div class="node"><span dir="ltr">cancelled</span></div>
+    </div>
+    <div class="cols-3" style="margin-top:23px">
+      <div class="card"><h3>ללא התנגשויות</h3><p>בדיקה למורה ולתלמיד לפני יצירה או קביעה.</p></div>
+      <div class="card"><h3>סדרות חוזרות</h3><p>Luxon מחשבת מופעים לפי timezone ומרווח שבועות.</p></div>
+      <div class="card"><h3>מדיניות 24 שעות</h3><p>ביטול מאוחר מסומן לחיוב מלא ונכלל בדרישה.</p></div>
+    </div>
+    <div class="note">בהזזה המועד החדש נתפס, הישן מבוטל ושתי הרשומות מקושרות לצורך עקיבות.</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">05 / ארכיטקטורה</div>
+    <h2>Microservices מאחורי API אחד</h2>
+    <div class="rule"></div>
+    <div class="flow"><div class="node primary">React Web Client<br><small>Vite · Query · Axios</small></div><div class="arrow">→</div><div class="node">API Gateway<br><small>:3000</small></div></div>
+    <div class="service-grid">
+      <div class="service">Users Service<small>:5000 · Auth · Profiles</small></div>
+      <div class="service">Lessons Service<small>:6000 · Scheduling</small></div>
+      <div class="service">Billing Service<small>:8000 · PDF · Delivery</small></div>
+    </div>
+    <div class="cols-3" style="margin-top:14px;direction:ltr">
+      <div class="node good">MongoDB</div><div class="node">Google APIs</div><div class="node">WhatsApp / SMS</div>
+    </div>
+    <div class="note">ה־Gateway מנתב <code>/api/auth</code>, <code>/api/users</code>, <code>/api/lessons</code> ו־<code>/api/billing</code>.</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">06 / מבנה קוד</div>
+    <h2>Monorepo עם חוזים משותפים</h2>
+    <div class="rule"></div>
+    <div class="cols-2">
+      <div class="tree">apps/
+└── web-client/
+
+services/
+├── gateway/
+├── users/
+├── lessons/
+└── billing/
+
+packages/
+├── shared/
+└── utils/</div>
+      <div>
+        <div class="card"><h3>@scholarly/shared</h3><p>תפקידי משתמש, ערוצי שליחה, טיפוסים וסכמות Zod.</p></div>
+        <div class="card" style="margin-top:12px"><h3>@scholarly/utils</h3><p>JWT middleware, שגיאות, logging, wrappers ועזרי מסד.</p></div>
+        <div class="card" style="margin-top:12px"><h3>npm Workspaces</h3><p>בנייה, בדיקת טיפוסים והפעלה משותפת של כל הרכיבים.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">07 / Frontend</div>
+    <h2>React מודרני עם שכבות ברורות</h2>
+    <div class="rule"></div>
+    <div class="cols-2">
+      <div>
+        <div class="flow" style="flex-direction:column">
+          <div class="node">Pages & Components</div>
+          <div class="node">Domain Hooks</div>
+          <div class="node primary">TanStack Query + Axios</div>
+          <div class="node">API Gateway</div>
+        </div>
+      </div>
+      <div>
+        <h3>יכולות Frontend</h3>
+        <ul><li>React 19 ו־TypeScript strict</li><li>Vite ו־lazy loading לדפים</li><li>React Router לניווט מוגן</li><li>Tailwind CSS ו־Radix UI</li><li>עברית/אנגלית עם i18next</li><li>Toast, loading ו־Error Boundary</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">08 / Server State</div>
+    <h2><span class="accent">TanStack Query</span> מנהלת את נתוני השרת</h2>
+    <div class="rule"></div>
+    <div class="cols-4">
+      <div class="card"><h3>Queries</h3><p>שיעורים, זמינות, משתמשים, פרופיל, חיובים ו־Gmail.</p></div>
+      <div class="card"><h3>Mutations</h3><p>קביעה, ביטול, הזזה, עדכון, יצירה ואישור.</p></div>
+      <div class="card"><h3>Cache</h3><p>מפתחות נפרדים לפי תחום ומשתמש.</p></div>
+      <div class="card"><h3>Invalidation</h3><p>רענון ממוקד לאחר פעולה מוצלחת.</p></div>
+    </div>
+    <div class="flow" style="margin-top:25px">
+      <div class="node">UI action</div><div class="arrow">→</div><div class="node">useMutation</div><div class="arrow">→</div><div class="node">API</div><div class="arrow">→</div><div class="node primary">Fresh UI</div>
+    </div>
+    <div class="note"><code>staleTime: 60s</code> · ניסיון חוזר אחד · ללא refetch אוטומטי במיקוד חלון או חיבור מחדש.</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">09 / Data</div>
+    <h2>MongoDB ומודל נתונים מקושר</h2>
+    <div class="rule"></div>
+    <table>
+      <thead><tr><th>ישויות עיקריות</th><th>תוכן</th><th>קשרים</th></tr></thead>
+      <tbody>
+        <tr><td>Users</td><td>תפקיד, פרופיל, הסכמות והעדפות מורה</td><td>מורה / תלמיד</td></tr>
+        <tr><td>Lessons</td><td>זמן, נושא, מחיר, סטטוס וחיוב</td><td>teacherId + studentId</td></tr>
+        <tr><td>Reminder Jobs</td><td>30 שעות / 30 דקות</td><td>lessonId</td></tr>
+        <tr><td>Payment Requests</td><td>שורות חיוב, סכום, PDF וסטטוס</td><td>users + lessons</td></tr>
+        <tr><td>Delivery Outbox</td><td>ערוץ, תזמון, ניסיונות ותוצאה</td><td>sourceType + sourceId</td></tr>
+        <tr><td>Sender Connections</td><td>חיבור Gmail מוצפן</td><td>teacherId</td></tr>
+      </tbody>
+    </table>
+    <div class="note">Mongoose מספק schemas ואינדקסים לחיפוש שיעורים, מניעת כפילות ועיבוד משימות לפי מועד.</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">10 / Billing</div>
+    <h2>מנתוני שיעור למסמך תשלום</h2>
+    <div class="rule"></div>
+    <div class="flow">
+      <div class="node">שיעורים + סעיפים</div><div class="arrow">→</div>
+      <div class="node">חישוב סכום</div><div class="arrow">→</div>
+      <div class="node">HTML</div><div class="arrow">→</div>
+      <div class="node">Playwright + Chromium</div><div class="arrow">→</div>
+      <div class="node primary">PDF</div>
+    </div>
+    <div class="cols-3" style="margin-top:24px">
+      <div class="card"><h3>ידני</h3><p>בחירת תלמיד, שיעורים, סעיפים, ערוצים ומועד.</p></div>
+      <div class="card"><h3>אוטומטי</h3><p>Scheduler חודשי ותצוגה מקדימה של סכום.</p></div>
+      <div class="card"><h3>מעקב</h3><p>מתוזמן, ממתין, נמסר חלקית, נמסר, נכשל או בוטל.</p></div>
+    </div>
+    <div class="note">המסמך הוא דרישת תשלום בלבד — לא חשבונית מס או קבלה.</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">11 / Automation</div>
+    <h2>Outbox ושליחה רב־ערוצית</h2>
+    <div class="rule"></div>
+    <div class="flow">
+      <div class="node">Payment / Reminder / Message</div><div class="arrow">→</div>
+      <div class="node primary">Delivery Outbox</div><div class="arrow">→</div>
+      <div class="node">Scheduler</div><div class="arrow">→</div>
+      <div class="node good">Email / WhatsApp / SMS</div>
+    </div>
+    <div class="cols-3" style="margin-top:23px">
+      <div class="card"><h3>Gmail</h3><p>שליחה אוטומטית באמצעות Gmail REST API לאחר OAuth.</p></div>
+      <div class="card"><h3>WhatsApp</h3><p>קישור חתום לפתיחת הודעה ואישור ידני.</p></div>
+      <div class="card"><h3>SMS</h3><p>תמצית וקישור מאובטח למסמך, עם פעולה ידנית.</p></div>
+    </div>
+    <div class="note">הסכמת התלמיד נבדקת לכל ערוץ. ללא הסכמה השליחה מסומנת <code>skipped_no_consent</code>.</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">12 / Security</div>
+    <h2>אבטחה במספר שכבות</h2>
+    <div class="rule"></div>
+    <div class="cols-4">
+      <div class="card"><h3>זהות</h3><p>bcrypt, JWT ל־15 דקות ו־refresh rotation.</p></div>
+      <div class="card"><h3>הרשאות</h3><p>role, self ו־participant בכל פעולה.</p></div>
+      <div class="card"><h3>קלט ו־HTTP</h3><p>Zod, Helmet ו־CORS מוגבל.</p></div>
+      <div class="card"><h3>סודות</h3><p>AES‑256‑GCM ו־HMAC‑SHA‑256.</p></div>
+    </div>
+    <div class="cols-2" style="margin-top:22px">
+      <div class="card"><h3>Session</h3><ul><li>Access token בזיכרון בלבד</li><li>Refresh token בעוגיית HttpOnly</li><li>במסד נשמר hash בלבד</li></ul></div>
+      <div class="card"><h3>Google OAuth</h3><ul><li>state חד־פעמי עם TTL</li><li>התאמת כתובת Gmail לפרופיל</li><li>scope מצומצם ל־gmail.send</li></ul></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">13 / UI</div>
+    <h2>הממשק בפועל</h2>
+    <div class="rule"></div>
+    <div class="cols-3">
+      <div class="screen"><div class="screen-top"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div><div class="screen-body"><div class="screen-nav"><span>SCHOLARLY</span><span>פרופיל</span></div><strong>סקירה כללית</strong><div class="mini"><div>שיעורים<b>6</b></div><div>תלמידים<b>4</b></div><div>הבא<b style="font-size:11px">16:00</b></div></div></div><div class="caption">לוח מורה</div></div>
+      <div class="screen"><div class="screen-top"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div><div class="screen-body"><div class="screen-nav"><span>SCHOLARLY</span><span>English</span></div><strong>הלמידה שלי</strong><div class="mini"><div>נושאים<b>3</b></div><div>קרובים<b>2</b></div><div>חיפוש<b style="font-size:11px">מורים</b></div></div></div><div class="caption">לוח תלמיד</div></div>
+      <div class="screen"><div class="screen-top"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div><div class="screen-body"><div class="screen-nav"><span>SCHOLARLY</span><span>חיובים</span></div><strong>דרישת תשלום</strong><div class="mini"><div>תלמיד</div><div>שיעורים</div><div>ערוצים</div></div></div><div class="caption">תשלומים ושליחות</div></div>
+    </div>
+    <div class="note">עברית RTL ואנגלית LTR, לוח עברי ולועזי, Toasts, מצבי טעינה ועיצוב responsive.</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">14 / Technology Stack</div>
+    <h2>מפת הטכנולוגיות הפעילות</h2>
+    <div class="rule"></div>
+    <div class="cols-3">
+      <div class="card"><h3>Frontend</h3><div class="tags"><span class="tag core">React 19</span><span class="tag">React DOM</span><span class="tag core">TypeScript</span><span class="tag">Vite</span><span class="tag">HTML / CSS</span><span class="tag">Tailwind CSS</span><span class="tag core">TanStack Query</span><span class="tag">TanStack Form</span><span class="tag">React Hook Form</span><span class="tag">React Router</span><span class="tag">Axios</span></div></div>
+      <div class="card"><h3>UI & Localization</h3><div class="tags"><span class="tag">Zod</span><span class="tag">Hookform Resolver</span><span class="tag">Radix UI</span><span class="tag">Lucide</span><span class="tag">React Toastify</span><span class="tag">i18next</span><span class="tag">react-i18next</span><span class="tag">Hebcal</span><span class="tag">Intl</span><span class="tag">CVA</span><span class="tag">clsx</span><span class="tag">tailwind-merge</span></div></div>
+      <div class="card"><h3>Backend & Data</h3><div class="tags"><span class="tag core">Node.js</span><span class="tag core">Express</span><span class="tag core">MongoDB</span><span class="tag">Mongoose</span><span class="tag">Luxon</span><span class="tag">JWT</span><span class="tag">bcrypt</span><span class="tag">cookie-parser</span><span class="tag">http-proxy</span><span class="tag">zod-validation-error</span></div></div>
+    </div>
+    <div class="note">TanStack Query היא שכבת ניהול מצב השרת המרכזית: queries, mutations, cache ו־invalidation.</div>
+  </section>
+
+  <section class="slide dense">
+    <div class="kicker">15 / Technology Stack</div>
+    <h2>תשתית, אבטחה ואינטגרציות</h2>
+    <div class="rule"></div>
+    <div class="cols-2">
+      <div class="card"><h3>פעיל בקוד</h3><div class="tags"><span class="tag core">Microservices</span><span class="tag core">API Gateway</span><span class="tag">npm Workspaces</span><span class="tag">Google OAuth 2.0</span><span class="tag">OpenID Connect</span><span class="tag">Gmail REST API</span><span class="tag">Fetch API</span><span class="tag">MIME</span><span class="tag">Playwright Core</span><span class="tag">Chromium</span><span class="tag">Helmet</span><span class="tag">CORS</span><span class="tag">AES / HMAC</span><span class="tag">Winston</span><span class="tag">Express Winston</span><span class="tag">dotenv / env-var</span><span class="tag">Docker</span><span class="tag">Biome</span><span class="tag">TSX</span><span class="tag">Concurrently</span><span class="tag">npm</span></div></div>
+      <div class="card"><h3>מוגדר / משני</h3><p style="margin-bottom:12px">Firebase/Firestore קיים עבור מודול אנשי קשר שאינו במסלול הפעיל.</p><div class="tags"><span class="tag tool">Vitest</span><span class="tag tool">Supertest</span><span class="tag inactive">Lottie</span><span class="tag inactive">Query Devtools</span><span class="tag inactive">Zod Form Adapter</span><span class="tag inactive">Lodash</span><span class="tag inactive">p-map</span></div><p style="margin-top:14px;font-size:13px">כלי הבדיקה מוגדרים, אך לא נמצאו קובצי בדיקה פעילים. התגים הסגולים מציינים תלות מותקנת ללא import פעיל שנמצא.</p></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">16 / מסקנות</div>
+    <h2>חוזקות והמשך פיתוח</h2>
+    <div class="rule"></div>
+    <div class="cols-2">
+      <div class="card"><h3 class="green">חוזקות</h3><ul><li>זרימת מוצר מלאה מקביעה עד חיוב</li><li>הפרדת אחריות בין שירותים</li><li>ניהול server state מסודר</li><li>אבטחה והרשאות במספר שכבות</li><li>התאמה לעברית ולאזור הזמן המקומי</li></ul></div>
+      <div class="card"><h3 class="amber">המשך מומלץ</h3><ul><li>Unit, integration ו־E2E tests</li><li>CI/CD עם lint ו־typecheck</li><li>ספק WhatsApp/SMS אוטומטי</li><li>Metrics, tracing והתראות</li><li>OpenAPI ותיעוד שירותים מעודכן</li></ul></div>
+    </div>
+    <div class="quote" style="margin-top:28px">Scholarly מחברת טכנולוגיה מודרנית עם צורך יומיומי ברור — ניהול שיעור פשוט יותר למורה ולתלמיד.</div>
+  </section>
+
+  <section class="slide cover">
+    <div class="kicker">SCHOLARLY</div>
+    <h1 style="font-size:62px;line-height:1.08">מערכת אחת.<br>כל מחזור החיים של השיעור.</h1>
+    <p class="lead">React · TanStack Query · Node.js · Microservices · MongoDB · Automation</p>
+  </section>
+</body>
+</html>

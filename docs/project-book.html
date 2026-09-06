@@ -135,7 +135,9 @@
     .diagram { direction: ltr; margin: 5mm 0; padding: 5mm; border: .35mm solid var(--line); border-radius: 4mm; background: linear-gradient(180deg, #f8fbff, #f1f7ff); }
     .flow { display: flex; align-items: stretch; justify-content: center; gap: 2mm; }
     .flow.vertical { flex-direction: column; align-items: center; }
-    .node { display: flex; min-height: 18mm; min-width: 29mm; flex: 1; align-items: center; justify-content: center; padding: 3mm; border: .35mm solid #a9c9ee; border-radius: 3mm; color: #143d72; background: white; text-align: center; font-weight: 700; }
+    .node { display: flex; min-height: 18mm; min-width: 29mm; flex: 1; align-items: center; justify-content: center; flex-direction: column; padding: 3mm; border: .35mm solid #a9c9ee; border-radius: 3mm; color: #143d72; background: white; text-align: center; font-weight: 700; }
+    .node br { display: none; }
+    .node small { display: block; margin-top: 1mm; font-weight: 500; }
     .node.dark { color: white; border-color: #123e78; background: #123e78; }
     .node.green { color: #075e57; border-color: #8bd4c8; background: #effbf8; }
     .node.amber { color: #884008; border-color: #f0c98f; background: #fff8e9; }
@@ -570,7 +572,7 @@
     <h1>ניהול שיעורים</h1>
     <div class="rule"></div>
     <h2>מצבי שיעור</h2>
-    <div class="diagram"><div class="flow"><div class="node">available<br><small>משבצת פתוחה</small></div><div class="arrow">→</div><div class="node dark">scheduled<br><small>משויך לתלמיד</small></div><div class="arrow">→</div><div class="node green">completed</div><div class="arrow">או</div><div class="node amber">cancelled</div></div></div>
+    <div class="diagram"><div class="flow"><div class="node"><span dir="ltr">available</span><small dir="rtl">משבצת פתוחה</small></div><div class="arrow">→</div><div class="node dark"><span dir="ltr">scheduled</span><small dir="rtl">משויך לתלמיד</small></div><div class="arrow">→</div><div class="node green"><span dir="ltr">completed</span></div><div class="arrow">או</div><div class="node amber"><span dir="ltr">cancelled</span></div></div></div>
     <h2>יצירה ותמחור</h2>
     <p>המורה יכול ליצור משבצת ללא תלמיד או שיעור משויך. משך ומחיר נקבעים לפי סדר עדיפויות: ערך שנשלח בפעולה, override של הנושא, ואז ברירת המחדל של המורה. משך שיעור מוגבל ל־15–240 דקות.</p>
     <h2>כללי תקינות</h2>
