@@ -108,13 +108,15 @@ async function assertStudentFree(studentId: string, startTime: Date, endTime: Da
 
 async function createReminderJobs(lesson: LessonDocument, channels: Array<'email' | 'whatsapp'>): Promise<void> {
     if (!lesson.studentId) return;
+    if (channels.length === 0) return;
+    const now = Date.now();
     await ReminderJobModel.insertMany([
         {
             lessonId: lesson._id.toString(),
             teacherId: lesson.teacherId,
             studentId: lesson.studentId,
             kind: ReminderKind.THIRTY_HOURS,
-            dueAt: new Date(lesson.startTime.getTime() - 30 * 60 * 60 * 1000),
+            dueAt: new Date(Math.max(now, lesson.startTime.getTime() - 30 * 60 * 60 * 1000)),
             channels,
         },
         {
@@ -122,7 +124,7 @@ async function createReminderJobs(lesson: LessonDocument, channels: Array<'email
             teacherId: lesson.teacherId,
             studentId: lesson.studentId,
             kind: ReminderKind.THIRTY_MINUTES,
-            dueAt: new Date(lesson.startTime.getTime() - 30 * 60 * 1000),
+            dueAt: new Date(Math.max(now, lesson.startTime.getTime() - 30 * 60 * 1000)),
             channels,
         },
     ]);
@@ -158,11 +160,12 @@ async function createOneForTeacher(input: CreateLessonInput, actor: Authenticate
 }
 
 async function bookAvailableSlot(slotId: string, studentId: string, excludeLessonId?: string): Promise<LessonDocument> {
-    const slot = await LessonModel.findOne({ _id: slotId, status: LessonStatus.AVAILABLE, studentId: { $exists: false } });
+    const now = new Date();
+    const slot = await LessonModel.findOne({ _id: slotId, status: LessonStatus.AVAILABLE, studentId: { $exists: false }, startTime: { $gt: now } });
     if (!slot) throw new ConflictError('This lesson slot is no longer available');
     await assertStudentFree(studentId, slot.startTime, slot.endTime, excludeLessonId);
     const booked = await LessonModel.findOneAndUpdate(
-        { _id: slotId, status: LessonStatus.AVAILABLE, studentId: { $exists: false } },
+        { _id: slotId, status: LessonStatus.AVAILABLE, studentId: { $exists: false }, startTime: { $gt: new Date() } },
         { $set: { studentId, status: LessonStatus.SCHEDULED } },
         { new: true },
     );
@@ -181,11 +184,13 @@ async function bookAvailableSlot(slotId: string, studentId: string, excludeLesso
 function scopedQuery(filters: ListLessonsQuery, actor: AuthenticatedUser): FilterQuery<LessonDocument> {
     assertSupportedRole(actor);
     const query: FilterQuery<LessonDocument> = {};
+    const startTime: Record<string, Date> = {};
     if (actor.role === UsersRoles.STUDENT && filters.available === 'true') {
         if (!filters.teacherId) throw new ServiceError('teacherId is required for available lessons', 400);
         query.teacherId = filters.teacherId;
         query.status = LessonStatus.AVAILABLE;
         query.studentId = { $exists: false };
+        startTime.$gt = new Date();
     } else if (actor.role === UsersRoles.STUDENT) {
         if (filters.studentId && filters.studentId !== actor.sub) throw new ForbiddenError();
         query.studentId = actor.sub;
@@ -197,10 +202,10 @@ function scopedQuery(filters: ListLessonsQuery, actor: AuthenticatedUser): Filte
         if (filters.status) query.status = filters.status;
     }
     if (filters.fromDate || filters.toDate) {
-        query.startTime = {};
-        if (filters.fromDate) query.startTime.$gte = new Date(filters.fromDate);
-        if (filters.toDate) query.startTime.$lte = new Date(filters.toDate);
+        if (filters.fromDate) startTime.$gte = new Date(filters.fromDate);
+        if (filters.toDate) startTime.$lte = new Date(filters.toDate);
     }
+    if (Object.keys(startTime).length > 0) query.startTime = startTime;
     return query;
 }
 

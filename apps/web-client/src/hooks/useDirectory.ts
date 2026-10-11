@@ -25,6 +25,7 @@ export function useAvailableLessons(teacherId?: string) {
     queryKey: ["available-lessons", teacherId],
     queryFn: () => fetchLessons({ teacherId, available: "true" }),
     enabled: Boolean(teacherId),
+    refetchInterval: 15_000,
   });
 }
 

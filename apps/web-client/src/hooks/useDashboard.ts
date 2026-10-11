@@ -11,5 +11,6 @@ export function useDashboardLessons() {
     queryKey: ["dashboard-lessons", role, userId],
     queryFn: () => fetchLessons(role === "teacher" ? { teacherId: userId } : { studentId: userId }),
     enabled: Boolean(userId && role),
+    refetchInterval: 15_000,
   });
 }

@@ -594,16 +594,23 @@ export const AutomationManager = {
                 await BillingReminderJobModel.updateOne({ _id: job._id }, { $set: { status: 'failed', lastError: 'Student not found' } });
                 continue;
             }
-            for (const channel of job.channels) {
-                await queueDelivery({
-                    sourceType: 'lesson_reminder',
-                    sourceId: job._id.toString(),
-                    teacherId: job.teacherId,
-                    studentId: job.studentId,
-                    channel,
-                    scheduledAt: job.dueAt,
-                    hasConsent: hasChannelConsent(student.phone, channel),
-                });
+            try {
+                for (const channel of job.channels) {
+                    await queueDelivery({
+                        sourceType: 'lesson_reminder',
+                        sourceId: job._id.toString(),
+                        teacherId: job.teacherId,
+                        studentId: job.studentId,
+                        channel,
+                        scheduledAt: job.dueAt,
+                        hasConsent: hasChannelConsent(student.phone, channel),
+                    });
+                }
+                await BillingReminderJobModel.updateOne({ _id: job._id }, { $set: { status: 'sent', sentAt: new Date() } });
+            } catch (error) {
+                const message = error instanceof Error ? error.message.slice(0, 500) : 'Unknown reminder queue error';
+                await BillingReminderJobModel.updateOne({ _id: job._id }, { $set: { status: 'failed', lastError: message } });
+                continue;
             }
             queued.push(job._id.toString());
         }
