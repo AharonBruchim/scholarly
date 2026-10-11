@@ -32,6 +32,13 @@ async function getLessonOrThrow(id: string): Promise<LessonDocument> {
     return lesson;
 }
 
+function visibleLesson(lesson: LessonDocument, actor: AuthenticatedUser) {
+    if (actor.role === UsersRoles.TEACHER) return lesson;
+    const output = lesson.toObject();
+    Reflect.deleteProperty(output, 'meetingUrl');
+    return output;
+}
+
 async function resolveTerms(input: CreateLessonInput) {
     const [student, teacher] = await Promise.all([
         input.studentId ? LessonUserModel.findById(input.studentId).lean() : null,
@@ -191,7 +198,6 @@ async function releaseReplacementSlot(lesson: LessonDocument): Promise<void> {
         startTime: lesson.startTime,
         endTime: lesson.endTime,
         subject: lesson.subject,
-        meetingUrl: lesson.meetingUrl,
         price: lesson.price,
         durationMinutes: lesson.durationMinutes,
         notes: lesson.notes,
@@ -241,7 +247,7 @@ export const LessonManager = {
     getById: async (id: string, actor: AuthenticatedUser): Promise<LessonDocument> => {
         const lesson = await getLessonOrThrow(id);
         assertParticipant(lesson, actor);
-        return lesson;
+        return visibleLesson(lesson, actor) as LessonDocument;
     },
 
     updateOne: async (id: string, update: ILessonUpdate, actor: AuthenticatedUser): Promise<LessonDocument> => {
@@ -253,14 +259,17 @@ export const LessonManager = {
         return lesson;
     },
 
-    getAll: async (filters: ListLessonsQuery, actor: AuthenticatedUser) => LessonModel.find(scopedQuery(filters, actor)).sort({ startTime: 1 }),
+    getAll: async (filters: ListLessonsQuery, actor: AuthenticatedUser) => {
+        const lessons = await LessonModel.find(scopedQuery(filters, actor)).sort({ startTime: 1 });
+        return lessons.map((lesson) => visibleLesson(lesson, actor));
+    },
 
     book: async (id: string, actor: AuthenticatedUser) => {
         if (actor.role !== UsersRoles.STUDENT) throw new ForbiddenError();
-        return bookAvailableSlot(id, actor.sub);
+        return visibleLesson(await bookAvailableSlot(id, actor.sub), actor);
     },
 
-    cancel: async (id: string, actor: AuthenticatedUser, reason?: string) => cancelLesson(await getLessonOrThrow(id), actor, reason),
+    cancel: async (id: string, actor: AuthenticatedUser, reason?: string) => visibleLesson(await cancelLesson(await getLessonOrThrow(id), actor, reason), actor),
 
     reschedule: async (id: string, targetLessonId: string, actor: AuthenticatedUser, reason?: string) => {
         const oldLesson = await getLessonOrThrow(id);
@@ -282,6 +291,6 @@ export const LessonManager = {
         oldLesson.rescheduledToLessonId = booked._id.toString();
         booked.rescheduledFromLessonId = oldLesson._id.toString();
         await Promise.all([oldLesson.save(), booked.save()]);
-        return { cancelledLesson: oldLesson, newLesson: booked };
+        return { cancelledLesson: visibleLesson(oldLesson, actor), newLesson: visibleLesson(booked, actor) };
     },
 };

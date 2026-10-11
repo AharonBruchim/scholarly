@@ -336,7 +336,7 @@ async function lessonMessageEmail(sourceId: string) {
     const lessonRows = lessons
         .map(
             (lesson) =>
-                `<tr><td style="padding:9px;border-bottom:1px solid #eadcca">${escapeHtml(lessonDate(lesson.startTime))}</td><td style="padding:9px;border-bottom:1px solid #eadcca">${escapeHtml(lesson.subject)}${meetingHtml(lesson.meetingUrl)}</td><td style="padding:9px;border-bottom:1px solid #eadcca">${lesson.durationMinutes} דקות</td><td style="padding:9px;border-bottom:1px solid #eadcca;white-space:nowrap">${lesson.price.toFixed(2)} ₪</td><td style="padding:9px;border-bottom:1px solid #eadcca">${lesson.status === 'cancelled' ? 'בוטל' : lesson.status === 'completed' ? 'התקיים' : 'נקבע'}</td></tr>`,
+                `<tr><td style="padding:9px;border-bottom:1px solid #eadcca">${escapeHtml(lessonDate(lesson.startTime))}</td><td style="padding:9px;border-bottom:1px solid #eadcca">${escapeHtml(lesson.subject)}</td><td style="padding:9px;border-bottom:1px solid #eadcca">${lesson.durationMinutes} דקות</td><td style="padding:9px;border-bottom:1px solid #eadcca;white-space:nowrap">${lesson.price.toFixed(2)} ₪</td><td style="padding:9px;border-bottom:1px solid #eadcca">${lesson.status === 'cancelled' ? 'בוטל' : lesson.status === 'completed' ? 'התקיים' : 'נקבע'}</td></tr>`,
         )
         .join('');
     const total = lessons.reduce((sum, lesson) => sum + lesson.price, 0);
@@ -396,9 +396,7 @@ async function manualDeliveryText(delivery: { sourceType: string; sourceId: stri
         const lessons = await BillingLessonModel.find({ _id: { $in: messageLessonIds(message) } })
             .sort({ startTime: 1 })
             .lean();
-        const lessonLines = lessons.map(
-            (lesson) => `• ${lesson.subject} — ${lessonDate(lesson.startTime)}, ${lesson.durationMinutes} דקות${meetingLine(lesson.meetingUrl)}`,
-        );
+        const lessonLines = lessons.map((lesson) => `• ${lesson.subject} — ${lessonDate(lesson.startTime)}, ${lesson.durationMinutes} דקות`);
         return `${message.subject}\n\n${message.message}${lessonLines.length > 0 ? `\n\nהשיעורים שנבחרו:\n${lessonLines.join('\n')}` : ''}\n\nלצפייה ולהורדה של ה־PDF המעוצב:\n${lessonMessageDocumentUrl(message._id.toString())}`;
     }
     const job = await BillingReminderJobModel.findById(delivery.sourceId).lean();
