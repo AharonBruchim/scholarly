@@ -45,6 +45,7 @@ Create `services/lessons/.env` from `.env.example`.
 | `MONGO_URI` | MongoDB connection string | `mongodb://localhost/amanPolls` |
 | `JWT_SECRET` | Secret used to verify access tokens | Required |
 | `CORS_ORIGIN` | Required comma-separated allowed origins | — |
+| `MEETING_LINK_BASE_URL` | Base URL for automatically generated meeting rooms | `https://meet.jit.si` |
 
 The lessons and users services must use the same `JWT_SECRET` so that lesson routes can authenticate tokens issued by the users service.
 

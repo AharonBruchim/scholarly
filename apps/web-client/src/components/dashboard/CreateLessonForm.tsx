@@ -196,7 +196,11 @@ export function CreateLessonForm() {
                 type="checkbox"
                 checked={form.recurring}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, recurring: event.target.checked }))
+                  setForm((current) => ({
+                    ...current,
+                    recurring: event.target.checked,
+                    meetingUrl: event.target.checked ? "" : current.meetingUrl,
+                  }))
                 }
               />
               {t("lessonForm.recurring")}
@@ -261,7 +265,8 @@ export function CreateLessonForm() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, meetingUrl: event.target.value }))
               }
-              placeholder="https://meet.google.com/..."
+              placeholder={form.recurring ? t("lessonForm.seriesMeetingUrl") : "https://meet.google.com/..."}
+              disabled={form.recurring}
             />
           </label>
 

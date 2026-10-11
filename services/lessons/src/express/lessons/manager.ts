@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { UsersRoles } from '@scholarly/shared';
 import type { AuthenticatedUser } from '@scholarly/utils';
 import { ConflictError, ForbiddenError, NotFoundError, ServiceError } from '@scholarly/utils';
@@ -15,6 +16,8 @@ import { LessonModel } from './model';
 import { ReminderJobModel, ReminderJobStatus, ReminderKind } from './reminder-model';
 import { isLateCancellation, seriesStartTimes } from './rules';
 import { LessonUserModel } from './user-model';
+
+const DEFAULT_MEETING_LINK_BASE_URL = 'https://meet.jit.si';
 
 function assertSupportedRole(actor: AuthenticatedUser): void {
     if (actor.role !== UsersRoles.STUDENT && actor.role !== UsersRoles.TEACHER) throw new ForbiddenError();
@@ -37,6 +40,14 @@ function visibleLesson(lesson: LessonDocument, actor: AuthenticatedUser) {
     const output = lesson.toObject();
     Reflect.deleteProperty(output, 'meetingUrl');
     return output;
+}
+
+function meetingLinkBaseUrl(): string {
+    return (process.env.MEETING_LINK_BASE_URL ?? DEFAULT_MEETING_LINK_BASE_URL).replace(/\/+$/, '');
+}
+
+function generateMeetingUrl(): string {
+    return `${meetingLinkBaseUrl()}/scholarly-${randomUUID()}`;
 }
 
 async function resolveTerms(input: CreateLessonInput) {
@@ -130,6 +141,7 @@ async function createOneForTeacher(input: CreateLessonInput, actor: Authenticate
     await assertNoCollision(input.studentId, input.teacherId, input.startTime, endTime);
     const lesson = await LessonModel.create({
         ...input,
+        meetingUrl: input.meetingUrl ?? generateMeetingUrl(),
         endTime,
         durationMinutes: terms.durationMinutes,
         price: terms.price,
@@ -198,6 +210,7 @@ async function releaseReplacementSlot(lesson: LessonDocument): Promise<void> {
         startTime: lesson.startTime,
         endTime: lesson.endTime,
         subject: lesson.subject,
+        meetingUrl: generateMeetingUrl(),
         price: lesson.price,
         durationMinutes: lesson.durationMinutes,
         notes: lesson.notes,
@@ -230,7 +243,7 @@ export const LessonManager = {
 
     createSeries: async (series: CreateLessonSeriesInput, actor: AuthenticatedUser): Promise<LessonDocument[]> => {
         if (actor.role !== UsersRoles.TEACHER || series.teacherId !== actor.sub) throw new ForbiddenError();
-        const { recurrence: _recurrence, ...base } = series;
+        const { recurrence: _recurrence, meetingUrl: _meetingUrl, ...base } = series;
         const { timezone } = await resolveTerms(series);
         const starts = seriesStartTimes(series, timezone);
         const created: LessonDocument[] = [];
