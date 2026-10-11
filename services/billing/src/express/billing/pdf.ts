@@ -98,6 +98,7 @@ export async function generateLessonMessagePdf(input: {
         durationMinutes: number;
         price: number;
         status: 'available' | 'scheduled' | 'completed' | 'cancelled';
+        meetingUrl?: string;
     }>;
 }): Promise<Buffer> {
     const gregorianDate = (date: Date) =>
@@ -106,7 +107,7 @@ export async function generateLessonMessagePdf(input: {
     const rows = input.lessons
         .map(
             (lesson) =>
-                `<tr><td>${escapeHtml(gregorianDate(lesson.startTime))}<br><span class="hebrew-date">${escapeHtml(hebrewDate(lesson.startTime))}</span></td><td>${escapeHtml(lesson.subject)}</td><td>${lesson.durationMinutes} דק׳</td><td>${lesson.price.toFixed(2)} ₪</td><td>${lesson.status === 'cancelled' ? 'בוטל' : lesson.status === 'completed' ? 'התקיים' : 'נקבע'}</td></tr>`,
+                `<tr><td>${escapeHtml(gregorianDate(lesson.startTime))}<br><span class="hebrew-date">${escapeHtml(hebrewDate(lesson.startTime))}</span></td><td>${escapeHtml(lesson.subject)}${lesson.meetingUrl ? `<br><span class="hebrew-date">${escapeHtml(lesson.meetingUrl)}</span>` : ''}</td><td>${lesson.durationMinutes} דק׳</td><td>${lesson.price.toFixed(2)} ₪</td><td>${lesson.status === 'cancelled' ? 'בוטל' : lesson.status === 'completed' ? 'התקיים' : 'נקבע'}</td></tr>`,
         )
         .join('');
     const total = input.lessons.reduce((sum, lesson) => sum + lesson.price, 0);

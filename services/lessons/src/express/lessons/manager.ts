@@ -191,6 +191,7 @@ async function releaseReplacementSlot(lesson: LessonDocument): Promise<void> {
         startTime: lesson.startTime,
         endTime: lesson.endTime,
         subject: lesson.subject,
+        meetingUrl: lesson.meetingUrl,
         price: lesson.price,
         durationMinutes: lesson.durationMinutes,
         notes: lesson.notes,

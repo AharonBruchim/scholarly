@@ -153,6 +153,7 @@ export interface Lesson {
   status: LessonStatus;
   price: number;
   notes?: string;
+  meetingUrl?: string;
   durationMinutes: number;
   chargeStatus: "none" | "full";
   cancelledAt?: string;
@@ -168,6 +169,7 @@ export interface CreateLessonInput {
   startTime: string;
   subject: string;
   notes?: string;
+  meetingUrl?: string;
   durationMinutes?: number;
   price?: number;
 }

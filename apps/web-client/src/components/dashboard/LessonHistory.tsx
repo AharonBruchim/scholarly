@@ -69,6 +69,14 @@ export function LessonHistory({
                       {formatLessonDateTime(lesson.startTime, i18n.language)} ·{" "}
                       {lesson.durationMinutes} {t("automation.duration")}
                     </p>
+                    {lesson.meetingUrl ? (
+                      <a
+                        className="mt-1 inline-flex text-sm text-sky-300 hover:text-sky-200"
+                        href={lesson.meetingUrl}
+                      >
+                        {t("lessons.meetingLink")}
+                      </a>
+                    ) : null}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`text-sm font-medium ${statusClasses[lesson.status]}`}>

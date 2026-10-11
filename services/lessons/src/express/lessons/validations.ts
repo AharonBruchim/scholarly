@@ -2,6 +2,8 @@ import { zodMongoObjectId } from '@scholarly/utils';
 import { z } from 'zod';
 import { LessonStatus } from './interface';
 
+const meetingUrlSchema = z.string().trim().url().max(1000).optional();
+
 // GET /api/lessons
 export const getAllRequestSchema = z.object({
     body: z.object({}),
@@ -34,6 +36,7 @@ export const createOneRequestSchema = z.object({
             startTime: z.string().datetime().pipe(z.coerce.date()),
             subject: z.string().trim().min(1).max(120),
             notes: z.string().trim().max(2000).optional(),
+            meetingUrl: meetingUrlSchema,
             durationMinutes: z.number().int().min(15).max(240).optional(),
             price: z.number().min(1).max(100000).optional(),
         })
@@ -51,6 +54,7 @@ export const createSeriesRequestSchema = z.object({
             startTime: z.string().datetime().pipe(z.coerce.date()),
             subject: z.string().trim().min(1).max(120),
             notes: z.string().trim().max(2000).optional(),
+            meetingUrl: meetingUrlSchema,
             durationMinutes: z.number().int().min(15).max(240).optional(),
             price: z.number().min(1).max(100000).optional(),
             recurrence: z
@@ -74,6 +78,7 @@ export const updateOneRequestSchema = z.object({
         .object({
             status: z.literal(LessonStatus.COMPLETED).optional(),
             notes: z.string().trim().max(2000).optional(),
+            meetingUrl: meetingUrlSchema,
         })
         .strict(),
     query: z.object({}),

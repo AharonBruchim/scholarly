@@ -20,6 +20,7 @@ export interface ILesson {
     status?: LessonStatus;
     price: number;
     notes?: string;
+    meetingUrl?: string;
     durationMinutes: number;
     chargeStatus?: LessonChargeStatus;
     cancelledAt?: Date;
@@ -45,6 +46,7 @@ export interface ListLessonsQuery {
 
 export interface ILessonUpdate {
     notes?: string;
+    meetingUrl?: string;
     status?: LessonStatus.COMPLETED;
 }
 
@@ -54,6 +56,7 @@ export interface CreateLessonInput {
     startTime: Date;
     subject: string;
     notes?: string;
+    meetingUrl?: string;
     durationMinutes?: number;
     price?: number;
     rescheduledFromLessonId?: string;

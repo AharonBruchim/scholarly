@@ -93,6 +93,14 @@ function lessonDate(startTime: Date): string {
     }).format(startTime);
 }
 
+function meetingLine(meetingUrl?: string): string {
+    return meetingUrl ? `\nקישור לשיעור: ${meetingUrl}` : '';
+}
+
+function meetingHtml(meetingUrl?: string): string {
+    return meetingUrl ? `<br><strong>קישור לשיעור:</strong> <a href="${escapeHtml(meetingUrl)}">${escapeHtml(meetingUrl)}</a>` : '';
+}
+
 async function queueDelivery(input: {
     sourceType: 'payment_request' | 'lesson_reminder' | 'lesson_message';
     sourceId: string;
@@ -328,7 +336,7 @@ async function lessonMessageEmail(sourceId: string) {
     const lessonRows = lessons
         .map(
             (lesson) =>
-                `<tr><td style="padding:9px;border-bottom:1px solid #eadcca">${escapeHtml(lessonDate(lesson.startTime))}</td><td style="padding:9px;border-bottom:1px solid #eadcca">${escapeHtml(lesson.subject)}</td><td style="padding:9px;border-bottom:1px solid #eadcca">${lesson.durationMinutes} דקות</td><td style="padding:9px;border-bottom:1px solid #eadcca;white-space:nowrap">${lesson.price.toFixed(2)} ₪</td><td style="padding:9px;border-bottom:1px solid #eadcca">${lesson.status === 'cancelled' ? 'בוטל' : lesson.status === 'completed' ? 'התקיים' : 'נקבע'}</td></tr>`,
+                `<tr><td style="padding:9px;border-bottom:1px solid #eadcca">${escapeHtml(lessonDate(lesson.startTime))}</td><td style="padding:9px;border-bottom:1px solid #eadcca">${escapeHtml(lesson.subject)}${meetingHtml(lesson.meetingUrl)}</td><td style="padding:9px;border-bottom:1px solid #eadcca">${lesson.durationMinutes} דקות</td><td style="padding:9px;border-bottom:1px solid #eadcca;white-space:nowrap">${lesson.price.toFixed(2)} ₪</td><td style="padding:9px;border-bottom:1px solid #eadcca">${lesson.status === 'cancelled' ? 'בוטל' : lesson.status === 'completed' ? 'התקיים' : 'נקבע'}</td></tr>`,
         )
         .join('');
     const total = lessons.reduce((sum, lesson) => sum + lesson.price, 0);
@@ -362,7 +370,7 @@ async function reminderEmail(sourceId: string) {
         teacherId: job.teacherId,
         to: student.email,
         subject: `תזכורת לשיעור ${lesson.subject}`,
-        html: `<div dir="rtl" lang="he"><p>שלום ${escapeHtml(student.firstName)},</p><p>תזכורת לשיעור <strong>${escapeHtml(lesson.subject)}</strong> שיתקיים ב־${escapeHtml(formatted)}.</p></div>`,
+        html: `<div dir="rtl" lang="he"><p>שלום ${escapeHtml(student.firstName)},</p><p>תזכורת לשיעור <strong>${escapeHtml(lesson.subject)}</strong> שיתקיים ב־${escapeHtml(formatted)}.${meetingHtml(lesson.meetingUrl)}</p></div>`,
     };
 }
 
@@ -388,13 +396,15 @@ async function manualDeliveryText(delivery: { sourceType: string; sourceId: stri
         const lessons = await BillingLessonModel.find({ _id: { $in: messageLessonIds(message) } })
             .sort({ startTime: 1 })
             .lean();
-        const lessonLines = lessons.map((lesson) => `• ${lesson.subject} — ${lessonDate(lesson.startTime)}, ${lesson.durationMinutes} דקות`);
+        const lessonLines = lessons.map(
+            (lesson) => `• ${lesson.subject} — ${lessonDate(lesson.startTime)}, ${lesson.durationMinutes} דקות${meetingLine(lesson.meetingUrl)}`,
+        );
         return `${message.subject}\n\n${message.message}${lessonLines.length > 0 ? `\n\nהשיעורים שנבחרו:\n${lessonLines.join('\n')}` : ''}\n\nלצפייה ולהורדה של ה־PDF המעוצב:\n${lessonMessageDocumentUrl(message._id.toString())}`;
     }
     const job = await BillingReminderJobModel.findById(delivery.sourceId).lean();
     const lesson = job ? await BillingLessonModel.findById(job.lessonId).lean() : null;
     if (!job || !lesson) throw new NotFoundError('Reminder not found');
-    return `תזכורת לשיעור ${lesson.subject} בתאריך ${lessonDate(lesson.startTime)}`;
+    return `תזכורת לשיעור ${lesson.subject} בתאריך ${lessonDate(lesson.startTime)}${meetingLine(lesson.meetingUrl)}`;
 }
 
 export const AutomationManager = {

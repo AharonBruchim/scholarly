@@ -15,6 +15,7 @@ const emptyLessonForm = {
   subject: "",
   startTime: "",
   notes: "",
+  meetingUrl: "",
   recurring: false,
   intervalWeeks: "1",
   occurrences: "8",
@@ -67,6 +68,7 @@ export function CreateLessonForm() {
         durationMinutes: Number(form.durationMinutes),
         price: Number(form.price),
         ...(form.notes.trim() ? { notes: form.notes.trim() } : {}),
+        ...(form.meetingUrl.trim() ? { meetingUrl: form.meetingUrl.trim() } : {}),
       };
       if (form.recurring) {
         await createSeriesMutation.mutateAsync({
@@ -243,6 +245,23 @@ export function CreateLessonForm() {
               }
               rows={3}
               className="w-full rounded-md border border-slate-700 bg-slate-950/80 px-3 py-2 text-sm text-slate-100"
+            />
+          </label>
+
+          <label
+            htmlFor="lesson-meeting-url"
+            className="space-y-2 text-sm text-slate-200 md:col-span-2"
+          >
+            <span>{t("lessonForm.meetingUrl")}</span>
+            <Input
+              id="lesson-meeting-url"
+              type="url"
+              dir="ltr"
+              value={form.meetingUrl}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, meetingUrl: event.target.value }))
+              }
+              placeholder="https://meet.google.com/..."
             />
           </label>
 

@@ -23,6 +23,7 @@ export interface BillingLessonRecord {
     durationMinutes: number;
     status: 'available' | 'scheduled' | 'completed' | 'cancelled';
     chargeStatus: 'none' | 'full';
+    meetingUrl?: string;
 }
 
 const looseSchema = new mongoose.Schema({}, { strict: false });

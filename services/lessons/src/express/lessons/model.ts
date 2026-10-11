@@ -24,6 +24,7 @@ const lessonSchema = new mongoose.Schema<LessonDocument>(
         },
         price: { type: Number, required: true },
         notes: { type: String },
+        meetingUrl: { type: String, maxlength: 1000 },
         durationMinutes: { type: Number, required: true, min: 15, max: 240 },
         chargeStatus: {
             type: String,

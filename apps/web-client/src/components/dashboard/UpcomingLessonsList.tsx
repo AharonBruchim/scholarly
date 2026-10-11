@@ -164,6 +164,14 @@ export function UpcomingLessonsList({
                           {lesson.status === "available" ? (
                             <p className="mt-1 text-xs text-emerald-300">{t("lessons.available")}</p>
                           ) : null}
+                          {lesson.meetingUrl ? (
+                            <a
+                              className="mt-1 block truncate text-xs text-sky-300 hover:text-sky-200"
+                              href={lesson.meetingUrl}
+                            >
+                              {t("lessons.meetingLink")}
+                            </a>
+                          ) : null}
                           <p className="mt-1 text-xs text-slate-400">
                             {formatLessonDateTime(lesson.startTime, i18n.language)}
                           </p>
