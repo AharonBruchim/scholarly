@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -175,6 +175,7 @@ interface PaymentAutomationCenterProps {
 
 export function PaymentAutomationCenter({ lessons, students }: PaymentAutomationCenterProps) {
   const queryClient = useQueryClient();
+  const [pdfPreview, setPdfPreview] = useState<{ title: string; url: string } | null>(null);
   const [studentId, setStudentId] = useState("");
   const [selectedLessonIds, setSelectedLessonIds] = useState<string[]>([]);
   const [customItems, setCustomItems] = useState<
@@ -324,6 +325,12 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gmail-connection"] }),
   });
 
+  useEffect(() => {
+    return () => {
+      if (pdfPreview) URL.revokeObjectURL(pdfPreview.url);
+    };
+  }, [pdfPreview]);
+
   const addCustomItem = () => {
     const amount = Number(customAmount);
     if (!customDescription.trim() || !Number.isFinite(amount) || amount <= 0) return;
@@ -335,8 +342,48 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
     setCustomAmount("");
   };
 
+  const showPdfPreview = (title: string, url: string) => {
+    setPdfPreview((current) => {
+      if (current) URL.revokeObjectURL(current.url);
+      return { title, url };
+    });
+    window.requestAnimationFrame(() => {
+      document.getElementById("pdf-preview")?.scrollIntoView({ behavior: "smooth" });
+    });
+  };
+
+  const closePdfPreview = () => {
+    setPdfPreview((current) => {
+      if (current) URL.revokeObjectURL(current.url);
+      return null;
+    });
+  };
+
   return (
     <section id="payments" className="space-y-6 scroll-mt-6">
+      {pdfPreview ? (
+        <Card id="pdf-preview" className="scroll-mt-6">
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle>{pdfPreview.title}</CardTitle>
+                <CardDescription>המסמך מוצג כאן בלי מעבר לטאב חדש.</CardDescription>
+              </div>
+              <Button type="button" variant="secondary" onClick={closePdfPreview}>
+                סגירה
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <iframe
+              title={pdfPreview.title}
+              src={pdfPreview.url}
+              className="h-[70vh] w-full rounded-md border border-slate-700 bg-white"
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -787,7 +834,12 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
                       type="button"
                       size="sm"
                       variant="secondary"
-                      onClick={() => void openPaymentRequestPdf(request._id)}
+                      onClick={async () =>
+                        showPdfPreview(
+                          request.requestNumber || "דרישת תשלום",
+                          await openPaymentRequestPdf(request._id),
+                        )
+                      }
                     >
                       צפייה ב־PDF
                     </Button>
@@ -859,7 +911,9 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
                     type="button"
                     size="sm"
                     variant="secondary"
-                    onClick={() => void openLessonMessagePdf(message._id)}
+                    onClick={async () =>
+                      showPdfPreview(message.subject, await openLessonMessagePdf(message._id))
+                    }
                   >
                     צפייה ב־PDF
                   </Button>

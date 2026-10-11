@@ -343,13 +343,11 @@ export async function cancelPaymentRequest(id: string): Promise<void> {
   await apiClient.post(`${billingPath}/${id}/cancel`, {});
 }
 
-export async function openPaymentRequestPdf(id: string): Promise<void> {
+export async function openPaymentRequestPdf(id: string): Promise<string> {
   const response = await apiClient.get<Blob>(`${billingPath}/${id}/pdf`, {
     responseType: "blob",
   });
-  const url = URL.createObjectURL(response.data);
-  window.open(url, "_blank", "noopener,noreferrer");
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return URL.createObjectURL(response.data);
 }
 
 export async function fetchLessonMessages(): Promise<LessonMessageRecord[]> {
@@ -375,13 +373,11 @@ export async function cancelLessonMessage(id: string): Promise<void> {
   await apiClient.post(`${billingPath}/lesson-messages/${id}/cancel`, {});
 }
 
-export async function openLessonMessagePdf(id: string): Promise<void> {
+export async function openLessonMessagePdf(id: string): Promise<string> {
   const response = await apiClient.get<Blob>(`${billingPath}/lesson-messages/${id}/pdf`, {
     responseType: "blob",
   });
-  const url = URL.createObjectURL(response.data);
-  window.open(url, "_blank", "noopener,noreferrer");
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return URL.createObjectURL(response.data);
 }
 
 export async function fetchAutomaticPaymentPreview(): Promise<AutomaticPaymentPreview> {
