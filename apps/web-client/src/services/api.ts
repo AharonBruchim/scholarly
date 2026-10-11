@@ -217,6 +217,13 @@ export async function rescheduleLesson(
   return response.data;
 }
 
+export async function completeLesson(lessonId: string): Promise<Lesson> {
+  const response = await apiClient.patch<Lesson>(`/lessons/${lessonId}`, {
+    status: "completed",
+  });
+  return response.data;
+}
+
 export async function fetchUserProfile(userId: string): Promise<UserProfile> {
   const response = await apiClient.get<UserProfile>(`/users/${userId}`);
   return response.data;
@@ -228,6 +235,13 @@ export async function updateUserProfile(
 ): Promise<UserProfile> {
   const response = await apiClient.patch<UserProfile>(`/users/${userId}`, profile);
   return response.data;
+}
+
+export async function changeUserPassword(
+  userId: string,
+  input: { currentPassword: string; newPassword: string },
+): Promise<void> {
+  await apiClient.patch(`/users/${userId}/password`, input);
 }
 
 export type DeliveryStatus =

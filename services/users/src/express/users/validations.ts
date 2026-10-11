@@ -2,6 +2,8 @@ import { bankAccountSchema, createUserSchema, phoneSchema, teacherPreferencesSch
 import { zodMongoObjectId } from '@scholarly/utils';
 import { z } from 'zod';
 
+const passwordByteLength = (password: string): number => new TextEncoder().encode(password).byteLength;
+
 // GET /api/users
 export const getAllRequestSchema = z.object({
     body: z.object({}),
@@ -35,6 +37,25 @@ export const updateOneRequestSchema = z.object({
             phone: phoneSchema.partial().optional(),
             bankAccount: bankAccountSchema.partial().optional(),
             teacherPreferences: teacherPreferencesSchema.optional(),
+        })
+        .strict(),
+    query: z.object({}),
+    params: z.object({
+        id: zodMongoObjectId,
+    }),
+});
+
+export const changePasswordRequestSchema = z.object({
+    body: z
+        .object({
+            currentPassword: z
+                .string()
+                .min(1, 'Password is required')
+                .refine((password) => passwordByteLength(password) <= 72, 'Password is too long'),
+            newPassword: z
+                .string()
+                .min(8, 'Password must contain at least 8 characters')
+                .refine((password) => passwordByteLength(password) <= 72, 'Password is too long'),
         })
         .strict(),
     query: z.object({}),

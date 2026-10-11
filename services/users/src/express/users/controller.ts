@@ -2,7 +2,13 @@ import type { TypedRequest } from '@scholarly/utils';
 import { UserNotFoundError } from '@scholarly/utils';
 import type { Response } from 'express';
 import { UserManager } from './manager';
-import type { createOneRequestSchema, getAllRequestSchema, getByIdRequestSchema, updateOneRequestSchema } from './validations';
+import type {
+    changePasswordRequestSchema,
+    createOneRequestSchema,
+    getAllRequestSchema,
+    getByIdRequestSchema,
+    updateOneRequestSchema,
+} from './validations';
 
 export const UsersController = {
     createOne: async (req: TypedRequest<typeof createOneRequestSchema>, res: Response) => {
@@ -23,6 +29,11 @@ export const UsersController = {
         const user = await UserManager.updateProfile(req.params.id, req.body);
         if (!user) throw new UserNotFoundError(req.params.id);
         res.json(user);
+    },
+
+    changePassword: async (req: TypedRequest<typeof changePasswordRequestSchema>, res: Response) => {
+        await UserManager.changePassword(req.params.id, req.body.currentPassword, req.body.newPassword);
+        res.status(204).send();
     },
 
     getAll: async (req: TypedRequest<typeof getAllRequestSchema>, res: Response) => {

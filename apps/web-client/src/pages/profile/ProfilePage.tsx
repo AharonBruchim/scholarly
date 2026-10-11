@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Spinner } from "@/components/common/Spinner";
 import { TeacherAutomationSettings } from "@/components/profile/TeacherAutomationSettings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context-core";
-import { useUpdateUserProfile, useUserProfile } from "@/hooks/useUserProfile";
+import { useChangeUserPassword, useUpdateUserProfile, useUserProfile } from "@/hooks/useUserProfile";
 
 interface ProfileForm {
   firstName: string;
@@ -28,6 +29,11 @@ const emptyProfile: ProfileForm = {
   allowSMS: false,
 };
 
+const emptyPasswordForm = {
+  currentPassword: "",
+  newPassword: "",
+};
+
 export default function ProfilePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -35,8 +41,11 @@ export default function ProfilePage() {
   const userId = user?.id;
   const homePath = user?.role === "teacher" ? "/teacher" : "/student";
   const [form, setForm] = useState<ProfileForm>(emptyProfile);
+  const [passwordForm, setPasswordForm] = useState(emptyPasswordForm);
+  const [passwordValidationError, setPasswordValidationError] = useState<string | null>(null);
   const profileQuery = useUserProfile(userId);
   const updateProfileMutation = useUpdateUserProfile(userId ?? "");
+  const changePasswordMutation = useChangeUserPassword(userId ?? "");
 
   useEffect(() => {
     const profile = profileQuery.data;
@@ -75,6 +84,25 @@ export default function ProfilePage() {
       updateProfile(profile);
     } catch {
       // The localized mutation error is rendered below.
+    }
+  };
+
+  const handlePasswordSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!user) return;
+
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordValidationError(t("validation.passwordMinLength"));
+      return;
+    }
+
+    setPasswordValidationError(null);
+
+    try {
+      await changePasswordMutation.mutateAsync(passwordForm);
+      setPasswordForm(emptyPasswordForm);
+    } catch {
+      setPasswordValidationError(null);
     }
   };
 
@@ -202,6 +230,78 @@ export default function ProfilePage() {
             <div className="flex justify-end">
               <Button type="submit" disabled={updateProfileMutation.isPending}>
                 {updateProfileMutation.isPending ? t("profile.saving") : t("profile.save")}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("profile.passwordTitle")}</CardTitle>
+          <CardDescription>{t("profile.passwordDescription")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4" onSubmit={handlePasswordSubmit}>
+            <label htmlFor="profile-current-password" className="block space-y-1 text-sm">
+              <span>{t("profile.currentPassword")}</span>
+              <PasswordInput
+                id="profile-current-password"
+                autoComplete="current-password"
+                value={passwordForm.currentPassword}
+                onChange={(event) =>
+                  setPasswordForm((current) => ({
+                    ...current,
+                    currentPassword: event.target.value,
+                  }))
+                }
+                revealLabel={t("auth.showPassword")}
+                hideLabel={t("auth.hidePassword")}
+                required
+              />
+            </label>
+
+            <label htmlFor="profile-new-password" className="block space-y-1 text-sm">
+              <span>{t("profile.newPassword")}</span>
+              <PasswordInput
+                id="profile-new-password"
+                autoComplete="new-password"
+                value={passwordForm.newPassword}
+                onChange={(event) =>
+                  setPasswordForm((current) => ({
+                    ...current,
+                    newPassword: event.target.value,
+                  }))
+                }
+                placeholder={t("auth.passwordRequirement")}
+                revealLabel={t("auth.showPassword")}
+                hideLabel={t("auth.hidePassword")}
+                required
+              />
+            </label>
+
+            {passwordValidationError || changePasswordMutation.isError ? (
+              <p className="text-sm text-red-400" role="alert">
+                {passwordValidationError ?? t("profile.passwordSaveFailed")}
+              </p>
+            ) : null}
+            {changePasswordMutation.isSuccess ? (
+              <p className="text-sm text-emerald-400" role="status">
+                {t("profile.passwordSaved")}
+              </p>
+            ) : null}
+
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={
+                  changePasswordMutation.isPending ||
+                  !passwordForm.currentPassword ||
+                  !passwordForm.newPassword
+                }
+              >
+                {changePasswordMutation.isPending
+                  ? t("profile.saving")
+                  : t("profile.passwordSave")}
               </Button>
             </div>
           </form>

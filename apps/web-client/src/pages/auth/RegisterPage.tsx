@@ -2,6 +2,7 @@ import { type CreateUserValues, createUserSchema, UsersRoles } from "@scholarly/
 import { useForm } from "@tanstack/react-form";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -210,15 +211,16 @@ export default function RegisterPage() {
                   <label htmlFor="password" className="text-sm font-medium">
                     {t("auth.password")}
                   </label>
-                  <Input
+                  <PasswordInput
                     id="password"
                     name="password"
-                    type="password"
                     autoComplete="new-password"
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder={t("auth.passwordRequirement")}
+                    revealLabel={t("auth.showPassword")}
+                    hideLabel={t("auth.hidePassword")}
                   />
                   <FieldErrors errors={field.state.meta.errors} />
                 </div>

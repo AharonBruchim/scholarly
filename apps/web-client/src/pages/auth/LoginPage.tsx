@@ -3,9 +3,11 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context-core";
 import { useLoginMutation } from "@/hooks/useAuthQueries";
 import { type LoginFormValues, loginSchema } from "@/types/auth";
@@ -52,18 +54,23 @@ export default function LoginPage() {
                   : undefined
               }
             />
-            <FormField
-              label={t("auth.password")}
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder={t("auth.passwordPlaceholder")}
-              error={
-                form.formState.errors.password?.message
-                  ? t(form.formState.errors.password.message)
-                  : undefined
-              }
-            />
+            <div className="space-y-2">
+              <Label htmlFor="password">{t("auth.password")}</Label>
+              <PasswordInput
+                id="password"
+                autoComplete="current-password"
+                placeholder={t("auth.passwordPlaceholder")}
+                revealLabel={t("auth.showPassword")}
+                hideLabel={t("auth.hidePassword")}
+                className={form.formState.errors.password ? "border-red-500" : ""}
+                {...form.register("password")}
+              />
+              {form.formState.errors.password?.message ? (
+                <p className="text-sm text-red-400">
+                  {t(form.formState.errors.password.message)}
+                </p>
+              ) : null}
+            </div>
 
             <Button type="submit" className="w-full" disabled={mutation.isPending}>
               {mutation.isPending ? t("auth.signingIn") : t("common.login")}

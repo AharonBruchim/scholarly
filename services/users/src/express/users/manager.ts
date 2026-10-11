@@ -7,7 +7,7 @@ import {
     type UserProfile,
     UsersRoles,
 } from '@scholarly/shared';
-import { ConflictError, ServiceError } from '@scholarly/utils';
+import { ConflictError, ServiceError, UnauthorizedError } from '@scholarly/utils';
 import type { UserDocument } from './interface';
 import { StudentModel, TeacherModel, UserModel } from './model';
 import { hashPassword, verifyPassword } from './password';
@@ -139,6 +139,15 @@ export const UserManager = {
     updateProfile: async (id: string, userUpdate: IUserUpdate): Promise<UserProfile | null> => {
         const user = await UserManager.updateOne(id, userUpdate);
         return user ? toSafeUserProfile(user) : null;
+    },
+
+    changePassword: async (id: string, currentPassword: string, newPassword: string): Promise<void> => {
+        const user = (await UserModel.findById(id).select('+passwordHash')) as unknown as UserDocument | null;
+        if (!user) return;
+        const isPasswordValid = await verifyPassword(currentPassword, user.passwordHash);
+        if (!isPasswordValid) throw new UnauthorizedError('Current password is incorrect');
+        user.passwordHash = await hashPassword(newPassword);
+        await user.save();
     },
 
     getAll: async (filters: ListUsersQuery): Promise<DirectoryUser[]> => {

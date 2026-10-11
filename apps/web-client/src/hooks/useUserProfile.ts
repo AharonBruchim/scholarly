@@ -1,7 +1,7 @@
 import type { IUserUpdate } from "@scholarly/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { fetchUserProfile, updateUserProfile } from "@/services/api";
+import { changeUserPassword, fetchUserProfile, updateUserProfile } from "@/services/api";
 
 export const userProfileQueryKey = (userId: string) => ["user-profile", userId] as const;
 
@@ -25,5 +25,12 @@ export function useUpdateUserProfile(userId: string) {
       queryClient.setQueryData(userProfileQueryKey(userId), profile);
       await queryClient.invalidateQueries({ queryKey: ["directory-users"] });
     },
+  });
+}
+
+export function useChangeUserPassword(userId: string) {
+  return useMutation({
+    mutationFn: (input: { currentPassword: string; newPassword: string }) =>
+      changeUserPassword(userId, input),
   });
 }
