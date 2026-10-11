@@ -80,6 +80,12 @@ export default function LoginPage() {
             ) : null}
           </Form>
 
+          <p className="mt-3 text-center text-sm">
+            <Link to="/forgot-password" className="font-medium text-sky-400 hover:text-sky-300">
+              {t("auth.forgotPassword")}
+            </Link>
+          </p>
+
           <p className="mt-4 text-center text-sm text-slate-300">
             {t("auth.needAccount")}{" "}
             <Link to="/register" className="font-medium text-sky-400 hover:text-sky-300">

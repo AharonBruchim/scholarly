@@ -3,7 +3,14 @@ import { UnauthorizedError } from '@scholarly/utils';
 import type { Response } from 'express';
 import { clearRefreshCookie, getRefreshCookie, setRefreshCookie } from './cookies';
 import { AuthManager } from './manager';
-import type { loginRequestSchema, logoutRequestSchema, refreshRequestSchema, registerRequestSchema } from './validations';
+import type {
+    forgotPasswordRequestSchema,
+    loginRequestSchema,
+    logoutRequestSchema,
+    refreshRequestSchema,
+    registerRequestSchema,
+    resetPasswordRequestSchema,
+} from './validations';
 
 const sendAuthenticationResult = async (res: Response, resultPromise: ReturnType<typeof AuthManager.login>, status = 200) => {
     const result = await resultPromise;
@@ -38,6 +45,16 @@ export const AuthController = {
     logout: async (req: TypedRequest<typeof logoutRequestSchema>, res: Response) => {
         await AuthManager.logout(getRefreshCookie(req));
         clearRefreshCookie(res);
+        res.status(204).send();
+    },
+
+    forgotPassword: async (req: TypedRequest<typeof forgotPasswordRequestSchema>, res: Response) => {
+        await AuthManager.requestPasswordReset(req.body.email);
+        res.json({ ok: true });
+    },
+
+    resetPassword: async (req: TypedRequest<typeof resetPasswordRequestSchema>, res: Response) => {
+        await AuthManager.resetPassword(req.body.token, req.body.newPassword);
         res.status(204).send();
     },
 };

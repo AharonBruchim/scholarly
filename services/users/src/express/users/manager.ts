@@ -97,6 +97,11 @@ export const UserManager = {
         return user ? toPublicUser(user) : null;
     },
 
+    getByEmail: async (email: string): Promise<PublicUser | null> => {
+        const user = (await UserModel.findOne({ email: normalizeEmail(email) })) as unknown as UserDocument | null;
+        return user ? toPublicUser(user) : null;
+    },
+
     getProfileById: async (id: string): Promise<UserProfile | null> => {
         const user = await UserManager.getById(id);
         return user ? toSafeUserProfile(user) : null;

@@ -17,3 +17,19 @@ export function useRegisterMutation() {
     },
   });
 }
+
+export function useForgotPasswordMutation() {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      await authApi.forgotPassword(email);
+    },
+  });
+}
+
+export function useResetPasswordMutation() {
+  return useMutation({
+    mutationFn: async ({ token, newPassword }: { token: string; newPassword: string }) => {
+      await authApi.resetPassword(token, newPassword);
+    },
+  });
+}

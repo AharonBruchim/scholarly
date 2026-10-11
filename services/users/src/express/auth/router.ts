@@ -1,7 +1,14 @@
 import { validateRequest, wrapController } from '@scholarly/utils';
 import { Router } from 'express';
 import { AuthController } from './controller';
-import { loginRequestSchema, logoutRequestSchema, refreshRequestSchema, registerRequestSchema } from './validations';
+import {
+    forgotPasswordRequestSchema,
+    loginRequestSchema,
+    logoutRequestSchema,
+    refreshRequestSchema,
+    registerRequestSchema,
+    resetPasswordRequestSchema,
+} from './validations';
 
 export const authRouter = Router();
 
@@ -9,3 +16,5 @@ authRouter.post('/register', validateRequest(registerRequestSchema), wrapControl
 authRouter.post('/login', validateRequest(loginRequestSchema), wrapController(AuthController.login));
 authRouter.post('/refresh', validateRequest(refreshRequestSchema), wrapController(AuthController.refresh));
 authRouter.post('/logout', validateRequest(logoutRequestSchema), wrapController(AuthController.logout));
+authRouter.post('/forgot-password', validateRequest(forgotPasswordRequestSchema), wrapController(AuthController.forgotPassword));
+authRouter.post('/reset-password', validateRequest(resetPasswordRequestSchema), wrapController(AuthController.resetPassword));

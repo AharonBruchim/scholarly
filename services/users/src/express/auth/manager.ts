@@ -3,6 +3,8 @@ import type { AuthSession, AuthUser, CreateUserValues, PublicUser } from '@schol
 import { ServiceError, UnauthorizedError } from '@scholarly/utils';
 import jwt from 'jsonwebtoken';
 import { UserManager } from '../users/manager';
+import { PasswordResetModel } from './password-reset-model';
+import { sendPasswordResetEmail } from './password-reset-email';
 import { RefreshSessionModel } from './refresh-session-model';
 
 const TOKEN_ISSUER = 'scholarly-users';
@@ -14,6 +16,7 @@ interface AuthenticationResult {
 }
 
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000;
 
 function getAccessTokenSecret(): string {
     const secret = process.env.JWT_SECRET;
@@ -38,6 +41,7 @@ const toAuthUser = (user: PublicUser): AuthUser => ({
 });
 
 const hashRefreshToken = (refreshToken: string): string => createHash('sha256').update(refreshToken).digest('hex');
+const hashPasswordResetToken = (resetToken: string): string => createHash('sha256').update(resetToken).digest('hex');
 
 async function createSession(user: PublicUser): Promise<AuthenticationResult> {
     const accessToken = jwt.sign({ sub: user._id, role: user.role, tokenType: 'access' }, getAccessTokenSecret(), {
@@ -103,5 +107,38 @@ export const AuthManager = {
         }
 
         await RefreshSessionModel.deleteOne({ tokenHash: hashRefreshToken(refreshToken) });
+    },
+
+    requestPasswordReset: async (email: string): Promise<void> => {
+        const resetBaseUrl = process.env.PASSWORD_RESET_BASE_URL;
+        if (!resetBaseUrl) {
+            throw new ServiceError('PASSWORD_RESET_BASE_URL must be configured', 503, 'PASSWORD_RESET_NOT_CONFIGURED');
+        }
+        const user = await UserManager.getByEmail(email);
+        if (!user) return;
+        const resetToken = randomBytes(48).toString('base64url');
+        await PasswordResetModel.create({
+            userId: user._id,
+            tokenHash: hashPasswordResetToken(resetToken),
+            expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
+        });
+        const resetUrl = new URL(resetBaseUrl);
+        resetUrl.searchParams.set('token', resetToken);
+        await sendPasswordResetEmail(user.email, resetUrl.toString());
+    },
+
+    resetPassword: async (token: string, newPassword: string): Promise<void> => {
+        const record = await PasswordResetModel.findOneAndUpdate(
+            {
+                tokenHash: hashPasswordResetToken(token),
+                expiresAt: { $gt: new Date() },
+                usedAt: { $exists: false },
+            },
+            { $set: { usedAt: new Date() } },
+            { new: true },
+        );
+        if (!record) throw new UnauthorizedError('Invalid or expired password reset token');
+        await UserManager.setPassword(record.userId, newPassword);
+        await RefreshSessionModel.deleteMany({ userId: record.userId });
     },
 };
