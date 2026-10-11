@@ -26,6 +26,7 @@ import {
   openSmsDelivery,
   openWhatsAppDelivery,
   type PaymentRequestRecord,
+  updatePaymentRequestStatus,
 } from "@/services/api";
 
 const billingQueryKeys = [
@@ -42,6 +43,14 @@ const statusLabels: Record<PaymentRequestRecord["status"], string> = {
   delivered: "נשלחה",
   failed: "השליחה נכשלה",
   cancelled: "בוטלה",
+};
+
+const paymentStatusLabels: Record<PaymentRequestRecord["paymentStatus"], string> = {
+  unpaid: "לא שולם",
+  claimed_paid: "התלמידה סימנה ששילמה",
+  paid: "התקבל",
+  disputed: "במחלוקת",
+  waived: "ויתור",
 };
 
 function toIso(localValue: string): string | undefined {
@@ -162,6 +171,86 @@ function ManualDeliveryActions({
       {actionError ? (
         <p role="alert" className="text-xs text-red-400">
           {actionError}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function PaymentStatusActions({
+  request,
+  onChanged,
+}: {
+  request: PaymentRequestRecord;
+  onChanged: () => void;
+}) {
+  const [note, setNote] = useState(request.paymentNote ?? "");
+  const mutation = useMutation({
+    mutationFn: (paymentStatus: PaymentRequestRecord["paymentStatus"]) =>
+      updatePaymentRequestStatus(request._id, {
+        paymentStatus,
+        paymentNote: note.trim() || undefined,
+      }),
+    onSuccess: onChanged,
+  });
+  return (
+    <div className="space-y-2 rounded-lg border border-slate-700 bg-slate-950/40 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-medium text-white">
+          סטטוס תשלום: {paymentStatusLabels[request.paymentStatus ?? "unpaid"]}
+        </p>
+        {request.paymentUpdatedAt ? (
+          <p className="text-xs text-slate-400">עודכן: {formatDate(request.paymentUpdatedAt)}</p>
+        ) : null}
+      </div>
+      <textarea
+        value={note}
+        onChange={(event) => setNote(event.target.value)}
+        maxLength={1000}
+        rows={2}
+        className="w-full rounded-md border border-slate-700 bg-slate-950 p-2 text-sm text-white"
+        placeholder="הערת תשלום פנימית או פירוט מחלוקת"
+      />
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => mutation.mutate("paid")}
+          disabled={mutation.isPending || request.paymentStatus === "paid"}
+        >
+          התקבל
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={() => mutation.mutate("unpaid")}
+          disabled={mutation.isPending || request.paymentStatus === "unpaid"}
+        >
+          לא התקבל
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={() => mutation.mutate("disputed")}
+          disabled={mutation.isPending || request.paymentStatus === "disputed"}
+        >
+          מחלוקת
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => mutation.mutate("waived")}
+          disabled={mutation.isPending || request.paymentStatus === "waived"}
+        >
+          ויתור
+        </Button>
+      </div>
+      {mutation.isError ? (
+        <p role="alert" className="text-xs text-red-400">
+          עדכון סטטוס התשלום נכשל.
         </p>
       ) : null}
     </div>
@@ -828,6 +917,10 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
                       {statusLabels[request.status]} ·{" "}
                       {formatDate(request.scheduledAt ?? request.generatedAt)}
                     </p>
+                    <p className="mt-1 text-xs text-amber-200">
+                      {paymentStatusLabels[request.paymentStatus ?? "unpaid"]}
+                      {request.paymentNote ? ` · ${request.paymentNote}` : ""}
+                    </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -867,6 +960,7 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
                     </li>
                   ))}
                 </ul>
+                <PaymentStatusActions request={request} onChanged={() => void refreshBilling()} />
                 {request.deliveries.map((delivery) => (
                   <div
                     key={delivery._id}

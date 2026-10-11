@@ -277,6 +277,10 @@ export interface PaymentRequestRecord {
     | "delivered"
     | "failed"
     | "cancelled";
+  paymentStatus: "unpaid" | "claimed_paid" | "paid" | "disputed" | "waived";
+  paymentUpdatedAt?: string;
+  paymentUpdatedBy?: string;
+  paymentNote?: string;
   scheduledAt: string;
   generatedAt: string;
   deliveries: DeliveryRecord[];
@@ -341,6 +345,20 @@ export async function createManualPaymentRequest(input: {
 
 export async function cancelPaymentRequest(id: string): Promise<void> {
   await apiClient.post(`${billingPath}/${id}/cancel`, {});
+}
+
+export async function updatePaymentRequestStatus(
+  id: string,
+  input: {
+    paymentStatus: PaymentRequestRecord["paymentStatus"];
+    paymentNote?: string;
+  },
+): Promise<PaymentRequestRecord> {
+  const response = await apiClient.patch<PaymentRequestRecord>(
+    `${billingPath}/${id}/payment-status`,
+    input,
+  );
+  return response.data;
 }
 
 export async function openPaymentRequestPdf(id: string): Promise<string> {

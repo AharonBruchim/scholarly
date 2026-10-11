@@ -73,6 +73,16 @@ export const createLessonMessageSchema = z.object({
 export const listLessonMessagesSchema = z.object({ body: z.object({}), query: z.object({}), params: z.object({}) });
 export const automaticPreviewSchema = z.object({ body: z.object({}), query: z.object({}), params: z.object({}) });
 export const idOnlySchema = z.object({ body: z.object({}).strict(), query: z.object({}), params: z.object({ id: zodMongoObjectId }) });
+export const updatePaymentStatusSchema = z.object({
+    body: z
+        .object({
+            paymentStatus: z.enum(['unpaid', 'claimed_paid', 'paid', 'disputed', 'waived']),
+            paymentNote: z.string().trim().max(1000).optional(),
+        })
+        .strict(),
+    query: z.object({}),
+    params: z.object({ id: zodMongoObjectId }),
+});
 export const googleConnectionSchema = z.object({ body: z.object({}), query: z.object({}), params: z.object({}) });
 export const googleCallbackSchema = z.object({
     body: z.object({}),

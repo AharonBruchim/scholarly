@@ -15,6 +15,7 @@ import {
     idOnlySchema,
     listLessonMessagesSchema,
     listPaymentRequestsSchema,
+    updatePaymentStatusSchema,
 } from './validations';
 
 export const billingRouter = Router();
@@ -23,6 +24,12 @@ billingRouter.get('/', authenticateJWT, validateRequest(listPaymentRequestsSchem
 billingRouter.post('/', authenticateJWT, validateRequest(createManualPaymentRequestSchema), wrapController(AutomationController.createManual));
 billingRouter.get('/:id/pdf', authenticateJWT, validateRequest(getPaymentRequestPdfSchema), wrapController(AutomationController.pdf));
 billingRouter.post('/:id/cancel', authenticateJWT, validateRequest(idOnlySchema), wrapController(AutomationController.cancelPayment));
+billingRouter.patch(
+    '/:id/payment-status',
+    authenticateJWT,
+    validateRequest(updatePaymentStatusSchema),
+    wrapController(AutomationController.updatePaymentStatus),
+);
 billingRouter.get(
     '/lesson-messages',
     authenticateJWT,

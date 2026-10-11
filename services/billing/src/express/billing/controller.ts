@@ -17,6 +17,7 @@ import type {
     idOnlySchema,
     listLessonMessagesSchema,
     listPaymentRequestsSchema,
+    updatePaymentStatusSchema,
 } from './validations';
 
 const actorFrom = (req: AuthenticatedRequest) => {
@@ -55,6 +56,9 @@ export const AutomationController = {
     },
     cancelPayment: async (req: TypedRequest<typeof idOnlySchema>, res: Response) => {
         res.json(await AutomationManager.cancelPaymentRequest(req.params.id, actorFrom(req)));
+    },
+    updatePaymentStatus: async (req: TypedRequest<typeof updatePaymentStatusSchema>, res: Response) => {
+        res.json(await AutomationManager.updatePaymentStatus(req.params.id, req.body, actorFrom(req)));
     },
     listLessonMessages: async (req: TypedRequest<typeof listLessonMessagesSchema>, res: Response) => {
         res.json(await AutomationManager.listLessonMessages(actorFrom(req)));

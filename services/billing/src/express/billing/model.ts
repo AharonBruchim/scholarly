@@ -49,6 +49,10 @@ export interface PaymentRequestRecord {
     total: number;
     channels: DeliveryChannel[];
     status: 'scheduled' | 'pending_delivery' | 'partially_delivered' | 'delivered' | 'failed' | 'cancelled';
+    paymentStatus: 'unpaid' | 'claimed_paid' | 'paid' | 'disputed' | 'waived';
+    paymentUpdatedAt?: Date;
+    paymentUpdatedBy?: string;
+    paymentNote?: string;
     pdfData?: Buffer;
     pdfFilename?: string;
     scheduledAt: Date;
@@ -87,6 +91,15 @@ const paymentRequestSchema = new mongoose.Schema<PaymentRequestRecord>(
             enum: ['scheduled', 'pending_delivery', 'partially_delivered', 'delivered', 'failed', 'cancelled'],
             default: 'pending_delivery',
         },
+        paymentStatus: {
+            type: String,
+            enum: ['unpaid', 'claimed_paid', 'paid', 'disputed', 'waived'],
+            default: 'unpaid',
+            required: true,
+        },
+        paymentUpdatedAt: { type: Date },
+        paymentUpdatedBy: { type: String },
+        paymentNote: { type: String, maxlength: 1000 },
         pdfData: { type: Buffer, select: false },
         pdfFilename: { type: String },
         scheduledAt: { type: Date, required: true },

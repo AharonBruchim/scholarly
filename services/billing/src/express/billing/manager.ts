@@ -47,6 +47,11 @@ export interface LessonMessageInput {
     scheduledAt?: Date;
 }
 
+export interface PaymentStatusInput {
+    paymentStatus: 'unpaid' | 'claimed_paid' | 'paid' | 'disputed' | 'waived';
+    paymentNote?: string;
+}
+
 function periodRange(period?: string) {
     const month = period
         ? DateTime.fromFormat(period, 'yyyy-MM', { zone: ZONE })
@@ -723,6 +728,22 @@ export const AutomationManager = {
             { sourceType: 'payment_request', sourceId: id, status: { $nin: ['sent', 'cancelled'] } },
             { $set: { status: 'cancelled' } },
         );
+        return request;
+    },
+
+    updatePaymentStatus: async (id: string, input: PaymentStatusInput, actor: AuthenticatedUser) => {
+        const filter =
+            actor.role === UsersRoles.TEACHER ? { _id: id, teacherId: actor.sub } : actor.role === UsersRoles.STUDENT ? { _id: id, studentId: actor.sub } : null;
+        if (!filter) throw new ForbiddenError();
+        const request = await PaymentRequestModel.findOne(filter);
+        if (!request || request.status === 'cancelled') throw new NotFoundError('Payment request not found');
+        const studentAllowed = ['claimed_paid', 'disputed'].includes(input.paymentStatus);
+        if (actor.role === UsersRoles.STUDENT && !studentAllowed) throw new ForbiddenError();
+        request.paymentStatus = input.paymentStatus;
+        request.paymentNote = input.paymentNote;
+        request.paymentUpdatedAt = new Date();
+        request.paymentUpdatedBy = actor.sub;
+        await request.save();
         return request;
     },
 

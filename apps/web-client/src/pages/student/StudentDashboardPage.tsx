@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Spinner } from "@/components/common/Spinner";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
@@ -10,6 +11,152 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useDashboardLessons } from "@/hooks/useDashboard";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
+import {
+  fetchPaymentRequests,
+  openPaymentRequestPdf,
+  type PaymentRequestRecord,
+  updatePaymentRequestStatus,
+} from "@/services/api";
+
+const paymentStatusLabels: Record<PaymentRequestRecord["paymentStatus"], string> = {
+  unpaid: "לא שולם",
+  claimed_paid: "סימנתי ששילמתי",
+  paid: "התקבל אצל המורה",
+  disputed: "במחלוקת",
+  waived: "ויתור",
+};
+
+function formatPaymentDate(value: string): string {
+  return new Intl.DateTimeFormat("he-IL", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function StudentPaymentRequests() {
+  const queryClient = useQueryClient();
+  const [pdfPreview, setPdfPreview] = useState<{ title: string; url: string } | null>(null);
+  const requestsQuery = useQuery({ queryKey: ["billing"], queryFn: fetchPaymentRequests });
+  const statusMutation = useMutation({
+    mutationFn: ({
+      id,
+      paymentStatus,
+    }: {
+      id: string;
+      paymentStatus: "claimed_paid" | "disputed";
+    }) => updatePaymentRequestStatus(id, { paymentStatus }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["billing"] }),
+  });
+
+  useEffect(() => {
+    return () => {
+      if (pdfPreview) URL.revokeObjectURL(pdfPreview.url);
+    };
+  }, [pdfPreview]);
+
+  const showPdf = async (request: PaymentRequestRecord) => {
+    if (pdfPreview) URL.revokeObjectURL(pdfPreview.url);
+    setPdfPreview({
+      title: request.requestNumber || "דרישת תשלום",
+      url: await openPaymentRequestPdf(request._id),
+    });
+  };
+
+  const closePdf = () => {
+    setPdfPreview((current) => {
+      if (current) URL.revokeObjectURL(current.url);
+      return null;
+    });
+  };
+
+  return (
+    <Card id="payments" className="scroll-mt-6">
+      <CardHeader>
+        <CardTitle>דרישות תשלום</CardTitle>
+        <CardDescription>כאן אפשר לראות דרישות תשלום ולסמן ששילמת או שיש מחלוקת.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {pdfPreview ? (
+          <div className="space-y-3 rounded-lg border border-slate-700 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="font-semibold text-white">{pdfPreview.title}</h3>
+              <Button type="button" size="sm" variant="secondary" onClick={closePdf}>
+                סגירה
+              </Button>
+            </div>
+            <iframe
+              title={pdfPreview.title}
+              src={pdfPreview.url}
+              className="h-[60vh] w-full rounded-md border border-slate-700 bg-white"
+            />
+          </div>
+        ) : null}
+        {(requestsQuery.data ?? []).map((request) => (
+          <article key={request._id} className="space-y-3 rounded-lg border border-slate-700 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 className="font-semibold text-white">{request.requestNumber}</h3>
+                <p className="text-sm text-slate-300">
+                  {request.total.toFixed(2)} ₪ · {formatPaymentDate(request.scheduledAt)}
+                </p>
+                <p className="text-xs text-amber-200">
+                  {paymentStatusLabels[request.paymentStatus ?? "unpaid"]}
+                  {request.paymentNote ? ` · ${request.paymentNote}` : ""}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" size="sm" variant="secondary" onClick={() => void showPdf(request)}>
+                  צפייה ב־PDF
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() =>
+                    statusMutation.mutate({ id: request._id, paymentStatus: "claimed_paid" })
+                  }
+                  disabled={statusMutation.isPending || request.paymentStatus === "paid"}
+                >
+                  שילמתי
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    statusMutation.mutate({ id: request._id, paymentStatus: "disputed" })
+                  }
+                  disabled={statusMutation.isPending || request.paymentStatus === "paid"}
+                >
+                  מחלוקת
+                </Button>
+              </div>
+            </div>
+            <ul className="text-sm text-slate-300">
+              {request.lineItems.map((line) => (
+                <li
+                  key={
+                    line.lessonId ??
+                    `${line.kind}-${line.subject}-${line.amount}-${line.date ?? "undated"}`
+                  }
+                >
+                  {line.subject} · {line.amount.toFixed(2)} ₪
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))}
+        {requestsQuery.isSuccess && requestsQuery.data.length === 0 ? (
+          <p className="text-sm text-slate-300">אין כרגע דרישות תשלום.</p>
+        ) : null}
+        {requestsQuery.isError || statusMutation.isError ? (
+          <p role="alert" className="text-sm text-red-400">
+            לא ניתן לטעון או לעדכן את דרישות התשלום.
+          </p>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function StudentDashboardPage() {
   const { t, i18n } = useTranslation();
@@ -52,6 +199,9 @@ export default function StudentDashboardPage() {
           </Button>
           <Button asChild variant="secondary">
             <a href="#upcoming-lessons">{t("dashboard.viewLessons")}</a>
+          </Button>
+          <Button asChild variant="secondary">
+            <a href="#payments">תשלומים</a>
           </Button>
         </div>
       </div>
@@ -139,6 +289,8 @@ export default function StudentDashboardPage() {
           </div>
         </>
       ) : null}
+
+      <StudentPaymentRequests />
 
       <TeacherDirectory
         selectedTeacherId={selectedTeacherId}
