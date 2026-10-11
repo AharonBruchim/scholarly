@@ -14,6 +14,7 @@
   "dependencies": {
     "@scholarly/shared": "*",
     "@scholarly/utils": "*",
+    "@types/nodemailer": "^8.0.2",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -23,6 +24,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.2",
+    "nodemailer": "^10.1.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {
