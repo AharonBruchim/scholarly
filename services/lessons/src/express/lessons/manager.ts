@@ -12,6 +12,7 @@ import {
     LessonStatus,
     type ListLessonsQuery,
 } from './interface';
+import { createGoogleCalendarMeeting, deleteGoogleCalendarEvent } from './google-calendar';
 import { LessonModel } from './model';
 import { ReminderJobModel, ReminderJobStatus, ReminderKind } from './reminder-model';
 import { isLateCancellation, seriesStartTimes } from './rules';
@@ -48,6 +49,10 @@ function meetingLinkBaseUrl(): string {
 
 function generateMeetingUrl(): string {
     return `${meetingLinkBaseUrl()}/scholarly-${randomUUID()}`;
+}
+
+function isGeneratedMeetingUrl(meetingUrl?: string): boolean {
+    return Boolean(meetingUrl?.startsWith(`${meetingLinkBaseUrl()}/scholarly-`));
 }
 
 async function resolveTerms(input: CreateLessonInput) {
@@ -136,6 +141,18 @@ async function buildLesson(input: CreateLessonInput) {
     return { terms, endTime };
 }
 
+async function attachGoogleCalendarMeeting(lesson: LessonDocument, timezone: string): Promise<void> {
+    if (!lesson.studentId || lesson.calendarEventId) return;
+    if (lesson.meetingUrl && !isGeneratedMeetingUrl(lesson.meetingUrl)) return;
+    const [teacher, student] = await Promise.all([LessonUserModel.findById(lesson.teacherId).lean(), LessonUserModel.findById(lesson.studentId).lean()]);
+    if (!teacher || !student) return;
+    const event = await createGoogleCalendarMeeting({ lesson, teacher, student, timezone });
+    if (!event) return;
+    lesson.calendarEventId = event.eventId;
+    if (event.meetingUrl) lesson.meetingUrl = event.meetingUrl;
+    await lesson.save();
+}
+
 async function createOneForTeacher(input: CreateLessonInput, actor: AuthenticatedUser): Promise<LessonDocument> {
     if (actor.role !== UsersRoles.TEACHER || input.teacherId !== actor.sub) throw new ForbiddenError();
     if (input.startTime.getTime() <= Date.now()) throw new ServiceError('Lesson must start in the future', 400, 'LESSON_START_IN_PAST');
@@ -151,8 +168,10 @@ async function createOneForTeacher(input: CreateLessonInput, actor: Authenticate
         chargeStatus: LessonChargeStatus.NONE,
     });
     try {
+        await attachGoogleCalendarMeeting(lesson, terms.timezone);
         await createReminderJobs(lesson, terms.reminderChannels);
     } catch (error) {
+        await deleteGoogleCalendarEvent(lesson.teacherId, lesson.calendarEventId);
         await LessonModel.deleteOne({ _id: lesson._id });
         throw error;
     }
@@ -173,8 +192,10 @@ async function bookAvailableSlot(slotId: string, studentId: string, excludeLesso
 
     const teacher = await LessonUserModel.findById(booked.teacherId).lean();
     try {
+        await attachGoogleCalendarMeeting(booked, teacher?.teacherPreferences?.timezone ?? 'Asia/Jerusalem');
         await createReminderJobs(booked, teacher?.teacherPreferences?.reminderChannels ?? []);
     } catch (error) {
+        await deleteGoogleCalendarEvent(booked.teacherId, booked.calendarEventId);
         await LessonModel.updateOne({ _id: booked._id }, { $unset: { studentId: 1 }, $set: { status: LessonStatus.AVAILABLE } });
         throw error;
     }
@@ -235,6 +256,7 @@ async function cancelLesson(lesson: LessonDocument, actor: AuthenticatedUser, re
     lesson.cancelledBy = actor.sub;
     lesson.cancellationReason = reason;
     await lesson.save();
+    await deleteGoogleCalendarEvent(lesson.teacherId, lesson.calendarEventId);
     await ReminderJobModel.updateMany(
         { lessonId: lesson._id.toString(), status: { $in: [ReminderJobStatus.PENDING, ReminderJobStatus.PROCESSING] } },
         { $set: { status: ReminderJobStatus.CANCELLED } },

@@ -21,6 +21,7 @@ export interface ILesson {
     price: number;
     notes?: string;
     meetingUrl?: string;
+    calendarEventId?: string;
     durationMinutes: number;
     chargeStatus?: LessonChargeStatus;
     cancelledAt?: Date;

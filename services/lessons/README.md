@@ -46,6 +46,9 @@ Create `services/lessons/.env` from `.env.example`.
 | `JWT_SECRET` | Secret used to verify access tokens | Required |
 | `CORS_ORIGIN` | Required comma-separated allowed origins | — |
 | `MEETING_LINK_BASE_URL` | Base URL for automatically generated meeting rooms | `https://meet.jit.si` |
+| `TOKEN_ENCRYPTION_KEY` | Secret used to decrypt connected Google refresh tokens | `JWT_SECRET` |
+| `GOOGLE_OAUTH_CLIENT_ID` | Google OAuth client ID used for Calendar event creation | Required for Google Meet automation |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | Google OAuth client secret used for Calendar event creation | Required for Google Meet automation |
 
 The lessons and users services must use the same `JWT_SECRET` so that lesson routes can authenticate tokens issued by the users service.
 

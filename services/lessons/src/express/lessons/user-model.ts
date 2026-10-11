@@ -4,12 +4,18 @@ import mongoose from 'mongoose';
 export interface LessonUserRecord {
     _id: mongoose.Types.ObjectId;
     role: 'student' | 'teacher';
+    firstName: string;
+    lastName: string;
+    email: string;
     teacherPreferences?: ITeacherPreferences;
 }
 
 const lessonUserSchema = new mongoose.Schema<LessonUserRecord>(
     {
         role: { type: String, required: true },
+        firstName: { type: String },
+        lastName: { type: String },
+        email: { type: String },
         teacherPreferences: { type: mongoose.Schema.Types.Mixed },
     },
     { strict: false, collection: MongoCollections.USERS },
