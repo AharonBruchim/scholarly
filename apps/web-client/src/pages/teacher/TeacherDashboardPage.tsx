@@ -1,44 +1,44 @@
 import { useTranslation } from "react-i18next";
+import { CalendarDays, CreditCard, History, PlusCircle } from "lucide-react";
+import { useMemo, useState } from "react";
 import { PaymentAutomationCenter } from "@/components/billing/PaymentAutomationCenter";
 import { Spinner } from "@/components/common/Spinner";
 import { CreateLessonForm } from "@/components/dashboard/CreateLessonForm";
 import { LessonHistory } from "@/components/dashboard/LessonHistory";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardTabs, type DashboardTab } from "@/components/ui/dashboard-tabs";
 import { useDashboardLessons } from "@/hooks/useDashboard";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
+
+type TeacherDashboardTab = "lessons" | "create" | "payments" | "history";
 
 export default function TeacherDashboardPage() {
   const { t, i18n } = useTranslation();
   const lessonsQuery = useDashboardLessons();
   const studentsQuery = useDirectoryUsers("student");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
+  const [activeTab, setActiveTab] = useState<TeacherDashboardTab>("lessons");
+  const tabs = useMemo<DashboardTab<TeacherDashboardTab>[]>(
+    () => [
+      { id: "lessons", label: t("dashboard.tabs.lessons"), icon: CalendarDays },
+      { id: "create", label: t("dashboard.tabs.create"), icon: PlusCircle },
+      { id: "payments", label: t("dashboard.tabs.payments"), icon: CreditCard },
+      { id: "history", label: t("dashboard.tabs.history"), icon: History },
+    ],
+    [t],
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div>
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-sky-400">
             {t("dashboard.teacherLabel")}
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-white">{t("dashboard.teacherTitle")}</h1>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild>
-            <a href="#create-lesson">{t("dashboard.addLesson")}</a>
-          </Button>
-          <Button asChild variant="secondary">
-            <a href="#upcoming-lessons">{t("dashboard.viewLessons")}</a>
-          </Button>
-          <Button asChild variant="secondary">
-            <a href="#payments">תשלומים ושליחות</a>
-          </Button>
-          <Button asChild variant="secondary">
-            <a href="#lesson-history">{t("lessons.historyTitle")}</a>
-          </Button>
         </div>
       </div>
 
@@ -92,28 +92,31 @@ export default function TeacherDashboardPage() {
             </Card>
           </div>
 
-          <UpcomingLessonsList
-            lessons={lessonsQuery.data}
-            people={studentsQuery.data ?? []}
-            personIdKey="studentId"
-            personLabel={t("lessons.student")}
-            allowActions
-          />
-
-          <LessonHistory
-            lessons={lessonsQuery.data}
-            people={studentsQuery.data ?? []}
-            personIdKey="studentId"
-            personLabel={t("lessons.student")}
-            allowComplete
-          />
+          <DashboardTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab}>
+            {activeTab === "lessons" ? (
+              <UpcomingLessonsList
+                lessons={lessonsQuery.data}
+                people={studentsQuery.data ?? []}
+                personIdKey="studentId"
+                personLabel={t("lessons.student")}
+                allowActions
+              />
+            ) : null}
+            {activeTab === "create" ? <CreateLessonForm /> : null}
+            {activeTab === "payments" ? (
+              <PaymentAutomationCenter lessons={lessonsQuery.data} students={studentsQuery.data ?? []} />
+            ) : null}
+            {activeTab === "history" ? (
+              <LessonHistory
+                lessons={lessonsQuery.data}
+                people={studentsQuery.data ?? []}
+                personIdKey="studentId"
+                personLabel={t("lessons.student")}
+                allowComplete
+              />
+            ) : null}
+          </DashboardTabs>
         </>
-      ) : null}
-
-      <CreateLessonForm />
-
-      {lessonsQuery.isSuccess ? (
-        <PaymentAutomationCenter lessons={lessonsQuery.data} students={studentsQuery.data ?? []} />
       ) : null}
     </div>
   );

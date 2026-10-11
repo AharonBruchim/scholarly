@@ -99,6 +99,13 @@ const resources = {
         findTeachers: "חיפוש מורים",
         viewLessons: "צפייה בשיעורים",
         addLesson: "הוספת שיעור",
+        tabs: {
+          lessons: "שיעורים",
+          create: "הוספה",
+          book: "קביעה",
+          payments: "תשלומים",
+          history: "היסטוריה",
+        },
       },
       lessons: {
         listTitle: "השיעורים הקרובים",
@@ -348,6 +355,13 @@ const resources = {
         findTeachers: "Find teachers",
         viewLessons: "View lessons",
         addLesson: "Add lesson",
+        tabs: {
+          lessons: "Lessons",
+          create: "Add",
+          book: "Book",
+          payments: "Payments",
+          history: "History",
+        },
       },
       lessons: {
         listTitle: "Upcoming lessons",
