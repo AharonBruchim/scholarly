@@ -582,9 +582,13 @@ export const AutomationManager = {
 
     queueDueReminders: async (now = new Date(), limit = 100) => {
         const queued: string[] = [];
+        const staleClaimedAt = new Date(now.getTime() - 5 * 60 * 1000);
         for (let count = 0; count < limit; count += 1) {
             const job = await BillingReminderJobModel.findOneAndUpdate(
-                { status: 'pending', dueAt: { $lte: now } },
+                {
+                    dueAt: { $lte: now },
+                    $or: [{ status: 'pending' }, { status: 'processing', claimedAt: { $lte: staleClaimedAt } }],
+                },
                 { $set: { status: 'processing', claimedAt: now } },
                 { new: true, sort: { dueAt: 1 } },
             );
@@ -594,8 +598,16 @@ export const AutomationManager = {
                 await BillingReminderJobModel.updateOne({ _id: job._id }, { $set: { status: 'failed', lastError: 'Student not found' } });
                 continue;
             }
+            const lesson = await BillingLessonModel.findById(job.lessonId).lean();
+            if (lesson === null || lesson.status !== 'scheduled' || lesson.startTime.getTime() <= now.getTime()) {
+                await BillingReminderJobModel.updateOne({
+                    _id: job._id,
+                }, { $set: { status: 'failed', lastError: 'Lesson already started or is not scheduled' } });
+                continue;
+            }
             try {
-                for (const channel of job.channels) {
+                const reminderChannels = job.channels.length > 0 ? job.channels : [DeliveryChannel.EMAIL];
+                for (const channel of reminderChannels) {
                     await queueDelivery({
                         sourceType: 'lesson_reminder',
                         sourceId: job._id.toString(),

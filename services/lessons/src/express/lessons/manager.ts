@@ -108,7 +108,7 @@ async function assertStudentFree(studentId: string, startTime: Date, endTime: Da
 
 async function createReminderJobs(lesson: LessonDocument, channels: Array<'email' | 'whatsapp'>): Promise<void> {
     if (!lesson.studentId) return;
-    if (channels.length === 0) return;
+    const reminderChannels = channels.length > 0 ? channels : ['email'];
     const now = Date.now();
     await ReminderJobModel.insertMany([
         {
@@ -117,7 +117,7 @@ async function createReminderJobs(lesson: LessonDocument, channels: Array<'email
             studentId: lesson.studentId,
             kind: ReminderKind.THIRTY_HOURS,
             dueAt: new Date(Math.max(now, lesson.startTime.getTime() - 30 * 60 * 60 * 1000)),
-            channels,
+            channels: reminderChannels,
         },
         {
             lessonId: lesson._id.toString(),
@@ -125,7 +125,7 @@ async function createReminderJobs(lesson: LessonDocument, channels: Array<'email
             studentId: lesson.studentId,
             kind: ReminderKind.THIRTY_MINUTES,
             dueAt: new Date(Math.max(now, lesson.startTime.getTime() - 30 * 60 * 1000)),
-            channels,
+            channels: reminderChannels,
         },
     ]);
 }
