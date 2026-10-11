@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   bookLesson,
+  completeLesson,
   type CreateLessonInput,
   type CreateLessonSeriesInput,
   cancelLesson,
@@ -46,6 +47,19 @@ export function useRescheduleLesson() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["dashboard-lessons"] });
       await queryClient.invalidateQueries({ queryKey: ["available-lessons"] });
+    },
+  });
+}
+
+export function useCompleteLesson() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (lessonId: string) => completeLesson(lessonId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["dashboard-lessons"] }),
+        queryClient.invalidateQueries({ queryKey: ["billing"] }),
+      ]);
     },
   });
 }

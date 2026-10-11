@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Spinner } from "@/components/common/Spinner";
+import { LessonHistory } from "@/components/dashboard/LessonHistory";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { StudentBookingForm } from "@/components/dashboard/StudentBookingForm";
 import { TeacherDirectory } from "@/components/dashboard/TeacherDirectory";
@@ -203,6 +204,9 @@ export default function StudentDashboardPage() {
           <Button asChild variant="secondary">
             <a href="#payments">תשלומים</a>
           </Button>
+          <Button asChild variant="secondary">
+            <a href="#lesson-history">{t("lessons.historyTitle")}</a>
+          </Button>
         </div>
       </div>
 
@@ -285,6 +289,13 @@ export default function StudentDashboardPage() {
               description={selectedTeacherName ? t("lessons.withTeacherDescription") : undefined}
               emptyMessage={selectedTeacherName ? t("lessons.emptyWithTeacher") : undefined}
               allowActions
+            />
+
+            <LessonHistory
+              lessons={visibleLessons}
+              people={teachersQuery.data ?? []}
+              personIdKey="teacherId"
+              personLabel={t("lessons.teacher")}
             />
           </div>
         </>

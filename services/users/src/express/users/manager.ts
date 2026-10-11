@@ -150,6 +150,13 @@ export const UserManager = {
         await user.save();
     },
 
+    setPassword: async (id: string, newPassword: string): Promise<void> => {
+        const user = (await UserModel.findById(id).select('+passwordHash')) as unknown as UserDocument | null;
+        if (!user) return;
+        user.passwordHash = await hashPassword(newPassword);
+        await user.save();
+    },
+
     getAll: async (filters: ListUsersQuery): Promise<DirectoryUser[]> => {
         const users = (await UserModel.find(filters.role ? { role: filters.role } : {}).select(
             'role firstName lastName teacherPreferences',

@@ -1,6 +1,7 @@
 export const MongoCollections = {
     USERS: 'users',
     USER_REFRESH_SESSIONS: 'users_refresh_sessions',
+    USER_PASSWORD_RESETS: 'users_password_resets',
     LESSONS: 'lessons',
     LESSON_REMINDER_JOBS: 'lessons_reminder_jobs',
     BILLING: 'billing',

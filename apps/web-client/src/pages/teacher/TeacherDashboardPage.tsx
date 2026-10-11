@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { PaymentAutomationCenter } from "@/components/billing/PaymentAutomationCenter";
 import { Spinner } from "@/components/common/Spinner";
 import { CreateLessonForm } from "@/components/dashboard/CreateLessonForm";
+import { LessonHistory } from "@/components/dashboard/LessonHistory";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,9 @@ export default function TeacherDashboardPage() {
           </Button>
           <Button asChild variant="secondary">
             <a href="#payments">תשלומים ושליחות</a>
+          </Button>
+          <Button asChild variant="secondary">
+            <a href="#lesson-history">{t("lessons.historyTitle")}</a>
           </Button>
         </div>
       </div>
@@ -94,6 +98,14 @@ export default function TeacherDashboardPage() {
             personIdKey="studentId"
             personLabel={t("lessons.student")}
             allowActions
+          />
+
+          <LessonHistory
+            lessons={lessonsQuery.data}
+            people={studentsQuery.data ?? []}
+            personIdKey="studentId"
+            personLabel={t("lessons.student")}
+            allowComplete
           />
         </>
       ) : null}
