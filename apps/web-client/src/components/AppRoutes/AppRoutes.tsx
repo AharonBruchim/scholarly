@@ -9,7 +9,7 @@ const ForgotPasswordPage = lazy(() => import("@/pages/auth/ForgotPasswordPage"))
 const ResetPasswordPage = lazy(() => import("@/pages/auth/ResetPasswordPage"));
 const TeacherDashboardPage = lazy(() => import("@/pages/teacher/TeacherDashboardPage"));
 const StudentDashboardPage = lazy(() => import("@/pages/student/StudentDashboardPage"));
-const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
+const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
 
 export default function AppRoutes() {
   return (
@@ -31,7 +31,8 @@ export default function AppRoutes() {
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["teacher", "student"]} />}>
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile" element={<Navigate to="/settings/profile" replace />} />
+        <Route path="/settings/:section?" element={<SettingsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

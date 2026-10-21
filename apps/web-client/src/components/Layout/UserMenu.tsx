@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, UserRound } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -61,19 +61,15 @@ export function UserMenu({ user, onLogout }: { user: AuthUser; onLogout: () => v
         aria-expanded={open}
         aria-label={`${t("common.accountMenu")}: ${user.name}`}
         onClick={() => setOpen((current) => !current)}
-        className="flex items-center gap-2 rounded-full p-1 pe-2 transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+        className={cn(
+          "rounded-full ring-offset-2 ring-offset-slate-950 transition-shadow hover:ring-2 hover:ring-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400",
+          open && "ring-2 ring-sky-400",
+        )}
       >
-        <UserAvatar user={user} className="h-8 w-8 text-sm" />
-        <span className="hidden max-w-32 truncate text-sm font-medium text-slate-100 sm:inline">
-          {user.firstName}
-        </span>
-        <ChevronDown
-          className={cn("h-4 w-4 text-slate-400 transition-transform", open && "rotate-180")}
-          aria-hidden="true"
-        />
+        <UserAvatar user={user} className="h-9 w-9 text-sm" />
       </button>
       {open ? (
-        <div className="absolute end-0 top-full z-30 mt-2 w-64 rounded-xl border border-slate-800 bg-slate-900 p-1.5 shadow-2xl shadow-black/50">
+        <div className="absolute end-0 top-full z-30 mt-2 w-72 rounded-xl border border-slate-800 bg-slate-900 p-1.5 shadow-2xl shadow-black/50">
           <div className="flex items-center gap-3 px-3 py-3">
             <UserAvatar user={user} className="h-10 w-10" />
             <div className="min-w-0">
@@ -84,9 +80,9 @@ export function UserMenu({ user, onLogout }: { user: AuthUser; onLogout: () => v
             </div>
           </div>
           <div className="my-1 h-px bg-slate-800" />
-          <Link to="/profile" onClick={() => setOpen(false)} className={menuItemClassName}>
-            <UserRound className="h-4 w-4" aria-hidden="true" />
-            {t("common.myProfile")}
+          <Link to="/settings/profile" onClick={() => setOpen(false)} className={menuItemClassName}>
+            <Settings className="h-4 w-4" aria-hidden="true" />
+            {t("common.settings")}
           </Link>
           <button
             type="button"

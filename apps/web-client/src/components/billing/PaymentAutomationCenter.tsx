@@ -519,7 +519,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
             חשבון Google לא מחובר, ולכן דרישות תשלום והודעות לא יישלחו במייל.
           </p>
           <Button asChild size="sm" variant="secondary">
-            <Link to="/profile#connections">לחיבור בהגדרות</Link>
+            <Link to="/settings/connections">לחיבור בהגדרות</Link>
           </Button>
         </div>
       ) : null}

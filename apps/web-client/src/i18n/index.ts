@@ -26,6 +26,7 @@ const resources = {
         switchToEnglish: "Switch to English",
         myProfile: "הפרופיל שלי",
         accountMenu: "תפריט חשבון",
+        settings: "הגדרות",
         back: "חזרה",
         home: "לדף הבית",
       },
@@ -253,7 +254,7 @@ const resources = {
         reminderTiming: "התזכורות נשלחות 30 שעות וחצי שעה לפני השיעור.",
         smsLinkOnly: "ב־SMS תישלח תמצית עם קישור מאובטח ל־PDF; במייל וב־WhatsApp ניתן לצרף PDF.",
         connectionRequired:
-          "המיילים נשלחים מחשבון Google שחיברת (בכרטיס \"חיבור Google\" למעלה). דרישות התשלום והתזכורות יוצאות רק כשהחשבון מחובר.",
+          "המיילים נשלחים מחשבון Google שחיברת (בלשונית \"חיבורים\"). דרישות התשלום והתזכורות יוצאות רק כשהחשבון מחובר.",
         channel: { email: "אימייל", whatsapp: "WhatsApp", sms: "SMS" },
         save: "שמירת הגדרות",
         saved: "ההגדרות נשמרו.",
@@ -269,6 +270,16 @@ const resources = {
         empty: "לא נמצאו אנשי קשר.",
         loadError: "טעינת אנשי הקשר נכשלה.",
         add: "הוספת איש קשר",
+      },
+      settings: {
+        title: "הגדרות",
+        navigation: "ניווט בהגדרות",
+        sections: {
+          profile: "פרופיל",
+          security: "אבטחה",
+          teaching: "שיעורים ותשלומים",
+          connections: "חיבורים",
+        },
       },
       profile: {
         title: "הפרופיל ופרטי הקשר שלי",
@@ -318,6 +329,7 @@ const resources = {
         switchToEnglish: "עברית",
         myProfile: "My profile",
         accountMenu: "Account menu",
+        settings: "Settings",
         back: "Back",
         home: "Home",
       },
@@ -548,7 +560,7 @@ const resources = {
         smsLinkOnly:
           "SMS includes a summary and secure PDF link; email and WhatsApp can attach the PDF.",
         connectionRequired:
-          "Emails are sent from the Google account you connected (see \"Google connection\" above). Payment requests and reminders go out only while it is connected.",
+          "Emails are sent from the Google account you connected (see the \"Connections\" tab). Payment requests and reminders go out only while it is connected.",
         channel: { email: "Email", whatsapp: "WhatsApp", sms: "SMS" },
         save: "Save settings",
         saved: "Settings saved.",
@@ -564,6 +576,16 @@ const resources = {
         empty: "No contacts found.",
         loadError: "Couldn't load contacts.",
         add: "Add contact",
+      },
+      settings: {
+        title: "Settings",
+        navigation: "Settings navigation",
+        sections: {
+          profile: "Profile",
+          security: "Security",
+          teaching: "Lessons & payments",
+          connections: "Connections",
+        },
       },
       profile: {
         title: "My profile and contact details",

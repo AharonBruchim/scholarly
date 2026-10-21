@@ -1,4 +1,10 @@
-import { type CreateUserValues, createUserSchema, UsersRoles } from "@scholarly/shared";
+import {
+  type CreateUserValues,
+  createUserSchema,
+  DeliveryChannel,
+  isDeliveryChannelEnabled,
+  UsersRoles,
+} from "@scholarly/shared";
 import { useForm } from "@tanstack/react-form";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -45,6 +51,10 @@ function FieldErrors({ errors }: { errors: readonly unknown[] }) {
     );
   });
 }
+
+const consentChannelsEnabled =
+  isDeliveryChannelEnabled(DeliveryChannel.WHATSAPP) ||
+  isDeliveryChannelEnabled(DeliveryChannel.SMS);
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -227,47 +237,49 @@ export default function RegisterPage() {
               )}
             </form.Field>
 
-            <div className="space-y-2 rounded-md border border-slate-800 p-3">
-              <form.Field name="phone.allowWhatsApp">
-                {(field) => (
-                  <label
-                    htmlFor="allowWhatsApp"
-                    className="flex items-center gap-2 text-sm text-slate-200"
-                  >
-                    <input
-                      id="allowWhatsApp"
-                      name="phone.allowWhatsApp"
-                      type="checkbox"
-                      checked={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-700"
-                    />
-                    {t("auth.whatsappConsent")}
-                  </label>
-                )}
-              </form.Field>
+            {consentChannelsEnabled ? (
+              <div className="space-y-2 rounded-md border border-slate-800 p-3">
+                <form.Field name="phone.allowWhatsApp">
+                  {(field) => (
+                    <label
+                      htmlFor="allowWhatsApp"
+                      className="flex items-center gap-2 text-sm text-slate-200"
+                    >
+                      <input
+                        id="allowWhatsApp"
+                        name="phone.allowWhatsApp"
+                        type="checkbox"
+                        checked={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-700"
+                      />
+                      {t("auth.whatsappConsent")}
+                    </label>
+                  )}
+                </form.Field>
 
-              <form.Field name="phone.allowSMS">
-                {(field) => (
-                  <label
-                    htmlFor="allowSMS"
-                    className="flex items-center gap-2 text-sm text-slate-200"
-                  >
-                    <input
-                      id="allowSMS"
-                      name="phone.allowSMS"
-                      type="checkbox"
-                      checked={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-700"
-                    />
-                    {t("auth.smsConsent")}
-                  </label>
-                )}
-              </form.Field>
-            </div>
+                <form.Field name="phone.allowSMS">
+                  {(field) => (
+                    <label
+                      htmlFor="allowSMS"
+                      className="flex items-center gap-2 text-sm text-slate-200"
+                    >
+                      <input
+                        id="allowSMS"
+                        name="phone.allowSMS"
+                        type="checkbox"
+                        checked={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-700"
+                      />
+                      {t("auth.smsConsent")}
+                    </label>
+                  )}
+                </form.Field>
+              </div>
+            ) : null}
 
             <form.Subscribe selector={(state) => state.values.role}>
               {(role) =>
