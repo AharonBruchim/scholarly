@@ -11,9 +11,10 @@ export function useNavBadges(role: DashboardRole): Record<string, number> {
     queryKey: ["billing"],
     queryFn: fetchPaymentRequests,
     refetchInterval: BADGE_REFRESH_INTERVAL_MS,
-    enabled: role === "teacher",
   });
-  if (role !== "teacher") return {};
-  const pendingApprovals = (requestsQuery.data ?? []).filter(needsTeacherAttention).length;
-  return { "/teacher/payments": pendingApprovals };
+  const requests = requestsQuery.data ?? [];
+  if (role === "student") {
+    return { "/student/payments": requests.filter((request) => !request.studentViewedAt).length };
+  }
+  return { "/teacher/payments": requests.filter(needsTeacherAttention).length };
 }

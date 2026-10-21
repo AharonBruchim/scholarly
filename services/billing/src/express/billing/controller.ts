@@ -19,6 +19,7 @@ import type {
     idOnlySchema,
     listLessonMessagesSchema,
     listPaymentRequestsSchema,
+    markPaymentRequestsViewedSchema,
     updatePaymentStatusSchema,
     uploadPaymentProofSchema,
 } from './validations';
@@ -59,6 +60,9 @@ export const AutomationController = {
     },
     cancelPayment: async (req: TypedRequest<typeof idOnlySchema>, res: Response) => {
         res.json(await AutomationManager.cancelPaymentRequest(req.params.id, actorFrom(req)));
+    },
+    markViewed: async (req: TypedRequest<typeof markPaymentRequestsViewedSchema>, res: Response) => {
+        res.json(await AutomationManager.markPaymentRequestsViewed(actorFrom(req)));
     },
     uploadPaymentProof: async (req: TypedRequest<typeof uploadPaymentProofSchema>, res: Response) => {
         res.status(201).json(await PaymentProofManager.upload(req.params.id, req.body, req.query.filename, actorFrom(req)));

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -27,6 +27,7 @@ import {
 } from "@/lib/dashboard-navigation";
 import {
   fetchPaymentRequests,
+  markPaymentRequestsViewed,
   openPaymentRequestPdf,
   type PaymentRequestRecord,
 } from "@/services/api";
@@ -61,10 +62,24 @@ function StudentPaymentRequests({ settled }: { settled: boolean }) {
     mode: PaymentClaimMode;
   } | null>(null);
   const [pdfPreview, setPdfPreview] = useState<{ title: string; url: string } | null>(null);
+  const queryClient = useQueryClient();
   const requestsQuery = useQuery({ queryKey: ["billing"], queryFn: fetchPaymentRequests });
   const visibleRequests = (requestsQuery.data ?? []).filter(
     (request) => isPaymentSettled(request) === settled,
   );
+  const [newRequestIds, setNewRequestIds] = useState<ReadonlySet<string> | null>(null);
+
+  useEffect(() => {
+    if (settled || newRequestIds || !requestsQuery.data) return;
+    const unseenIds = requestsQuery.data
+      .filter((request) => !request.studentViewedAt)
+      .map((request) => request._id);
+    setNewRequestIds(new Set(unseenIds));
+    if (unseenIds.length === 0) return;
+    void markPaymentRequestsViewed().then(() =>
+      queryClient.invalidateQueries({ queryKey: ["billing"] }),
+    );
+  }, [settled, newRequestIds, requestsQuery.data, queryClient]);
 
   useEffect(() => {
     return () => {
@@ -117,7 +132,14 @@ function StudentPaymentRequests({ settled }: { settled: boolean }) {
           <article key={request._id} className="space-y-3 rounded-lg border border-slate-700 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-white">{request.requestNumber}</h3>
+                <h3 className="flex items-center gap-2 font-semibold text-white">
+                  {request.requestNumber}
+                  {newRequestIds?.has(request._id) ? (
+                    <span className="rounded-full bg-amber-400 px-2 py-0.5 text-xs font-semibold text-slate-950">
+                      חדש
+                    </span>
+                  ) : null}
+                </h3>
                 <p className="text-sm text-slate-300">
                   {request.total.toFixed(2)} ₪ · {formatPaymentDate(request.scheduledAt)}
                 </p>

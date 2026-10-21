@@ -9,6 +9,7 @@ const deliveryChannels = z
     .max(ENABLED_DELIVERY_CHANNELS.length)
     .refine((channels) => new Set(channels).size === channels.length, 'Delivery channels must be unique');
 
+export const markPaymentRequestsViewedSchema = z.object({ body: z.object({}), query: z.object({}), params: z.object({}) });
 export const listPaymentRequestsSchema = z.object({
     body: z.object({}),
     query: z.object({

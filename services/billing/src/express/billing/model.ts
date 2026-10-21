@@ -73,6 +73,7 @@ export interface PaymentRequestRecord {
     paymentEvents: PaymentEvent[];
     paymentUpdatedAt?: Date;
     paymentUpdatedBy?: string;
+    studentViewedAt?: Date;
     paymentNote?: string;
     pdfData?: Buffer;
     pdfFilename?: string;
@@ -135,6 +136,7 @@ const paymentRequestSchema = new mongoose.Schema<PaymentRequestRecord>(
         paymentEvents: { type: [paymentEventSchema], default: [] },
         paymentUpdatedAt: { type: Date },
         paymentUpdatedBy: { type: String },
+        studentViewedAt: { type: Date },
         paymentNote: { type: String, maxlength: 1000 },
         pdfData: { type: Buffer, select: false },
         pdfFilename: { type: String },

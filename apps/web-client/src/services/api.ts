@@ -323,6 +323,7 @@ export interface PaymentRequestRecord {
   paymentEvents?: PaymentEventRecord[];
   paymentUpdatedAt?: string;
   paymentUpdatedBy?: string;
+  studentViewedAt?: string;
   paymentNote?: string;
   scheduledAt: string;
   generatedAt: string;
@@ -404,6 +405,10 @@ export async function updatePaymentRequestStatus(
     input,
   );
   return response.data;
+}
+
+export async function markPaymentRequestsViewed(): Promise<void> {
+  await apiClient.post(`${billingPath}/viewed`, {});
 }
 
 export async function uploadPaymentProof(

@@ -51,6 +51,8 @@ export interface LessonMessageInput {
     scheduledAt?: Date;
 }
 
+const STUDENT_HIDDEN_REQUEST_STATUSES = ['scheduled', 'cancelled'];
+
 export interface PaymentStatusInput {
     paymentStatus: 'unpaid' | 'claimed_paid' | 'paid' | 'disputed' | 'waived';
     paymentNote?: string;
@@ -676,11 +678,24 @@ export const AutomationManager = {
         const filter =
             actor.role === UsersRoles.TEACHER ? { teacherId: actor.sub } : actor.role === UsersRoles.STUDENT ? { studentId: actor.sub } : null;
         if (!filter) throw new ForbiddenError();
-        const records = await PaymentRequestModel.find({ ...filter, ...(period ? { period } : {}) })
+        const records = await PaymentRequestModel.find({
+            ...filter,
+            ...(actor.role === UsersRoles.STUDENT ? { status: { $nin: STUDENT_HIDDEN_REQUEST_STATUSES } } : {}),
+            ...(period ? { period } : {}),
+        })
             .select('-pdfData')
             .sort({ scheduledAt: -1, generatedAt: -1 })
             .lean();
         return addDeliveries(records, 'payment_request');
+    },
+
+    markPaymentRequestsViewed: async (actor: AuthenticatedUser) => {
+        if (actor.role !== UsersRoles.STUDENT) throw new ForbiddenError();
+        const result = await PaymentRequestModel.updateMany(
+            { studentId: actor.sub, studentViewedAt: { $exists: false }, status: { $nin: STUDENT_HIDDEN_REQUEST_STATUSES } },
+            { $set: { studentViewedAt: new Date() } },
+        );
+        return { updated: result.modifiedCount };
     },
 
     listLessonMessages: async (actor: AuthenticatedUser) => {
