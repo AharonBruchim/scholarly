@@ -52,3 +52,39 @@ export function formatLessonDateTime(value: string, language: string): string {
     timeStyle: "short",
   }).format(date);
 }
+
+const viewerTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+function localeFor(language: string): string {
+  return language.startsWith("en") ? "en-US" : "he-IL";
+}
+
+export function getLessonMonthKey(value: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    timeZone: viewerTimeZone,
+  }).formatToParts(new Date(value));
+  const year = parts.find((part) => part.type === "year")?.value ?? "";
+  const month = parts.find((part) => part.type === "month")?.value ?? "";
+  return `${year}-${month}`;
+}
+
+export function formatLessonMonth(value: string, language: string): string {
+  return new Intl.DateTimeFormat(localeFor(language), {
+    month: "long",
+    year: "numeric",
+    timeZone: viewerTimeZone,
+  }).format(new Date(value));
+}
+
+export function formatLessonDayTime(value: string, language: string): string {
+  return new Intl.DateTimeFormat(localeFor(language), {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: viewerTimeZone,
+  }).format(new Date(value));
+}

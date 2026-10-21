@@ -1,12 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { Mail } from "lucide-react";
+import { Mail, Search } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DeliveryBadge } from "@/components/billing/DeliveryBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCompleteLesson } from "@/hooks/useDirectory";
-import { formatLessonDateTime } from "@/lib/dashboard";
+import {
+  formatLessonDateTime,
+  formatLessonDayTime,
+  formatLessonMonth,
+  getLessonMonthKey,
+} from "@/lib/dashboard";
 import {
   type DirectoryUser,
   fetchLessonMessages,
@@ -24,11 +30,43 @@ interface LessonHistoryProps {
 }
 
 const statusClasses: Record<Lesson["status"], string> = {
-  available: "text-slate-400",
-  scheduled: "text-amber-200",
-  completed: "text-emerald-300",
-  cancelled: "text-rose-300",
+  available: "border-slate-600 bg-slate-800/60 text-slate-300",
+  scheduled: "border-amber-500/40 bg-amber-500/10 text-amber-200",
+  completed: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
+  cancelled: "border-rose-500/40 bg-rose-500/10 text-rose-200",
 };
+
+const lessonStatuses: Lesson["status"][] = ["scheduled", "completed", "cancelled", "available"];
+
+type StatusFilter = Lesson["status"] | "all";
+
+const selectClassName =
+  "h-10 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400";
+
+interface ILessonMonthGroup {
+  key: string;
+  label: string;
+  lessons: Lesson[];
+}
+
+function groupLessonsByMonth(lessons: Lesson[], language: string): ILessonMonthGroup[] {
+  const groups = new Map<string, ILessonMonthGroup>();
+  for (const lesson of lessons) {
+    const key = getLessonMonthKey(lesson.startTime);
+    const group = groups.get(key) ?? {
+      key,
+      label: formatLessonMonth(lesson.startTime, language),
+      lessons: [],
+    };
+    group.lessons.push(lesson);
+    groups.set(key, group);
+  }
+  return [...groups.values()];
+}
+
+function countByStatus(lessons: Lesson[], status: Lesson["status"]): number {
+  return lessons.filter((lesson) => lesson.status === status).length;
+}
 
 function groupMessagesByLessonId(
   messages: LessonMessageRecord[],
@@ -98,6 +136,15 @@ export function LessonHistory({
   const peopleById = new Map(
     people.map((person) => [person._id, `${person.firstName} ${person.lastName}`]),
   );
+  const [searchText, setSearchText] = useState("");
+  const [personFilter, setPersonFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const personName = (lesson: Lesson) => {
+    const personId = lesson[personIdKey];
+    return personId
+      ? (peopleById.get(personId) ?? t("lessons.unknownPerson"))
+      : t("lessons.openSlot");
+  };
   const needsCompletion = (lesson: Lesson) =>
     allowComplete && lesson.status === "scheduled" && hasEnded(lesson);
   const historyLessons = lessons
@@ -106,11 +153,31 @@ export function LessonHistory({
         lesson.status === "completed" || lesson.status === "cancelled" || hasEnded(lesson),
     )
     .sort(
-      (left, right) =>
-        Number(needsCompletion(right)) - Number(needsCompletion(left)) ||
-        new Date(right.startTime).getTime() - new Date(left.startTime).getTime(),
+      (left, right) => new Date(right.startTime).getTime() - new Date(left.startTime).getTime(),
     );
   const pendingCompletionCount = historyLessons.filter(needsCompletion).length;
+  const personOptions = [
+    ...new Set(historyLessons.flatMap((lesson) => lesson[personIdKey] ?? [])),
+  ].map((personId) => ({
+    id: personId,
+    name: peopleById.get(personId) ?? t("lessons.unknownPerson"),
+  }));
+  const normalizedSearch = searchText.trim().toLowerCase();
+  const filteredLessons = historyLessons.filter(
+    (lesson) =>
+      (statusFilter === "all" ? lesson.status !== "available" : lesson.status === statusFilter) &&
+      (personFilter === "all" || lesson[personIdKey] === personFilter) &&
+      (!normalizedSearch ||
+        `${lesson.subject} ${personName(lesson)}`.toLowerCase().includes(normalizedSearch)),
+  );
+  const monthGroups = groupLessonsByMonth(filteredLessons, i18n.language);
+  const filtersActive =
+    Boolean(normalizedSearch) || personFilter !== "all" || statusFilter !== "all";
+  const clearFilters = () => {
+    setSearchText("");
+    setPersonFilter("all");
+    setStatusFilter("all");
+  };
 
   return (
     <Card id="lesson-history" className="scroll-mt-6">
@@ -118,73 +185,161 @@ export function LessonHistory({
         <CardTitle>{t("lessons.historyTitle")}</CardTitle>
         <CardDescription>{t("lessons.historyDescription")}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         {pendingCompletionCount > 0 ? (
-          <p
+          <div
             role="status"
-            className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-100"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3"
           >
-            {t("lessons.pendingCompletion", { count: pendingCompletionCount })}
-          </p>
+            <p className="text-sm font-medium text-amber-100">
+              {t("lessons.pendingCompletion", { count: pendingCompletionCount })}
+            </p>
+            {statusFilter === "scheduled" ? null : (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => setStatusFilter("scheduled")}
+              >
+                {t("lessons.showPending")}
+              </Button>
+            )}
+          </div>
         ) : null}
         {historyLessons.length === 0 ? (
           <p className="text-sm text-slate-300">{t("lessons.historyEmpty")}</p>
         ) : (
-          <div className="space-y-3">
-            {historyLessons.map((lesson) => (
-              <article
-                key={lesson._id}
-                className={
-                  needsCompletion(lesson)
-                    ? "rounded-lg border border-amber-500/50 bg-amber-500/5 p-4"
-                    : "rounded-lg border border-slate-700 p-4"
-                }
+          <>
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                  aria-hidden="true"
+                />
+                <input
+                  type="search"
+                  value={searchText}
+                  onChange={(event) => setSearchText(event.target.value)}
+                  placeholder={t("lessons.filters.search")}
+                  aria-label={t("lessons.filters.search")}
+                  className={`${selectClassName} w-full ps-9`}
+                />
+              </div>
+              <select
+                value={personFilter}
+                onChange={(event) => setPersonFilter(event.target.value)}
+                aria-label={personLabel}
+                className={selectClassName}
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold text-white">{lesson.subject}</h3>
-                    <p className="text-sm text-slate-300">
-                      {personLabel}:{" "}
-                      {lesson[personIdKey]
-                        ? (peopleById.get(lesson[personIdKey] as string) ??
-                          t("lessons.unknownPerson"))
-                        : t("lessons.openSlot")}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      {formatLessonDateTime(lesson.startTime, i18n.language)} ·{" "}
-                      {lesson.durationMinutes} {t("automation.duration")}
-                    </p>
-                    {lesson.meetingUrl ? (
-                      <a
-                        className="mt-1 inline-flex text-sm text-sky-300 hover:text-sky-200"
-                        href={lesson.meetingUrl}
-                      >
-                        {t("lessons.meetingLink")}
-                      </a>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`text-sm font-medium ${statusClasses[lesson.status]}`}>
-                      {t(`lessons.status.${lesson.status}`)}
-                    </span>
-                    {needsCompletion(lesson) ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => completeMutation.mutate(lesson._id)}
-                        disabled={completeMutation.isPending}
-                      >
-                        {t("lessons.markCompleted")}
-                      </Button>
-                    ) : null}
-                  </div>
-                </div>
-                {messagesByLessonId.has(lesson._id) ? (
-                  <LessonMessages messages={messagesByLessonId.get(lesson._id) ?? []} />
-                ) : null}
-              </article>
-            ))}
-          </div>
+                <option value="all">
+                  {t("lessons.filters.allPeople", { label: personLabel })}
+                </option>
+                {personOptions.map((person) => (
+                  <option key={person.id} value={person.id}>
+                    {person.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+                aria-label={t("lessons.filters.status")}
+                className={selectClassName}
+              >
+                <option value="all">{t("lessons.filters.allStatuses")}</option>
+                {lessonStatuses.map((status) => (
+                  <option key={status} value={status}>
+                    {t(`lessons.status.${status}`)}
+                  </option>
+                ))}
+              </select>
+              {filtersActive ? (
+                <Button type="button" variant="ghost" onClick={clearFilters}>
+                  {t("lessons.filters.clear")}
+                </Button>
+              ) : null}
+            </div>
+
+            {monthGroups.length === 0 ? (
+              <p className="text-sm text-slate-300">{t("lessons.filters.noResults")}</p>
+            ) : (
+              <div className="space-y-6">
+                {monthGroups.map((group) => (
+                  <section key={group.key} aria-label={group.label} className="space-y-2">
+                    <header className="flex flex-wrap items-baseline justify-between gap-2 px-1">
+                      <h3 className="text-sm font-semibold text-white">{group.label}</h3>
+                      <p className="text-xs text-slate-400">
+                        {t("lessons.monthSummary", {
+                          total: group.lessons.length,
+                          completed: countByStatus(group.lessons, "completed"),
+                          cancelled: countByStatus(group.lessons, "cancelled"),
+                        })}
+                      </p>
+                    </header>
+                    <ul className="divide-y divide-slate-800 overflow-hidden rounded-lg border border-slate-800">
+                      {group.lessons.map((lesson) => (
+                        <li
+                          key={lesson._id}
+                          className={
+                            needsCompletion(lesson) ? "bg-amber-500/5 px-4 py-3" : "px-4 py-3"
+                          }
+                        >
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:grid sm:grid-cols-[9rem_minmax(0,1fr)_auto]">
+                            <time
+                              dateTime={lesson.startTime}
+                              className="text-sm tabular-nums text-slate-300"
+                            >
+                              {formatLessonDayTime(lesson.startTime, i18n.language)}
+                            </time>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-white">
+                                {lesson.subject}
+                              </p>
+                              <p className="truncate text-xs text-slate-400">
+                                {personName(lesson)} · {lesson.durationMinutes}{" "}
+                                {t("automation.duration")}
+                                {lesson.meetingUrl ? (
+                                  <>
+                                    {" · "}
+                                    <a
+                                      className="text-sky-300 hover:text-sky-200"
+                                      href={lesson.meetingUrl}
+                                    >
+                                      {t("lessons.meetingLink")}
+                                    </a>
+                                  </>
+                                ) : null}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                              <span
+                                className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusClasses[lesson.status]}`}
+                              >
+                                {t(`lessons.status.${lesson.status}`)}
+                              </span>
+                              {needsCompletion(lesson) ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => completeMutation.mutate(lesson._id)}
+                                  disabled={completeMutation.isPending}
+                                >
+                                  {t("lessons.markCompleted")}
+                                </Button>
+                              ) : null}
+                            </div>
+                          </div>
+                          {messagesByLessonId.has(lesson._id) ? (
+                            <LessonMessages messages={messagesByLessonId.get(lesson._id) ?? []} />
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            )}
+          </>
         )}
         {completeMutation.isError ? (
           <p role="alert" className="text-sm text-red-400">

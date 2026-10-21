@@ -136,6 +136,16 @@ const resources = {
         markCompleted: "סימון כהתקיים",
         pendingCompletion: "שיעורים שעברו ומחכים לסימון: {{count}}",
         messagesCount: "הודעות על השיעור: {{count}}",
+        showPending: "הצגת השיעורים האלה",
+        monthSummary: "{{total}} שיעורים · {{completed}} התקיימו · {{cancelled}} בוטלו",
+        filters: {
+          search: "חיפוש לפי נושא או שם",
+          allPeople: "{{label}}: כולם",
+          status: "סטטוס",
+          allStatuses: "כל הסטטוסים",
+          clear: "ניקוי סינון",
+          noResults: "אין שיעורים שתואמים לסינון.",
+        },
         completeFailed: "לא ניתן לסמן את השיעור כהתקיים.",
         status: {
           available: "זמין",
@@ -398,6 +408,16 @@ const resources = {
         markCompleted: "Mark completed",
         pendingCompletion: "Past lessons waiting to be marked: {{count}}",
         messagesCount: "Messages about this lesson: {{count}}",
+        showPending: "Show these lessons",
+        monthSummary: "{{total}} lessons · {{completed}} completed · {{cancelled}} cancelled",
+        filters: {
+          search: "Search by subject or name",
+          allPeople: "{{label}}: everyone",
+          status: "Status",
+          allStatuses: "All statuses",
+          clear: "Clear filters",
+          noResults: "No lessons match the filters.",
+        },
         completeFailed: "Couldn't mark the lesson as completed.",
         status: {
           available: "Available",
