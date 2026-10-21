@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { dateToIso, gregorianMonthDays } from "@/lib/hebrew-calendar";
 import { formatLessonDateTime, getUpcomingLessons } from "@/lib/dashboard";
+import { dateToIso, gregorianMonthDays } from "@/lib/hebrew-calendar";
 import type { DirectoryUser, Lesson } from "@/services/api";
 import { LessonActions } from "./LessonActions";
 
@@ -20,6 +20,18 @@ interface UpcomingLessonsListProps {
   description?: string;
   emptyMessage?: string;
   allowActions?: boolean;
+}
+
+const knownCalendarSyncErrors = [
+  "GOOGLE_CALENDAR_NOT_CONNECTED",
+  "GOOGLE_RECONNECT_REQUIRED",
+  "GOOGLE_API_ERROR",
+  "MISSING_PARTICIPANT_EMAIL",
+] as const;
+
+function calendarSyncErrorKey(errorCode: string): string {
+  const known = knownCalendarSyncErrors.find((code) => code === errorCode);
+  return known ? `lessons.calendarSyncReasons.${known}` : "lessons.calendarSyncReasons.OTHER";
 }
 
 export function UpcomingLessonsList({
@@ -154,7 +166,10 @@ export function UpcomingLessonsList({
                                   : t("lessons.openSlot")}
                               </p>
                             </div>
-                            <time className="shrink-0 text-xs text-sky-300" dateTime={lesson.startTime}>
+                            <time
+                              className="shrink-0 text-xs text-sky-300"
+                              dateTime={lesson.startTime}
+                            >
                               {new Intl.DateTimeFormat(locale, {
                                 hour: "2-digit",
                                 minute: "2-digit",
@@ -162,7 +177,9 @@ export function UpcomingLessonsList({
                             </time>
                           </div>
                           {lesson.status === "available" ? (
-                            <p className="mt-1 text-xs text-emerald-300">{t("lessons.available")}</p>
+                            <p className="mt-1 text-xs text-emerald-300">
+                              {t("lessons.available")}
+                            </p>
                           ) : null}
                           {lesson.meetingUrl ? (
                             <a
@@ -175,6 +192,16 @@ export function UpcomingLessonsList({
                           <p className="mt-1 text-xs text-slate-400">
                             {formatLessonDateTime(lesson.startTime, i18n.language)}
                           </p>
+                          {lesson.calendarSyncError && lesson.status === "scheduled" ? (
+                            <p
+                              role="status"
+                              className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-xs text-amber-100"
+                            >
+                              {t("lessons.calendarSyncFailed", {
+                                reason: t(calendarSyncErrorKey(lesson.calendarSyncError)),
+                              })}
+                            </p>
+                          ) : null}
                           {allowActions && lesson.status === "scheduled" ? (
                             <div className="mt-2">
                               <LessonActions lesson={lesson} />

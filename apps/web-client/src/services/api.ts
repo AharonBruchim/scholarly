@@ -154,6 +154,7 @@ export interface Lesson {
   price: number;
   notes?: string;
   meetingUrl?: string;
+  calendarSyncError?: string;
   durationMinutes: number;
   chargeStatus: "none" | "full";
   cancelledAt?: string;

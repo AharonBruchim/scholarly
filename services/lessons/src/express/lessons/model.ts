@@ -26,6 +26,7 @@ const lessonSchema = new mongoose.Schema<LessonDocument>(
         notes: { type: String },
         meetingUrl: { type: String, maxlength: 1000 },
         calendarEventId: { type: String },
+        calendarSyncError: { type: String, maxlength: 100 },
         durationMinutes: { type: Number, required: true, min: 15, max: 240 },
         chargeStatus: {
             type: String,

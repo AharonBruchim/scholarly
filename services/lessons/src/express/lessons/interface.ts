@@ -22,6 +22,7 @@ export interface ILesson {
     notes?: string;
     meetingUrl?: string;
     calendarEventId?: string;
+    calendarSyncError?: string;
     durationMinutes: number;
     chargeStatus?: LessonChargeStatus;
     cancelledAt?: Date;

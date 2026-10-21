@@ -1,6 +1,6 @@
 import { createDecipheriv, scryptSync } from 'node:crypto';
 import { DeliveryChannel, MongoCollections } from '@scholarly/shared';
-import { ServiceError } from '@scholarly/utils';
+import { logger, ServiceError } from '@scholarly/utils';
 import mongoose from 'mongoose';
 import type { LessonDocument } from './interface';
 import type { LessonUserRecord } from './user-model';
@@ -101,13 +101,19 @@ async function accessTokenForTeacher(teacherId: string): Promise<string> {
     }
 }
 
+export type CalendarMeetingResult = { ok: true; eventId: string; meetingUrl?: string } | { ok: false; errorCode: string };
+
+function calendarErrorCode(error: unknown): string {
+    return error instanceof ServiceError ? error.code : 'GOOGLE_CALENDAR_UNKNOWN_ERROR';
+}
+
 export async function createGoogleCalendarMeeting(input: {
     lesson: LessonDocument;
     teacher: LessonUserRecord;
     student: LessonUserRecord;
     timezone: string;
-}): Promise<{ eventId: string; meetingUrl?: string } | null> {
-    if (!input.teacher.email || !input.student.email) return null;
+}): Promise<CalendarMeetingResult> {
+    if (!input.teacher.email || !input.student.email) return { ok: false, errorCode: 'MISSING_PARTICIPANT_EMAIL' };
     try {
         const accessToken = await accessTokenForTeacher(input.lesson.teacherId);
         const response = await googleRequest<{ id: string; hangoutLink?: string; conferenceData?: { entryPoints?: Array<{ uri?: string }> } }>(
@@ -131,9 +137,12 @@ export async function createGoogleCalendarMeeting(input: {
             },
         );
         const entryPoint = response.conferenceData?.entryPoints?.find((item) => item.uri)?.uri;
-        return { eventId: response.id, meetingUrl: response.hangoutLink ?? entryPoint };
-    } catch {
-        return null;
+        return { ok: true, eventId: response.id, meetingUrl: response.hangoutLink ?? entryPoint };
+    } catch (error) {
+        const errorCode = calendarErrorCode(error);
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn(`Google Calendar event creation failed for lesson ${input.lesson._id.toString()} (${errorCode}): ${message}`);
+        return { ok: false, errorCode };
     }
 }
 
@@ -145,6 +154,5 @@ export async function deleteGoogleCalendarEvent(teacherId: string, eventId?: str
             method: 'DELETE',
             headers: { Authorization: `Bearer ${accessToken}` },
         });
-    } catch {
-    }
+    } catch {}
 }

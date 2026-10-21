@@ -136,6 +136,14 @@ const resources = {
         markCompleted: "סימון כהתקיים",
         pendingCompletion: "שיעורים שעברו ומחכים לסימון: {{count}}",
         messagesCount: "הודעות על השיעור: {{count}}",
+        calendarSyncFailed: "לא נוצר אירוע ביומן Google, והתלמיד/ה לא קיבל/ה הזמנה. {{reason}}",
+        calendarSyncReasons: {
+          GOOGLE_CALENDAR_NOT_CONNECTED: "חשבון Google לא מחובר.",
+          GOOGLE_RECONNECT_REQUIRED: "צריך לחבר מחדש את חשבון Google.",
+          GOOGLE_API_ERROR: "גוגל דחה את הבקשה. בדקו שיש הרשאת יומן ושה־Calendar API מופעל.",
+          MISSING_PARTICIPANT_EMAIL: "חסרה כתובת מייל למורה או לתלמיד/ה.",
+          OTHER: "שגיאה בהגדרות השרת.",
+        },
         showPending: "הצגת השיעורים האלה",
         monthSummary: "{{total}} שיעורים · {{completed}} התקיימו · {{cancelled}} בוטלו",
         filters: {
@@ -408,6 +416,14 @@ const resources = {
         markCompleted: "Mark completed",
         pendingCompletion: "Past lessons waiting to be marked: {{count}}",
         messagesCount: "Messages about this lesson: {{count}}",
+        calendarSyncFailed: "No Google Calendar event was created, so the student got no invite. {{reason}}",
+        calendarSyncReasons: {
+          GOOGLE_CALENDAR_NOT_CONNECTED: "Google account isn't connected.",
+          GOOGLE_RECONNECT_REQUIRED: "Reconnect your Google account.",
+          GOOGLE_API_ERROR: "Google rejected the request. Check calendar permission and that the Calendar API is enabled.",
+          MISSING_PARTICIPANT_EMAIL: "The teacher or student has no email address.",
+          OTHER: "Server configuration error.",
+        },
         showPending: "Show these lessons",
         monthSummary: "{{total}} lessons · {{completed}} completed · {{cancelled}} cancelled",
         filters: {

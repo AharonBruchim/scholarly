@@ -40,6 +40,7 @@ function visibleLesson(lesson: LessonDocument, actor: AuthenticatedUser) {
     if (actor.role === UsersRoles.TEACHER) return lesson;
     const output = lesson.toObject();
     Reflect.deleteProperty(output, 'meetingUrl');
+    Reflect.deleteProperty(output, 'calendarSyncError');
     return output;
 }
 
@@ -147,9 +148,13 @@ async function attachGoogleCalendarMeeting(lesson: LessonDocument, timezone: str
     const [teacher, student] = await Promise.all([LessonUserModel.findById(lesson.teacherId).lean(), LessonUserModel.findById(lesson.studentId).lean()]);
     if (!teacher || !student) return;
     const event = await createGoogleCalendarMeeting({ lesson, teacher, student, timezone });
-    if (!event) return;
-    lesson.calendarEventId = event.eventId;
-    if (event.meetingUrl) lesson.meetingUrl = event.meetingUrl;
+    if (event.ok) {
+        lesson.calendarEventId = event.eventId;
+        lesson.calendarSyncError = undefined;
+        if (event.meetingUrl) lesson.meetingUrl = event.meetingUrl;
+    } else {
+        lesson.calendarSyncError = event.errorCode;
+    }
     await lesson.save();
 }
 
