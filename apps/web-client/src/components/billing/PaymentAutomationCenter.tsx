@@ -4,25 +4,26 @@ import {
   isDeliveryChannelEnabled,
 } from "@scholarly/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Mail, Plus, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { DeliveryBadge } from "@/components/billing/DeliveryBadge";
 import { PaymentTimeline } from "@/components/billing/PaymentTimeline";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Modal } from "@/components/ui/modal";
 import { needsTeacherAttention } from "@/lib/payment-attention";
 import {
   cancelLessonMessage,
   cancelPaymentRequest,
   confirmSmsDelivery,
   confirmWhatsAppDelivery,
-  connectGmail,
   createLessonMessage,
   createManualPaymentRequest,
   type DeliveryRecord,
   type DirectoryUser,
-  disconnectGmail,
   fetchAutomaticPaymentPreview,
   fetchGmailConnection,
   fetchLessonMessages,
@@ -291,6 +292,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
   const [messageChannels, setMessageChannels] = useState<SelectableDeliveryChannel[]>(["email"]);
   const [messageSchedule, setMessageSchedule] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [openForm, setOpenForm] = useState<"payment" | "message" | null>(null);
 
   const requestsQuery = useQuery({
     queryKey: ["billing"],
@@ -353,6 +355,9 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
     );
 
   const pendingApprovalRequests = (requestsQuery.data ?? []).filter(needsTeacherAttention);
+  const openRequests = (requestsQuery.data ?? []).filter(
+    (request) => request.status !== "cancelled" && (request.paymentStatus ?? "unpaid") === "unpaid",
+  );
 
   const refreshBilling = async () => {
     await Promise.all(
@@ -382,6 +387,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
           ? "דרישת התשלום נשמרה ותישלח במועד שנבחר."
           : "דרישת התשלום הופקה ונכנסה לשליחה.",
       );
+      setOpenForm(null);
       setSelectedLessonIds([]);
       setCustomItems([]);
       setPaymentNotes("");
@@ -406,6 +412,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
           ? `${messages.length} הודעות נשמרו ויישלחו במועד שנבחר.`
           : `${messages.length} הודעות נכנסו לשליחה.`,
       );
+      setOpenForm(null);
       setMessageLessonIds([]);
       setMessageSubject("");
       setMessageBody("");
@@ -421,10 +428,6 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
   const cancelMessageMutation = useMutation({
     mutationFn: cancelLessonMessage,
     onSuccess: refreshBilling,
-  });
-  const disconnectMutation = useMutation({
-    mutationFn: disconnectGmail,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gmail-connection"] }),
   });
 
   useEffect(() => {
@@ -486,6 +489,50 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
         </Card>
       ) : null}
 
+      {view === "automation" ? (
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold text-white">תשלומים</h1>
+            <p className="text-sm text-slate-400">
+              דרישות פתוחות, אישורי תשלום ושליחת הודעות לתלמידים.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="secondary" onClick={() => setOpenForm("message")}>
+              <Mail className="h-4 w-4" aria-hidden="true" />
+              הודעה לתלמיד/ה
+            </Button>
+            <Button type="button" onClick={() => setOpenForm("payment")}>
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              דרישת תשלום חדשה
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {view === "automation" && gmailQuery.isSuccess && !gmailQuery.data.connected ? (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3"
+        >
+          <p className="text-sm text-amber-100">
+            חשבון Google לא מחובר, ולכן דרישות תשלום והודעות לא יישלחו במייל.
+          </p>
+          <Button asChild size="sm" variant="secondary">
+            <Link to="/profile#connections">לחיבור בהגדרות</Link>
+          </Button>
+        </div>
+      ) : null}
+
+      {view === "automation" && feedback ? (
+        <p
+          role="status"
+          className="rounded-lg border border-sky-700 bg-sky-950/50 p-3 text-sm text-sky-200"
+        >
+          {feedback}
+        </p>
+      ) : null}
+
       {view === "automation" && pendingApprovalRequests.length > 0 ? (
         <Card className="border-amber-500/40">
           <CardHeader>
@@ -518,295 +565,143 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
         <>
           <Card>
             <CardHeader>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="space-y-1.5">
-                  <CardTitle>דרישות תשלום ושליחות</CardTitle>
-                  <CardDescription>
-                    הפקה ידנית, תזמון, היסטוריה וחיבור חשבון Gmail האישי שלך. הנתונים מתעדכנים
-                    בכניסה, אחרי פעולה או בלחיצה על רענון.
-                  </CardDescription>
-                </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => void refreshBilling()}
-                  disabled={billingRefreshing}
-                >
-                  {billingRefreshing ? "מרענן…" : "רענון נתונים"}
-                </Button>
-              </div>
+              <CardTitle>דרישות פתוחות ({openRequests.length})</CardTitle>
+              <CardDescription>דרישות שנשלחו ועדיין לא שולמו.</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4 lg:grid-cols-2">
-              <div className="rounded-xl border border-slate-700 p-4">
-                <h3 className="font-semibold text-white">חיבור Gmail</h3>
-                {gmailQuery.data?.connected ? (
-                  <div className="mt-2 space-y-3 text-sm text-emerald-300">
-                    <p>מחובר: {gmailQuery.data.senderAddress}</p>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => disconnectMutation.mutate()}
+            <CardContent className="space-y-3">
+              {openRequests.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-slate-700 px-4 py-6 text-center text-sm text-slate-300">
+                  אין דרישות פתוחות. כל התשלומים הוסדרו.
+                </p>
+              ) : (
+                <ul className="divide-y divide-slate-800 overflow-hidden rounded-lg border border-slate-800 bg-slate-950/40">
+                  {openRequests.map((request) => (
+                    <li
+                      key={request._id}
+                      className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
                     >
-                      ניתוק Gmail
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="mt-2 space-y-3 text-sm text-slate-300">
-                    <p>
-                      {gmailQuery.data?.configured
-                        ? "חברי את חשבון Google כדי לאפשר שליחה אוטומטית ומתוזמנת."
-                        : "יש להגדיר תחילה את פרטי OAuth של Google בשרת."}
-                    </p>
-                    <Button
-                      type="button"
-                      onClick={() => void connectGmail()}
-                      disabled={!gmailQuery.data?.configured}
-                    >
-                      חיבור Gmail
-                    </Button>
-                  </div>
-                )}
-              </div>
-              <div className="rounded-xl border border-slate-700 p-4">
-                <h3 className="font-semibold text-white">דרישת התשלום האוטומטית הבאה</h3>
-                {previewQuery.data ? (
-                  <dl className="mt-2 grid grid-cols-2 gap-2 text-sm text-slate-300">
-                    <dt>מועד:</dt>
-                    <dd>{formatDate(previewQuery.data.nextScheduledAt)}</dd>
-                    <dt>תקופה:</dt>
-                    <dd>{previewQuery.data.period}</dd>
-                    <dt>שיעורים שטרם חויבו:</dt>
-                    <dd>{previewQuery.data.lessonCount}</dd>
-                    <dt>תלמידות:</dt>
-                    <dd>{previewQuery.data.studentCount}</dd>
-                    <dt>סכום משוער:</dt>
-                    <dd>{previewQuery.data.estimatedTotal.toFixed(2)} ₪</dd>
-                  </dl>
-                ) : (
-                  <p className="mt-2 text-sm text-slate-300">טוען תחזית…</p>
-                )}
-              </div>
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-medium text-white">
+                          <bdi>{studentsById.get(request.studentId) ?? "תלמיד/ה"}</bdi> ·{" "}
+                          {request.total.toFixed(2)} ₪
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {request.requestNumber} · {statusLabels[request.status]} ·{" "}
+                          {formatDate(request.scheduledAt ?? request.generatedAt)}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {request.deliveries.map((delivery) => (
+                            <DeliveryBadge key={delivery._id} delivery={delivery} />
+                          ))}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={async () =>
+                          showPdfPreview(
+                            request.requestNumber || "דרישת תשלום",
+                            await openPaymentRequestPdf(request._id),
+                          )
+                        }
+                      >
+                        צפייה ב־PDF
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Link
+                to="/teacher/history/payments"
+                className="inline-flex text-sm text-sky-300 hover:text-sky-200"
+              >
+                לכל היסטוריית התשלומים ←
+              </Link>
             </CardContent>
           </Card>
 
-          <div className="grid gap-6 xl:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>דרישת תשלום ידנית</CardTitle>
-                <CardDescription>
-                  בחירת שיעורים וסעיפים נוספים, יצירת PDF מעוצב ושליחתו. שיעורים שנבחרו לא יחויבו
-                  שוב אוטומטית.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form
-                  className="space-y-4"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    paymentMutation.mutate();
-                  }}
-                >
-                  <div className="space-y-2">
-                    <Label htmlFor="payment-student">תלמידה</Label>
-                    <select
-                      id="payment-student"
-                      className="h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 text-white"
-                      value={studentId}
-                      onChange={(event) => {
-                        setStudentId(event.target.value);
-                        setSelectedLessonIds([]);
-                      }}
-                      required
-                    >
-                      <option value="">בחירת תלמידה</option>
-                      {students.map((student) => (
-                        <option key={student._id} value={student._id}>
-                          {student.firstName} {student.lastName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {studentId ? (
-                    <fieldset className="max-h-56 space-y-2 overflow-y-auto rounded-lg border border-slate-700 p-3">
-                      <legend className="px-2 text-sm font-medium text-slate-200">
-                        בחירת שיעורים
-                      </legend>
-                      {studentLessons.length === 0 ? (
-                        <p className="text-sm text-slate-400">אין שיעורים לבחירה.</p>
-                      ) : null}
-                      {selectableStudentLessonIds.length > 0 ? (
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2">
-                          <p className="text-xs text-slate-300">
-                            נבחרו {selectedLessonIds.length} שיעורים ·{" "}
-                            {selectedLessonsTotal.toFixed(2)} ₪
-                          </p>
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => setSelectedLessonIds(selectableStudentLessonIds)}
-                              disabled={allStudentLessonsSelected}
-                            >
-                              בחירת הכול
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setSelectedLessonIds([])}
-                              disabled={selectedLessonIds.length === 0}
-                            >
-                              ניקוי
-                            </Button>
-                          </div>
-                        </div>
-                      ) : null}
-                      {studentLessons.map((lesson) => {
-                        const claimed = claimedLessonIds.has(lesson._id);
-                        return (
-                          <label
-                            key={lesson._id}
-                            className="flex items-start gap-2 text-sm text-slate-200"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedLessonIds.includes(lesson._id)}
-                              disabled={claimed}
-                              onChange={() =>
-                                setSelectedLessonIds((current) =>
-                                  current.includes(lesson._id)
-                                    ? current.filter((id) => id !== lesson._id)
-                                    : [...current, lesson._id],
-                                )
-                              }
-                            />
-                            <span>
-                              {lesson.subject} · {formatDate(lesson.startTime)} ·{" "}
-                              {lesson.price.toFixed(2)} ₪{claimed ? " · כבר נכלל בדרישה" : ""}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </fieldset>
-                  ) : null}
-                  <div className="space-y-2 rounded-lg border border-slate-700 p-3">
-                    <Label>סעיף נוסף</Label>
-                    <div className="grid gap-2 sm:grid-cols-[1fr_8rem_auto]">
-                      <Input
-                        value={customDescription}
-                        onChange={(event) => setCustomDescription(event.target.value)}
-                        placeholder="פירוט"
-                      />
-                      <Input
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        value={customAmount}
-                        onChange={(event) => setCustomAmount(event.target.value)}
-                        placeholder="סכום"
-                      />
-                      <Button type="button" variant="secondary" onClick={addCustomItem}>
-                        הוספה
-                      </Button>
-                    </div>
-                    {customItems.map((item) => (
-                      <div key={item.id} className="flex justify-between text-sm text-slate-300">
-                        <span>
-                          {item.description} · {item.amount.toFixed(2)} ₪
-                        </span>
-                        <button
-                          type="button"
-                          className="text-rose-300"
-                          onClick={() =>
-                            setCustomItems((current) =>
-                              current.filter((currentItem) => currentItem.id !== item.id),
-                            )
-                          }
-                        >
-                          הסרה
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <ChannelSelector value={paymentChannels} onChange={setPaymentChannels} />
-                  <div className="space-y-2">
-                    <Label htmlFor="payment-schedule">מועד שליחה (ריק = עכשיו)</Label>
-                    <Input
-                      id="payment-schedule"
-                      type="datetime-local"
-                      value={paymentSchedule}
-                      onChange={(event) => setPaymentSchedule(event.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="payment-notes">הערות שיופיעו במסמך</Label>
-                    <textarea
-                      id="payment-notes"
-                      className="min-h-20 w-full rounded-md border border-slate-700 bg-slate-950 p-3 text-white"
-                      value={paymentNotes}
-                      onChange={(event) => setPaymentNotes(event.target.value)}
-                      maxLength={2000}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={
-                      paymentMutation.isPending ||
-                      !studentId ||
-                      paymentChannels.length === 0 ||
-                      (selectedLessonIds.length === 0 && customItems.length === 0)
-                    }
-                  >
-                    {paymentMutation.isPending
-                      ? "מפיק מסמך…"
-                      : paymentSchedule
-                        ? "הפקה ותזמון"
-                        : "הפקה ושליחה"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+          <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-3">
+            <div className="space-y-0.5">
+              <h2 className="text-sm font-semibold text-white">הדרישה האוטומטית הבאה</h2>
+              {previewQuery.data ? (
+                <p className="text-xs text-slate-400">
+                  {formatDate(previewQuery.data.nextScheduledAt)} · תקופה {previewQuery.data.period}{" "}
+                  · {previewQuery.data.lessonCount} שיעורים · {previewQuery.data.studentCount}{" "}
+                  תלמידים · סכום משוער {previewQuery.data.estimatedTotal.toFixed(2)} ₪
+                </p>
+              ) : (
+                <p className="text-xs text-slate-400">טוען תחזית…</p>
+              )}
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => void refreshBilling()}
+              disabled={billingRefreshing}
+            >
+              <RefreshCw
+                className={billingRefreshing ? "h-4 w-4 animate-spin" : "h-4 w-4"}
+                aria-hidden="true"
+              />
+              רענון
+            </Button>
+          </section>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>הודעה על שיעור</CardTitle>
-                <CardDescription>
-                  הודעה מיידית או מתוזמנת. לכל תלמידה נשלח מייל אחד עם PDF מעוצב שמרכז את כל
-                  השיעורים שנבחרו עבורה.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form
-                  className="space-y-4"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    messageMutation.mutate();
+          <Modal
+            open={openForm === "payment"}
+            onClose={() => setOpenForm(null)}
+            title="דרישת תשלום חדשה"
+            description="בחירת שיעורים וסעיפים נוספים. נוצר PDF מעוצב ונשלח לתלמיד/ה. שיעורים שנבחרו לא יחויבו שוב אוטומטית."
+            closeLabel="סגירה"
+          >
+            <form
+              className="space-y-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                paymentMutation.mutate();
+              }}
+            >
+              <div className="space-y-2">
+                <Label htmlFor="payment-student">תלמידה</Label>
+                <select
+                  id="payment-student"
+                  className="h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 text-white"
+                  value={studentId}
+                  onChange={(event) => {
+                    setStudentId(event.target.value);
+                    setSelectedLessonIds([]);
                   }}
+                  required
                 >
-                  <fieldset className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-slate-700 p-3">
-                    <legend className="px-2 text-sm font-medium text-slate-200">
-                      שיעורים לשליחה
-                    </legend>
+                  <option value="">בחירת תלמידה</option>
+                  {students.map((student) => (
+                    <option key={student._id} value={student._id}>
+                      {student.firstName} {student.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {studentId ? (
+                <fieldset className="max-h-56 space-y-2 overflow-y-auto rounded-lg border border-slate-700 p-3">
+                  <legend className="px-2 text-sm font-medium text-slate-200">בחירת שיעורים</legend>
+                  {studentLessons.length === 0 ? (
+                    <p className="text-sm text-slate-400">אין שיעורים לבחירה.</p>
+                  ) : null}
+                  {selectableStudentLessonIds.length > 0 ? (
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2">
                       <p className="text-xs text-slate-300">
-                        נבחרו {messageLessonIds.length} שיעורים
+                        נבחרו {selectedLessonIds.length} שיעורים · {selectedLessonsTotal.toFixed(2)}{" "}
+                        ₪
                       </p>
                       <div className="flex gap-2">
                         <Button
                           type="button"
                           size="sm"
                           variant="secondary"
-                          onClick={() =>
-                            setMessageLessonIds(
-                              assignedLessons.slice(0, 100).map((lesson) => lesson._id),
-                            )
-                          }
-                          disabled={
-                            assignedLessons.length === 0 ||
-                            assignedLessons.every((lesson) => messageLessonIds.includes(lesson._id))
-                          }
+                          onClick={() => setSelectedLessonIds(selectableStudentLessonIds)}
+                          disabled={allStudentLessonsSelected}
                         >
                           בחירת הכול
                         </Button>
@@ -814,101 +709,239 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
                           type="button"
                           size="sm"
                           variant="ghost"
-                          onClick={() => setMessageLessonIds([])}
-                          disabled={messageLessonIds.length === 0}
+                          onClick={() => setSelectedLessonIds([])}
+                          disabled={selectedLessonIds.length === 0}
                         >
                           ניקוי
                         </Button>
                       </div>
                     </div>
-                    {assignedLessons.length === 0 ? (
-                      <p className="text-sm text-slate-400">אין שיעורים משויכים לשליחה.</p>
-                    ) : null}
-                    {assignedLessons.map((lesson) => (
+                  ) : null}
+                  {studentLessons.map((lesson) => {
+                    const claimed = claimedLessonIds.has(lesson._id);
+                    return (
                       <label
                         key={lesson._id}
                         className="flex items-start gap-2 text-sm text-slate-200"
                       >
                         <input
                           type="checkbox"
-                          checked={messageLessonIds.includes(lesson._id)}
+                          checked={selectedLessonIds.includes(lesson._id)}
+                          disabled={claimed}
                           onChange={() =>
-                            setMessageLessonIds((current) =>
+                            setSelectedLessonIds((current) =>
                               current.includes(lesson._id)
                                 ? current.filter((id) => id !== lesson._id)
-                                : current.length < 100
-                                  ? [...current, lesson._id]
-                                  : current,
+                                : [...current, lesson._id],
                             )
                           }
                         />
                         <span>
-                          {lesson.subject} · {studentsById.get(lesson.studentId ?? "") ?? "תלמידה"}{" "}
-                          · {formatDate(lesson.startTime)}
+                          {lesson.subject} · {formatDate(lesson.startTime)} ·{" "}
+                          {lesson.price.toFixed(2)} ₪{claimed ? " · כבר נכלל בדרישה" : ""}
                         </span>
                       </label>
-                    ))}
-                  </fieldset>
-                  <div className="space-y-2">
-                    <Label htmlFor="message-subject">נושא ההודעה</Label>
-                    <Input
-                      id="message-subject"
-                      value={messageSubject}
-                      onChange={(event) => setMessageSubject(event.target.value)}
-                      maxLength={200}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="message-body">תוכן</Label>
-                    <textarea
-                      id="message-body"
-                      className="min-h-32 w-full rounded-md border border-slate-700 bg-slate-950 p-3 text-white"
-                      value={messageBody}
-                      onChange={(event) => setMessageBody(event.target.value)}
-                      maxLength={4000}
-                      required
-                    />
-                  </div>
-                  <ChannelSelector value={messageChannels} onChange={setMessageChannels} />
-                  <div className="space-y-2">
-                    <Label htmlFor="message-schedule">מועד שליחה (ריק = עכשיו)</Label>
-                    <Input
-                      id="message-schedule"
-                      type="datetime-local"
-                      value={messageSchedule}
-                      onChange={(event) => setMessageSchedule(event.target.value)}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={
-                      messageMutation.isPending ||
-                      messageLessonIds.length === 0 ||
-                      !messageSubject.trim() ||
-                      !messageBody.trim() ||
-                      messageChannels.length === 0
-                    }
-                  >
-                    {messageMutation.isPending
-                      ? "שומר…"
-                      : messageSchedule
-                        ? "תזמון הודעה"
-                        : "שליחת הודעה"}
+                    );
+                  })}
+                </fieldset>
+              ) : null}
+              <div className="space-y-2 rounded-lg border border-slate-700 p-3">
+                <Label>סעיף נוסף</Label>
+                <div className="grid gap-2 sm:grid-cols-[1fr_8rem_auto]">
+                  <Input
+                    value={customDescription}
+                    onChange={(event) => setCustomDescription(event.target.value)}
+                    placeholder="פירוט"
+                  />
+                  <Input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={customAmount}
+                    onChange={(event) => setCustomAmount(event.target.value)}
+                    placeholder="סכום"
+                  />
+                  <Button type="button" variant="secondary" onClick={addCustomItem}>
+                    הוספה
                   </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+                </div>
+                {customItems.map((item) => (
+                  <div key={item.id} className="flex justify-between text-sm text-slate-300">
+                    <span>
+                      {item.description} · {item.amount.toFixed(2)} ₪
+                    </span>
+                    <button
+                      type="button"
+                      className="text-rose-300"
+                      onClick={() =>
+                        setCustomItems((current) =>
+                          current.filter((currentItem) => currentItem.id !== item.id),
+                        )
+                      }
+                    >
+                      הסרה
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <ChannelSelector value={paymentChannels} onChange={setPaymentChannels} />
+              <div className="space-y-2">
+                <Label htmlFor="payment-schedule">מועד שליחה (ריק = עכשיו)</Label>
+                <Input
+                  id="payment-schedule"
+                  type="datetime-local"
+                  value={paymentSchedule}
+                  onChange={(event) => setPaymentSchedule(event.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="payment-notes">הערות שיופיעו במסמך</Label>
+                <textarea
+                  id="payment-notes"
+                  className="min-h-20 w-full rounded-md border border-slate-700 bg-slate-950 p-3 text-white"
+                  value={paymentNotes}
+                  onChange={(event) => setPaymentNotes(event.target.value)}
+                  maxLength={2000}
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={
+                  paymentMutation.isPending ||
+                  !studentId ||
+                  paymentChannels.length === 0 ||
+                  (selectedLessonIds.length === 0 && customItems.length === 0)
+                }
+              >
+                {paymentMutation.isPending
+                  ? "מפיק מסמך…"
+                  : paymentSchedule
+                    ? "הפקה ותזמון"
+                    : "הפקה ושליחה"}
+              </Button>
+            </form>
+          </Modal>
 
-          {feedback ? (
-            <p
-              role="status"
-              className="rounded-lg border border-sky-700 bg-sky-950/50 p-3 text-sm text-sky-200"
+          <Modal
+            open={openForm === "message"}
+            onClose={() => setOpenForm(null)}
+            title="הודעה לתלמיד/ה"
+            description="הודעה חופשית על שיעורים, מיידית או מתוזמנת. כל תלמיד/ה מקבל/ת מייל אחד עם PDF שמרכז את השיעורים שנבחרו. זו לא דרישת תשלום."
+            closeLabel="סגירה"
+          >
+            <form
+              className="space-y-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                messageMutation.mutate();
+              }}
             >
-              {feedback}
-            </p>
-          ) : null}
+              <fieldset className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-slate-700 p-3">
+                <legend className="px-2 text-sm font-medium text-slate-200">שיעורים לשליחה</legend>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-2">
+                  <p className="text-xs text-slate-300">נבחרו {messageLessonIds.length} שיעורים</p>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        setMessageLessonIds(
+                          assignedLessons.slice(0, 100).map((lesson) => lesson._id),
+                        )
+                      }
+                      disabled={
+                        assignedLessons.length === 0 ||
+                        assignedLessons.every((lesson) => messageLessonIds.includes(lesson._id))
+                      }
+                    >
+                      בחירת הכול
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setMessageLessonIds([])}
+                      disabled={messageLessonIds.length === 0}
+                    >
+                      ניקוי
+                    </Button>
+                  </div>
+                </div>
+                {assignedLessons.length === 0 ? (
+                  <p className="text-sm text-slate-400">אין שיעורים משויכים לשליחה.</p>
+                ) : null}
+                {assignedLessons.map((lesson) => (
+                  <label key={lesson._id} className="flex items-start gap-2 text-sm text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={messageLessonIds.includes(lesson._id)}
+                      onChange={() =>
+                        setMessageLessonIds((current) =>
+                          current.includes(lesson._id)
+                            ? current.filter((id) => id !== lesson._id)
+                            : current.length < 100
+                              ? [...current, lesson._id]
+                              : current,
+                        )
+                      }
+                    />
+                    <span>
+                      {lesson.subject} · {studentsById.get(lesson.studentId ?? "") ?? "תלמידה"} ·{" "}
+                      {formatDate(lesson.startTime)}
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+              <div className="space-y-2">
+                <Label htmlFor="message-subject">נושא ההודעה</Label>
+                <Input
+                  id="message-subject"
+                  value={messageSubject}
+                  onChange={(event) => setMessageSubject(event.target.value)}
+                  maxLength={200}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="message-body">תוכן</Label>
+                <textarea
+                  id="message-body"
+                  className="min-h-32 w-full rounded-md border border-slate-700 bg-slate-950 p-3 text-white"
+                  value={messageBody}
+                  onChange={(event) => setMessageBody(event.target.value)}
+                  maxLength={4000}
+                  required
+                />
+              </div>
+              <ChannelSelector value={messageChannels} onChange={setMessageChannels} />
+              <div className="space-y-2">
+                <Label htmlFor="message-schedule">מועד שליחה (ריק = עכשיו)</Label>
+                <Input
+                  id="message-schedule"
+                  type="datetime-local"
+                  value={messageSchedule}
+                  onChange={(event) => setMessageSchedule(event.target.value)}
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={
+                  messageMutation.isPending ||
+                  messageLessonIds.length === 0 ||
+                  !messageSubject.trim() ||
+                  !messageBody.trim() ||
+                  messageChannels.length === 0
+                }
+              >
+                {messageMutation.isPending
+                  ? "שומר…"
+                  : messageSchedule
+                    ? "תזמון הודעה"
+                    : "שליחת הודעה"}
+              </Button>
+            </form>
+          </Modal>
 
           {whatsAppEnabled ? (
             <Card>

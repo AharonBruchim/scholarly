@@ -253,7 +253,7 @@ const resources = {
         reminderTiming: "התזכורות נשלחות 30 שעות וחצי שעה לפני השיעור.",
         smsLinkOnly: "ב־SMS תישלח תמצית עם קישור מאובטח ל־PDF; במייל וב־WhatsApp ניתן לצרף PDF.",
         connectionRequired:
-          "Gmail מתחבר באופן מאובטח לשליחת מיילים ללא שמירת הסיסמה. WhatsApp ו־SMS הם מסירה ידנית: המערכת מכינה הודעה וקישור, והמורה מאשרת את השליחה. קישור Zoom או Google Meet דורש שמירת קישור מפגש בשיעור או אינטגרציית Google Calendar.",
+          "המיילים נשלחים מחשבון Google שחיברת (בכרטיס \"חיבור Google\" למעלה). דרישות התשלום והתזכורות יוצאות רק כשהחשבון מחובר.",
         channel: { email: "אימייל", whatsapp: "WhatsApp", sms: "SMS" },
         save: "שמירת הגדרות",
         saved: "ההגדרות נשמרו.",
@@ -548,7 +548,7 @@ const resources = {
         smsLinkOnly:
           "SMS includes a summary and secure PDF link; email and WhatsApp can attach the PDF.",
         connectionRequired:
-          "Gmail connects securely for email delivery without storing your password. WhatsApp and SMS are manual handoff flows: the system prepares the message and link, and the teacher confirms delivery. A Zoom or Google Meet link requires storing a meeting link on the lesson or adding a Google Calendar integration.",
+          "Emails are sent from the Google account you connected (see \"Google connection\" above). Payment requests and reminders go out only while it is connected.",
         channel: { email: "Email", whatsapp: "WhatsApp", sms: "SMS" },
         save: "Save settings",
         saved: "Settings saved.",

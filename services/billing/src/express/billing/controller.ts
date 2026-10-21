@@ -119,6 +119,6 @@ export const AutomationController = {
     },
     googleCallback: async (req: TypedRequest<typeof googleCallbackSchema>, res: Response) => {
         await GmailManager.completeAuthorization(req.query.code, req.query.state);
-        res.redirect(`${config.web.appUrl}/teacher?gmail=connected#payments`);
+        res.redirect(`${config.web.appUrl}/profile?gmail=connected#connections`);
     },
 };

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Spinner } from "@/components/common/Spinner";
+import { GmailConnectionCard } from "@/components/billing/GmailConnectionCard";
 import { TeacherAutomationSettings } from "@/components/profile/TeacherAutomationSettings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -307,6 +308,7 @@ export default function ProfilePage() {
           </form>
         </CardContent>
       </Card>
+      {user?.role === "teacher" ? <GmailConnectionCard /> : null}
       {user?.role === "teacher" ? <TeacherAutomationSettings userId={user.id} /> : null}
     </div>
   );
