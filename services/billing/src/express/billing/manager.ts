@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { DeliveryChannel, UsersRoles } from '@scholarly/shared';
+import { DeliveryChannel, isDeliveryChannelEnabled, UsersRoles } from '@scholarly/shared';
 import type { AuthenticatedUser } from '@scholarly/utils';
 import { ConflictError, ForbiddenError, NotFoundError, ServiceError } from '@scholarly/utils';
 import { DateTime } from 'luxon';
@@ -110,6 +110,7 @@ async function queueDelivery(input: {
     scheduledAt: Date;
     hasConsent: boolean;
 }) {
+    if (!isDeliveryChannelEnabled(input.channel)) return;
     let status: 'waiting_for_connection' | 'queued' | 'manual_action_required' | 'skipped_no_consent';
     if (!input.hasConsent) {
         status = 'skipped_no_consent';

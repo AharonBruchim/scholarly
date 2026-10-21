@@ -1,5 +1,7 @@
 import {
   DeliveryChannel,
+  ENABLED_DELIVERY_CHANNELS,
+  isDeliveryChannelEnabled,
   type ITeacherPreferences,
   type ITeacherSubjectSetting,
 } from "@scholarly/shared";
@@ -21,7 +23,16 @@ const defaultSettings: ITeacherPreferences = {
   timezone: "Asia/Jerusalem",
 };
 
-const REMINDER_CHANNELS = [DeliveryChannel.EMAIL, DeliveryChannel.WHATSAPP] as const;
+type ReminderChannel = ITeacherPreferences["reminderChannels"][number];
+
+const REMINDER_CHANNELS = ([DeliveryChannel.EMAIL, DeliveryChannel.WHATSAPP] as const).filter(
+  (channel): channel is ReminderChannel => isDeliveryChannelEnabled(channel),
+);
+
+function keepEnabledChannels<T extends DeliveryChannel>(channels: T[], fallback: T): T[] {
+  const enabled = channels.filter(isDeliveryChannelEnabled);
+  return enabled.length > 0 ? enabled : [fallback];
+}
 
 export function TeacherAutomationSettings({ userId }: { userId: string }) {
   const { t } = useTranslation();
@@ -32,7 +43,15 @@ export function TeacherAutomationSettings({ userId }: { userId: string }) {
 
   useEffect(() => {
     if (profileQuery.data?.teacherPreferences) {
-      setSettings(profileQuery.data.teacherPreferences);
+      const preferences = profileQuery.data.teacherPreferences;
+      setSettings({
+        ...preferences,
+        paymentRequestChannels: keepEnabledChannels(
+          preferences.paymentRequestChannels,
+          DeliveryChannel.EMAIL,
+        ),
+        reminderChannels: keepEnabledChannels(preferences.reminderChannels, DeliveryChannel.EMAIL),
+      });
     }
   }, [profileQuery.data?.teacherPreferences]);
 
@@ -202,19 +221,16 @@ export function TeacherAutomationSettings({ userId }: { userId: string }) {
 
           <fieldset className="space-y-2 rounded-md border border-slate-700 p-3">
             <legend className="px-2 text-sm font-medium">{t("automation.paymentChannels")}</legend>
-            {[DeliveryChannel.EMAIL, DeliveryChannel.WHATSAPP, DeliveryChannel.SMS].map(
-              (channel) => (
-                <label key={channel} className="me-4 inline-flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={settings.paymentRequestChannels.includes(channel)}
-                    onChange={() => togglePaymentChannel(channel)}
-                  />
-                  {t(`automation.channel.${channel}`)}
-                </label>
-              ),
-            )}
-            <p className="text-xs text-slate-400">{t("automation.smsLinkOnly")}</p>
+            {ENABLED_DELIVERY_CHANNELS.map((channel) => (
+              <label key={channel} className="me-4 inline-flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={settings.paymentRequestChannels.includes(channel)}
+                  onChange={() => togglePaymentChannel(channel)}
+                />
+                {t(`automation.channel.${channel}`)}
+              </label>
+            ))}
           </fieldset>
 
           <fieldset className="space-y-2 rounded-md border border-slate-700 p-3">

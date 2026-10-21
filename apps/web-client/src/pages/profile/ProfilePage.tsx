@@ -25,8 +25,8 @@ const emptyProfile: ProfileForm = {
   lastName: "",
   email: "",
   phoneNumber: "",
-  allowWhatsApp: false,
-  allowSMS: false,
+  allowWhatsApp: true,
+  allowSMS: true,
 };
 
 const emptyPasswordForm = {
@@ -56,8 +56,8 @@ export default function ProfilePage() {
       lastName: profile.lastName,
       email: profile.email,
       phoneNumber: profile.phone.number ?? "",
-      allowWhatsApp: profile.phone.allowWhatsApp ?? false,
-      allowSMS: profile.phone.allowSMS ?? false,
+      allowWhatsApp: profile.phone.allowWhatsApp ?? true,
+      allowSMS: profile.phone.allowSMS ?? true,
     });
   }, [profileQuery.data]);
 

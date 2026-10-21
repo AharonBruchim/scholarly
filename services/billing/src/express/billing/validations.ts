@@ -1,11 +1,11 @@
-import { DeliveryChannel } from '@scholarly/shared';
+import { ENABLED_DELIVERY_CHANNELS } from '@scholarly/shared';
 import { zodMongoObjectId } from '@scholarly/utils';
 import { z } from 'zod';
 
 const deliveryChannels = z
-    .array(z.enum([DeliveryChannel.EMAIL, DeliveryChannel.WHATSAPP, DeliveryChannel.SMS]))
+    .array(z.enum(ENABLED_DELIVERY_CHANNELS))
     .min(1)
-    .max(3)
+    .max(ENABLED_DELIVERY_CHANNELS.length)
     .refine((channels) => new Set(channels).size === channels.length, 'Delivery channels must be unique');
 
 export const listPaymentRequestsSchema = z.object({

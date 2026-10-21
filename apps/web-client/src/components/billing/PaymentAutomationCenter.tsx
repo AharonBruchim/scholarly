@@ -1,3 +1,8 @@
+import {
+  DeliveryChannel,
+  ENABLED_DELIVERY_CHANNELS,
+  isDeliveryChannelEnabled,
+} from "@scholarly/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -66,6 +71,14 @@ function formatDate(value: string): string {
 
 type SelectableDeliveryChannel = "email" | "whatsapp" | "sms";
 
+const channelLabels: Record<SelectableDeliveryChannel, string> = {
+  email: "Gmail אוטומטי",
+  whatsapp: "WhatsApp ידני",
+  sms: "SMS ידני עם קישור",
+};
+
+const whatsAppEnabled = isDeliveryChannelEnabled(DeliveryChannel.WHATSAPP);
+
 function ChannelSelector({
   value,
   onChange,
@@ -82,26 +95,16 @@ function ChannelSelector({
     <fieldset className="space-y-2">
       <legend className="text-sm font-medium text-slate-200">ערוצי שליחה</legend>
       <div className="flex flex-wrap gap-4">
-        <label className="flex items-center gap-2 text-sm text-slate-200">
-          <input
-            type="checkbox"
-            checked={value.includes("email")}
-            onChange={() => toggle("email")}
-          />
-          Gmail אוטומטי
-        </label>
-        <label className="flex items-center gap-2 text-sm text-slate-200">
-          <input
-            type="checkbox"
-            checked={value.includes("whatsapp")}
-            onChange={() => toggle("whatsapp")}
-          />
-          WhatsApp ידני
-        </label>
-        <label className="flex items-center gap-2 text-sm text-slate-200">
-          <input type="checkbox" checked={value.includes("sms")} onChange={() => toggle("sms")} />
-          SMS ידני עם קישור
-        </label>
+        {ENABLED_DELIVERY_CHANNELS.map((channel) => (
+          <label key={channel} className="flex items-center gap-2 text-sm text-slate-200">
+            <input
+              type="checkbox"
+              checked={value.includes(channel)}
+              onChange={() => toggle(channel)}
+            />
+            {channelLabels[channel]}
+          </label>
+        ))}
       </div>
     </fieldset>
   );
@@ -134,6 +137,7 @@ function ManualDeliveryActions({
   });
   const ready = new Date(delivery.scheduledAt).getTime() <= Date.now();
   if (
+    !isDeliveryChannelEnabled(delivery.channel) ||
     !["whatsapp", "sms"].includes(delivery.channel) ||
     !ready ||
     !["manual_action_required", "manual_opened"].includes(delivery.status)
@@ -297,6 +301,7 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
   const reminderTasksQuery = useQuery({
     queryKey: ["whatsapp-reminder-tasks"],
     queryFn: fetchWhatsAppReminderTasks,
+    enabled: whatsAppEnabled,
   });
   const gmailQuery = useQuery({ queryKey: ["gmail-connection"], queryFn: fetchGmailConnection });
 
@@ -858,39 +863,41 @@ export function PaymentAutomationCenter({ lessons, students }: PaymentAutomation
         </p>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>תזכורות WhatsApp ידניות</CardTitle>
-          <CardDescription>
-            בחשבון פרטי ההודעה מוכנה אוטומטית, אך נדרשת לחיצה שלך כדי לשלוח אותה.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {(reminderTasksQuery.data ?? []).map((task) => (
-            <article
-              key={task._id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-700 p-4"
-            >
-              <div>
-                <h3 className="font-semibold text-white">
-                  {task.lessonSubject} · {task.studentName}
-                </h3>
-                <p className="text-sm text-slate-300">
-                  שיעור: {formatDate(task.lessonStartTime)} · תזכורת
-                  {task.reminderKind === "thirty_hours" ? " 30 שעות לפני" : " חצי שעה לפני"}
-                </p>
-                <p className="text-xs text-slate-400">
-                  מועד פעולה: {formatDate(task.scheduledAt)} · {task.status}
-                </p>
-              </div>
-              <ManualDeliveryActions delivery={task} onChanged={() => void refreshBilling()} />
-            </article>
-          ))}
-          {reminderTasksQuery.isSuccess && reminderTasksQuery.data.length === 0 ? (
-            <p className="text-sm text-slate-300">אין כרגע תזכורות WhatsApp שממתינות לפעולה.</p>
-          ) : null}
-        </CardContent>
-      </Card>
+      {whatsAppEnabled ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>תזכורות WhatsApp ידניות</CardTitle>
+            <CardDescription>
+              בחשבון פרטי ההודעה מוכנה אוטומטית, אך נדרשת לחיצה שלך כדי לשלוח אותה.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {(reminderTasksQuery.data ?? []).map((task) => (
+              <article
+                key={task._id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-700 p-4"
+              >
+                <div>
+                  <h3 className="font-semibold text-white">
+                    {task.lessonSubject} · {task.studentName}
+                  </h3>
+                  <p className="text-sm text-slate-300">
+                    שיעור: {formatDate(task.lessonStartTime)} · תזכורת
+                    {task.reminderKind === "thirty_hours" ? " 30 שעות לפני" : " חצי שעה לפני"}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    מועד פעולה: {formatDate(task.scheduledAt)} · {task.status}
+                  </p>
+                </div>
+                <ManualDeliveryActions delivery={task} onChanged={() => void refreshBilling()} />
+              </article>
+            ))}
+            {reminderTasksQuery.isSuccess && reminderTasksQuery.data.length === 0 ? (
+              <p className="text-sm text-slate-300">אין כרגע תזכורות WhatsApp שממתינות לפעולה.</p>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>
