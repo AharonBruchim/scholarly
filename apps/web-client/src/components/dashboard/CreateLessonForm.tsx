@@ -1,6 +1,7 @@
 import type { ITeacherPreferences } from "@scholarly/shared";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 import { DualDateTimePicker } from "@/components/calendar/DualDateTimePicker";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,7 @@ export function CreateLessonForm() {
         durationMinutes: preferences ? String(preferences.defaultLessonDurationMinutes) : "",
         price: preferences ? String(preferences.defaultLessonPrice) : "",
       });
+      toast.success(t("lessonForm.createSuccess"));
     } catch {
       // The localized mutation error is rendered below.
     }
@@ -265,7 +267,9 @@ export function CreateLessonForm() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, meetingUrl: event.target.value }))
               }
-              placeholder={form.recurring ? t("lessonForm.seriesMeetingUrl") : "https://meet.google.com/..."}
+              placeholder={
+                form.recurring ? t("lessonForm.seriesMeetingUrl") : "https://meet.google.com/..."
+              }
               disabled={form.recurring}
             />
           </label>
@@ -283,11 +287,6 @@ export function CreateLessonForm() {
           {createLessonMutation.isError || createSeriesMutation.isError ? (
             <p className="text-sm text-red-400 md:col-span-2" role="alert">
               {t("lessonForm.createError")}
-            </p>
-          ) : null}
-          {createLessonMutation.isSuccess || createSeriesMutation.isSuccess ? (
-            <p className="text-sm text-emerald-300 md:col-span-2" role="status">
-              {t("lessonForm.createSuccess")}
             </p>
           ) : null}
 

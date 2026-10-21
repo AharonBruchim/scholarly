@@ -1,12 +1,13 @@
 import {
   DeliveryChannel,
   ENABLED_DELIVERY_CHANNELS,
-  isDeliveryChannelEnabled,
   type ITeacherPreferences,
   type ITeacherSubjectSetting,
+  isDeliveryChannelEnabled,
 } from "@scholarly/shared";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,6 +97,7 @@ export function TeacherAutomationSettings({ userId }: { userId: string }) {
     try {
       const profile = await updateProfileMutation.mutateAsync({ teacherPreferences: settings });
       updateProfile(profile);
+      toast.success(t("automation.saved"));
     } catch {
       // The localized mutation error is rendered below.
     }
@@ -251,11 +253,6 @@ export function TeacherAutomationSettings({ userId }: { userId: string }) {
           <div className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100">
             {t("automation.connectionRequired")}
           </div>
-          {updateProfileMutation.isSuccess ? (
-            <p role="status" className="text-sm text-emerald-300">
-              {t("automation.saved")}
-            </p>
-          ) : null}
           {profileQuery.isError || updateProfileMutation.isError ? (
             <p role="alert" className="text-sm text-red-400">
               {t("automation.saveFailed")}

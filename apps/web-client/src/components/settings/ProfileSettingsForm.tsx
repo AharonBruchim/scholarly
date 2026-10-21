@@ -1,6 +1,7 @@
 import { DeliveryChannel, isDeliveryChannelEnabled } from "@scholarly/shared";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,7 +68,12 @@ export function ProfileSettingsForm({ userId }: { userId: string }) {
           allowSMS: form.allowSMS,
         },
       },
-      { onSuccess: (profile) => updateProfile(profile) },
+      {
+        onSuccess: (profile) => {
+          updateProfile(profile);
+          toast.success(t("profile.saved"));
+        },
+      },
     );
   };
 
@@ -157,11 +163,6 @@ export function ProfileSettingsForm({ userId }: { userId: string }) {
           {updateProfileMutation.isError ? (
             <p className="text-sm text-red-400" role="alert">
               {t("profile.saveFailed")}
-            </p>
-          ) : null}
-          {updateProfileMutation.isSuccess ? (
-            <p className="text-sm text-emerald-400" role="status">
-              {t("profile.saved")}
             </p>
           ) : null}
 

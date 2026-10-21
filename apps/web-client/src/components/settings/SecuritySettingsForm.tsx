@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,10 @@ export function SecuritySettingsForm({ userId }: { userId: string }) {
     }
     setValidationError(null);
     changePasswordMutation.mutate(passwordForm, {
-      onSuccess: () => setPasswordForm(emptyPasswordForm),
+      onSuccess: () => {
+        setPasswordForm(emptyPasswordForm);
+        toast.success(t("profile.passwordSaved"));
+      },
     });
   };
 
@@ -71,11 +75,6 @@ export function SecuritySettingsForm({ userId }: { userId: string }) {
           {validationError || changePasswordMutation.isError ? (
             <p className="text-sm text-red-400" role="alert">
               {validationError ?? t("profile.passwordSaveFailed")}
-            </p>
-          ) : null}
-          {changePasswordMutation.isSuccess ? (
-            <p className="text-sm text-emerald-400" role="status">
-              {t("profile.passwordSaved")}
             </p>
           ) : null}
 

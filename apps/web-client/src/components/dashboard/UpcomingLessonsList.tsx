@@ -2,6 +2,8 @@ import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, List, Video } fro
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { EmptyState } from "@/components/common/EmptyState";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -270,9 +272,7 @@ export function UpcomingLessonsList({
       </CardHeader>
       <CardContent>
         {upcomingLessons.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-700 px-4 py-8 text-center text-sm text-slate-300">
-            {emptyMessage ?? t("lessons.empty")}
-          </p>
+          <EmptyState icon={CalendarDays} title={emptyMessage ?? t("lessons.empty")} />
         ) : view === "list" ? (
           <div className="space-y-5">
             {[...lessonsByDay.entries()].map(([dayKey, dayLessons]) => (

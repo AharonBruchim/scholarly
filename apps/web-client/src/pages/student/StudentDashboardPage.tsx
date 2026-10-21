@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2, History } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -7,7 +8,8 @@ import {
   type PaymentClaimMode,
   StudentPaymentClaimForm,
 } from "@/components/billing/StudentPaymentClaimForm";
-import { Spinner } from "@/components/common/Spinner";
+import { DashboardSkeleton } from "@/components/common/DashboardSkeleton";
+import { EmptyState } from "@/components/common/EmptyState";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { LessonHistory } from "@/components/dashboard/LessonHistory";
@@ -209,9 +211,15 @@ function StudentPaymentRequests({ settled }: { settled: boolean }) {
           </article>
         ))}
         {requestsQuery.isSuccess && visibleRequests.length === 0 ? (
-          <p className="text-sm text-slate-300">
-            {settled ? "עדיין אין תשלומים שהסתיימו." : "אין כרגע דרישות תשלום פתוחות."}
-          </p>
+          <EmptyState
+            icon={settled ? History : CheckCircle2}
+            title={settled ? "עדיין אין תשלומים שהסתיימו" : "אין דרישות תשלום פתוחות"}
+            description={
+              settled
+                ? "תשלומים שאושרו יופיעו כאן."
+                : "כשהמורה ישלח/תשלח דרישת תשלום, היא תופיע כאן."
+            }
+          />
         ) : null}
         {requestsQuery.isError ? (
           <p role="alert" className="text-sm text-red-400">
@@ -257,7 +265,7 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {lessonsQuery.isPending ? <Spinner compact /> : null}
+      {lessonsQuery.isPending ? <DashboardSkeleton /> : null}
       {lessonsQuery.isError ? (
         <LessonDataError onRetry={() => void lessonsQuery.refetch()} />
       ) : null}

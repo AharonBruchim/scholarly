@@ -34,8 +34,8 @@ export default function App() {
         pauseOnHover={false}
         pauseOnFocusLoss={false}
         draggable={false}
-        theme="colored"
-        hideProgressBar={false}
+        theme="dark"
+        hideProgressBar
         rtl={i18n.dir() === "rtl"}
       />
     </>

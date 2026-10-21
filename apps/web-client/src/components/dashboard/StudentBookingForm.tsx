@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,7 +59,11 @@ export function StudentBookingForm({ teacher }: { teacher: DirectoryUser }) {
                     type="button"
                     size="sm"
                     disabled={bookMutation.isPending}
-                    onClick={() => bookMutation.mutate(lesson._id)}
+                    onClick={() =>
+                      bookMutation.mutate(lesson._id, {
+                        onSuccess: () => toast.success(t("booking.success")),
+                      })
+                    }
                   >
                     {t("booking.book")}
                   </Button>
@@ -70,11 +75,6 @@ export function StudentBookingForm({ teacher }: { teacher: DirectoryUser }) {
         {bookMutation.isError ? (
           <p role="alert" className="mt-3 text-sm text-red-400">
             {t("booking.failed")}
-          </p>
-        ) : null}
-        {bookMutation.isSuccess ? (
-          <p role="status" className="mt-3 text-sm text-emerald-300">
-            {t("booking.success")}
           </p>
         ) : null}
       </CardContent>

@@ -4,12 +4,14 @@ import {
   isDeliveryChannelEnabled,
 } from "@scholarly/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, Plus, RefreshCw } from "lucide-react";
+import { CheckCircle2, Mail, Plus, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import { DeliveryBadge } from "@/components/billing/DeliveryBadge";
 import { PaymentTimeline } from "@/components/billing/PaymentTimeline";
 import { ScheduleField } from "@/components/calendar/ScheduleField";
+import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -292,7 +294,6 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
   const [messageBody, setMessageBody] = useState("");
   const [messageChannels, setMessageChannels] = useState<SelectableDeliveryChannel[]>(["email"]);
   const [messageSchedule, setMessageSchedule] = useState("");
-  const [feedback, setFeedback] = useState("");
   const [openForm, setOpenForm] = useState<"payment" | "message" | null>(null);
 
   const requestsQuery = useQuery({
@@ -383,7 +384,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
         notes: paymentNotes || undefined,
       }),
     onSuccess: async () => {
-      setFeedback(
+      toast.success(
         paymentSchedule
           ? "דרישת התשלום נשמרה ותישלח במועד שנבחר."
           : "דרישת התשלום הופקה ונכנסה לשליחה.",
@@ -395,7 +396,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
       await refreshBilling();
     },
     onError: (error) =>
-      setFeedback(error instanceof Error ? error.message : "יצירת דרישת התשלום נכשלה."),
+      toast.error(error instanceof Error ? error.message : "יצירת דרישת התשלום נכשלה."),
   });
 
   const messageMutation = useMutation({
@@ -408,7 +409,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
         scheduledAt: toIso(messageSchedule),
       }),
     onSuccess: async (messages) => {
-      setFeedback(
+      toast.success(
         messageSchedule
           ? `${messages.length} הודעות נשמרו ויישלחו במועד שנבחר.`
           : `${messages.length} הודעות נכנסו לשליחה.`,
@@ -419,7 +420,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
       setMessageBody("");
       await refreshBilling();
     },
-    onError: (error) => setFeedback(error instanceof Error ? error.message : "שמירת ההודעה נכשלה."),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "שמירת ההודעה נכשלה."),
   });
 
   const cancelRequestMutation = useMutation({
@@ -525,15 +526,6 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
         </div>
       ) : null}
 
-      {view === "automation" && feedback ? (
-        <p
-          role="status"
-          className="rounded-lg border border-sky-700 bg-sky-950/50 p-3 text-sm text-sky-200"
-        >
-          {feedback}
-        </p>
-      ) : null}
-
       {view === "automation" && pendingApprovalRequests.length > 0 ? (
         <Card className="border-amber-500/40">
           <CardHeader>
@@ -571,9 +563,11 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
             </CardHeader>
             <CardContent className="space-y-3">
               {openRequests.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-slate-700 px-4 py-6 text-center text-sm text-slate-300">
-                  אין דרישות פתוחות. כל התשלומים הוסדרו.
-                </p>
+                <EmptyState
+                  icon={CheckCircle2}
+                  title="אין דרישות פתוחות"
+                  description="כל התשלומים הוסדרו. דרישה חדשה תופיע כאן אחרי שתישלח."
+                />
               ) : (
                 <ul className="divide-y divide-slate-800 overflow-hidden rounded-lg border border-slate-800 bg-slate-950/40">
                   {openRequests.map((request) => (

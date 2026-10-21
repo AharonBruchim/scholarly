@@ -1,5 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Mail } from "lucide-react";
 import { useEffect, useState } from "react";
+import { EmptyState } from "@/components/common/EmptyState";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,7 +115,11 @@ export function StudentLessonMessages({ teachers }: { teachers: DirectoryUser[] 
           </article>
         ))}
         {messagesQuery.isSuccess && messages.length === 0 ? (
-          <p className="text-sm text-slate-300">עדיין לא התקבלו הודעות.</p>
+          <EmptyState
+            icon={Mail}
+            title="עדיין לא התקבלו הודעות"
+            description="הודעות שהמורה שולח/ת על שיעורים יופיעו כאן."
+          />
         ) : null}
         {messagesQuery.isError ? (
           <p role="alert" className="text-sm text-red-400">

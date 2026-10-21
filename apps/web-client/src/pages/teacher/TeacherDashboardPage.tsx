@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 import { PaymentAutomationCenter } from "@/components/billing/PaymentAutomationCenter";
-import { Spinner } from "@/components/common/Spinner";
+import { DashboardSkeleton } from "@/components/common/DashboardSkeleton";
 import { CreateLessonForm } from "@/components/dashboard/CreateLessonForm";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
@@ -36,7 +36,7 @@ export default function TeacherDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {lessonsQuery.isPending ? <Spinner compact /> : null}
+      {lessonsQuery.isPending ? <DashboardSkeleton /> : null}
       {lessonsQuery.isError ? (
         <LessonDataError onRetry={() => void lessonsQuery.refetch()} />
       ) : null}

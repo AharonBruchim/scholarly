@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { Mail, Search } from "lucide-react";
+import { History, Mail, Search } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-
 import { DeliveryBadge } from "@/components/billing/DeliveryBadge";
+import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCompleteLesson } from "@/hooks/useDirectory";
@@ -207,7 +207,7 @@ export function LessonHistory({
           </div>
         ) : null}
         {historyLessons.length === 0 ? (
-          <p className="text-sm text-slate-300">{t("lessons.historyEmpty")}</p>
+          <EmptyState icon={History} title={t("lessons.historyEmpty")} />
         ) : (
           <>
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
