@@ -3,14 +3,15 @@ import { Navigate } from "react-router-dom";
 import { PaymentAutomationCenter } from "@/components/billing/PaymentAutomationCenter";
 import { Spinner } from "@/components/common/Spinner";
 import { CreateLessonForm } from "@/components/dashboard/CreateLessonForm";
+import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { LessonHistory } from "@/components/dashboard/LessonHistory";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/context/auth-context-core";
 import { useDashboardLessons } from "@/hooks/useDashboard";
 import { useDashboardRoute } from "@/hooks/useDashboardRoute";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
-import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
+import { formatLessonDayTime, getLessonDashboardStats } from "@/lib/dashboard";
 import {
   type TeacherHistorySection,
   type TeacherTab,
@@ -20,6 +21,7 @@ import {
 
 export default function TeacherDashboardPage() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const lessonsQuery = useDashboardLessons();
   const studentsQuery = useDirectoryUsers("student");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
@@ -34,15 +36,6 @@ export default function TeacherDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-sky-400">
-            {t("dashboard.teacherLabel")}
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">{t("dashboard.teacherTitle")}</h1>
-        </div>
-      </div>
-
       {lessonsQuery.isPending ? <Spinner compact /> : null}
       {lessonsQuery.isError ? (
         <LessonDataError onRetry={() => void lessonsQuery.refetch()} />
@@ -50,48 +43,26 @@ export default function TeacherDashboardPage() {
 
       {lessonsQuery.isSuccess ? (
         <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("dashboard.scheduledLessons")}</CardTitle>
-                <CardDescription>{t("dashboard.scheduledDescription")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-semibold text-white">{stats.upcomingLessonCount}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("dashboard.students")}</CardTitle>
-                <CardDescription>{t("dashboard.studentsDescription")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-semibold text-white">{stats.studentCount}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("dashboard.nextLesson")}</CardTitle>
-                <CardDescription>
-                  {stats.nextLesson
-                    ? t("dashboard.nextLessonWithSubject", {
-                        subject: stats.nextLesson.subject,
-                        date: formatLessonDateTime(stats.nextLesson.startTime, i18n.language),
-                      })
-                    : t("dashboard.noUpcomingLesson")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xl font-semibold text-white">
-                  {stats.nextLesson
-                    ? formatLessonDateTime(stats.nextLesson.startTime, i18n.language)
-                    : t("common.none")}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          {activeTab === "lessons" ? (
+            <DashboardOverview
+              greeting={t("dashboard.greeting", { name: user?.firstName ?? "" })}
+              stats={[
+                {
+                  label: t("dashboard.scheduledLessons"),
+                  value: String(stats.upcomingLessonCount),
+                },
+                { label: t("dashboard.students"), value: String(stats.studentCount) },
+                {
+                  label: t("dashboard.nextLesson"),
+                  value: stats.nextLesson
+                    ? formatLessonDayTime(stats.nextLesson.startTime, i18n.language)
+                    : t("dashboard.noUpcomingLesson"),
+                  ...(stats.nextLesson ? { hint: stats.nextLesson.subject } : {}),
+                  wide: true,
+                },
+              ]}
+            />
+          ) : null}
 
           <div className="space-y-5">
             {activeTab === "lessons" ? (

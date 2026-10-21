@@ -8,18 +8,20 @@ import {
   StudentPaymentClaimForm,
 } from "@/components/billing/StudentPaymentClaimForm";
 import { Spinner } from "@/components/common/Spinner";
+import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { LessonHistory } from "@/components/dashboard/LessonHistory";
-import { StudentLessonMessages } from "@/components/dashboard/StudentLessonMessages";
 import { StudentBookingForm } from "@/components/dashboard/StudentBookingForm";
+import { StudentLessonMessages } from "@/components/dashboard/StudentLessonMessages";
 import { TeacherDirectory } from "@/components/dashboard/TeacherDirectory";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/context/auth-context-core";
 import { useDashboardLessons } from "@/hooks/useDashboard";
 import { useDashboardRoute } from "@/hooks/useDashboardRoute";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
-import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
+import { formatLessonDayTime, getLessonDashboardStats } from "@/lib/dashboard";
 import {
   type StudentHistorySection,
   type StudentTab,
@@ -223,6 +225,7 @@ function StudentPaymentRequests({ settled }: { settled: boolean }) {
 
 export default function StudentDashboardPage() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const lessonsQuery = useDashboardLessons();
   const teachersQuery = useDirectoryUsers("teacher");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
@@ -254,15 +257,6 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-emerald-400">
-            {t("dashboard.studentLabel")}
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">{t("dashboard.studentTitle")}</h1>
-        </div>
-      </div>
-
       {lessonsQuery.isPending ? <Spinner compact /> : null}
       {lessonsQuery.isError ? (
         <LessonDataError onRetry={() => void lessonsQuery.refetch()} />
@@ -270,48 +264,26 @@ export default function StudentDashboardPage() {
 
       {lessonsQuery.isSuccess ? (
         <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("dashboard.subjects")}</CardTitle>
-                <CardDescription>{t("dashboard.subjectsDescription")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-semibold text-white">{stats.subjectCount}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("dashboard.scheduledLessons")}</CardTitle>
-                <CardDescription>{t("dashboard.scheduledDescription")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-semibold text-white">{stats.upcomingLessonCount}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("dashboard.nextLesson")}</CardTitle>
-                <CardDescription>
-                  {stats.nextLesson
-                    ? t("dashboard.nextLessonWithSubject", {
-                        subject: stats.nextLesson.subject,
-                        date: formatLessonDateTime(stats.nextLesson.startTime, i18n.language),
-                      })
-                    : t("dashboard.noUpcomingLesson")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xl font-semibold text-white">
-                  {stats.nextLesson
-                    ? formatLessonDateTime(stats.nextLesson.startTime, i18n.language)
-                    : t("common.none")}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          {activeTab === "lessons" ? (
+            <DashboardOverview
+              greeting={t("dashboard.greeting", { name: user?.firstName ?? "" })}
+              stats={[
+                {
+                  label: t("dashboard.scheduledLessons"),
+                  value: String(stats.upcomingLessonCount),
+                },
+                { label: t("dashboard.subjects"), value: String(stats.subjectCount) },
+                {
+                  label: t("dashboard.nextLesson"),
+                  value: stats.nextLesson
+                    ? formatLessonDayTime(stats.nextLesson.startTime, i18n.language)
+                    : t("dashboard.noUpcomingLesson"),
+                  ...(stats.nextLesson ? { hint: stats.nextLesson.subject } : {}),
+                  wide: true,
+                },
+              ]}
+            />
+          ) : null}
 
           <div className="space-y-5">
             {activeTab === "lessons" ? (
