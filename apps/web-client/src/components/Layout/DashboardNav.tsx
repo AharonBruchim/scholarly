@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useLocation } from "react-router-dom";
 
+import { useNavBadges } from "@/hooks/useNavBadges";
 import {
   type DashboardRole,
   getDashboardNavItems,
@@ -27,6 +28,17 @@ function mobileLinkClassName({ isActive }: { isActive: boolean }): string {
   return cn(
     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
     isActive ? "bg-sky-500/15 text-sky-300" : "text-slate-300 hover:bg-slate-800 hover:text-white",
+  );
+}
+
+function NavBadge({ count }: { count: number | undefined }) {
+  const { t } = useTranslation();
+  if (!count) return null;
+  return (
+    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-semibold text-slate-950">
+      {count}
+      <span className="sr-only"> {t("common.pendingItems")}</span>
+    </span>
   );
 }
 
@@ -97,6 +109,7 @@ function DesktopDropdown({ item }: { item: IDashboardNavItem }) {
 
 export function DesktopDashboardNav({ role }: { role: DashboardRole }) {
   const { t } = useTranslation();
+  const badges = useNavBadges(role);
   return (
     <nav aria-label={t("common.mainNavigation")} className="hidden items-center md:flex">
       {getDashboardNavItems(role).map((item) => {
@@ -110,6 +123,7 @@ export function DesktopDashboardNav({ role }: { role: DashboardRole }) {
           >
             <Icon className="h-4 w-4" aria-hidden="true" />
             {t(item.labelKey)}
+            <NavBadge count={badges[item.to]} />
           </NavLink>
         );
       })}
@@ -119,6 +133,8 @@ export function DesktopDashboardNav({ role }: { role: DashboardRole }) {
 
 export function MobileDashboardNav({ role }: { role: DashboardRole }) {
   const { t } = useTranslation();
+  const badges = useNavBadges(role);
+  const totalBadgeCount = Object.values(badges).reduce((total, count) => total + count, 0);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const closeMenu = () => setOpen(false);
@@ -132,13 +148,19 @@ export function MobileDashboardNav({ role }: { role: DashboardRole }) {
         aria-expanded={open}
         aria-label={t("common.mainNavigation")}
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-slate-300 hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-slate-300 hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
       >
         {open ? (
           <X className="h-5 w-5" aria-hidden="true" />
         ) : (
           <Menu className="h-5 w-5" aria-hidden="true" />
         )}
+        {totalBadgeCount > 0 ? (
+          <span
+            className="absolute end-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-amber-400"
+            aria-hidden="true"
+          />
+        ) : null}
       </button>
       {open ? (
         <nav
@@ -174,6 +196,7 @@ export function MobileDashboardNav({ role }: { role: DashboardRole }) {
                     <NavLink to={item.to} onClick={closeMenu} className={mobileLinkClassName}>
                       <Icon className="h-4 w-4" aria-hidden="true" />
                       {t(item.labelKey)}
+                      <NavBadge count={badges[item.to]} />
                     </NavLink>
                   )}
                 </li>

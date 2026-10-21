@@ -86,10 +86,16 @@ async function showProof(paymentRequestId: string, proofId: string) {
   }
 }
 
-export function PaymentTimeline({ request }: { request: PaymentRequestRecord }) {
+export function PaymentTimeline({
+  request,
+  defaultOpen = false,
+}: {
+  request: PaymentRequestRecord;
+  defaultOpen?: boolean;
+}) {
   const entries = buildTimeline(request);
   return (
-    <details className="rounded-md border border-slate-800 bg-slate-950/40">
+    <details open={defaultOpen} className="rounded-md border border-slate-800 bg-slate-950/40">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:text-white">
         <History className="h-3.5 w-3.5" aria-hidden="true" />
         יומן פעולות ({entries.length})

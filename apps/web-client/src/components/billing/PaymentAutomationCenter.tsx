@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { needsTeacherAttention } from "@/lib/payment-attention";
 import {
   cancelLessonMessage,
   cancelPaymentRequest,
@@ -351,6 +352,8 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
       (left, right) => new Date(left.startTime).getTime() - new Date(right.startTime).getTime(),
     );
 
+  const pendingApprovalRequests = (requestsQuery.data ?? []).filter(needsTeacherAttention);
+
   const refreshBilling = async () => {
     await Promise.all(
       billingQueryKeys.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
@@ -479,6 +482,34 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
               src={pdfPreview.url}
               className="h-[70vh] w-full rounded-md border border-slate-700 bg-white"
             />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {view === "automation" && pendingApprovalRequests.length > 0 ? (
+        <Card className="border-amber-500/40">
+          <CardHeader>
+            <CardTitle>ממתינות לאישורך ({pendingApprovalRequests.length})</CardTitle>
+            <CardDescription>
+              תלמידים דיווחו על תשלום או פתחו מחלוקת. בדוק/י את הפרטים ועדכן/י סטטוס.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {pendingApprovalRequests.map((request) => (
+              <article
+                key={request._id}
+                className="space-y-3 rounded-xl border border-slate-700 p-4"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="font-semibold text-white">
+                    {studentsById.get(request.studentId) ?? "תלמידה"} · {request.requestNumber}
+                  </h3>
+                  <p className="text-sm text-slate-300">{request.total.toFixed(2)} ₪</p>
+                </div>
+                <PaymentTimeline request={request} defaultOpen />
+                <PaymentStatusActions request={request} onChanged={() => void refreshBilling()} />
+              </article>
+            ))}
           </CardContent>
         </Card>
       ) : null}

@@ -10,6 +10,7 @@ import {
     BillingUserModel,
     DeliveryOutboxModel,
     LessonMessageModel,
+    type PaymentEvent,
     type PaymentLineItem,
     type PaymentMethod,
     PaymentRequestModel,
@@ -17,6 +18,7 @@ import {
 } from './model';
 import { PaymentProofManager } from './payment-proofs';
 import { generateLessonMessagePdf, generatePaymentRequestPdf } from './pdf';
+import { notifyTeacherOfStudentPaymentUpdate } from './teacher-notifications';
 import {
     lessonMessageDocumentUrl,
     manualDeliveryOpenUrl,
@@ -777,7 +779,7 @@ export const AutomationManager = {
         if (actor.role === UsersRoles.TEACHER) request.paymentNote = input.paymentNote;
         request.paymentUpdatedAt = updatedAt;
         request.paymentUpdatedBy = actor.sub;
-        request.paymentEvents.push({
+        const event: PaymentEvent = {
             paymentStatus: input.paymentStatus,
             note: input.paymentNote,
             paymentMethod: input.paymentMethod,
@@ -786,8 +788,10 @@ export const AutomationManager = {
             actorId: actor.sub,
             actorRole: actor.role === UsersRoles.TEACHER ? 'teacher' : 'student',
             createdAt: updatedAt,
-        });
+        };
+        request.paymentEvents.push(event);
         await request.save();
+        if (event.actorRole === 'student') await notifyTeacherOfStudentPaymentUpdate(request, event);
         return request;
     },
 

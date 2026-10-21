@@ -14,6 +14,7 @@ const resources = {
       common: {
         brand: "Scholarly",
         mainNavigation: "ניווט ראשי",
+        pendingItems: "ממתינים לטיפול",
         login: "התחברות",
         register: "הרשמה",
         logout: "התנתקות",
@@ -293,6 +294,7 @@ const resources = {
       common: {
         brand: "Scholarly",
         mainNavigation: "Main navigation",
+        pendingItems: "waiting for action",
         login: "Login",
         register: "Register",
         logout: "Logout",
