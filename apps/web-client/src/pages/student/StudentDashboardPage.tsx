@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate } from "react-router-dom";
+import { PaymentTimeline } from "@/components/billing/PaymentTimeline";
 import { Spinner } from "@/components/common/Spinner";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { LessonHistory } from "@/components/dashboard/LessonHistory";
@@ -177,6 +178,7 @@ function StudentPaymentRequests({ settled }: { settled: boolean }) {
                 </li>
               ))}
             </ul>
+            <PaymentTimeline request={request} />
           </article>
         ))}
         {requestsQuery.isSuccess && visibleRequests.length === 0 ? (

@@ -284,6 +284,14 @@ export interface PaymentRequestLine {
   kind: "completed" | "late_cancellation" | "custom";
 }
 
+export interface PaymentEventRecord {
+  paymentStatus: "unpaid" | "claimed_paid" | "paid" | "disputed" | "waived";
+  note?: string;
+  actorId: string;
+  actorRole: "teacher" | "student";
+  createdAt: string;
+}
+
 export interface PaymentRequestRecord {
   _id: string;
   teacherId: string;
@@ -302,7 +310,8 @@ export interface PaymentRequestRecord {
     | "delivered"
     | "failed"
     | "cancelled";
-  paymentStatus: "unpaid" | "claimed_paid" | "paid" | "disputed" | "waived";
+  paymentStatus: PaymentEventRecord["paymentStatus"];
+  paymentEvents?: PaymentEventRecord[];
   paymentUpdatedAt?: string;
   paymentUpdatedBy?: string;
   paymentNote?: string;

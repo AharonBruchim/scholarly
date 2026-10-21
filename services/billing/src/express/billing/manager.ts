@@ -767,10 +767,18 @@ export const AutomationManager = {
         if (!request || request.status === 'cancelled') throw new NotFoundError('Payment request not found');
         const studentAllowed = ['claimed_paid', 'disputed'].includes(input.paymentStatus);
         if (actor.role === UsersRoles.STUDENT && !studentAllowed) throw new ForbiddenError();
+        const updatedAt = new Date();
         request.paymentStatus = input.paymentStatus;
-        request.paymentNote = input.paymentNote;
-        request.paymentUpdatedAt = new Date();
+        if (actor.role === UsersRoles.TEACHER) request.paymentNote = input.paymentNote;
+        request.paymentUpdatedAt = updatedAt;
         request.paymentUpdatedBy = actor.sub;
+        request.paymentEvents.push({
+            paymentStatus: input.paymentStatus,
+            note: input.paymentNote,
+            actorId: actor.sub,
+            actorRole: actor.role === UsersRoles.TEACHER ? 'teacher' : 'student',
+            createdAt: updatedAt,
+        });
         await request.save();
         return request;
     },

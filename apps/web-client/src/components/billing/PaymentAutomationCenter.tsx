@@ -6,6 +6,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { DeliveryBadge } from "@/components/billing/DeliveryBadge";
+import { PaymentTimeline } from "@/components/billing/PaymentTimeline";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -992,6 +993,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
                     ))}
                   </ul>
                   <PaymentStatusActions request={request} onChanged={() => void refreshBilling()} />
+                  <PaymentTimeline request={request} />
                   {request.deliveries.map((delivery) => (
                     <div
                       key={delivery._id}

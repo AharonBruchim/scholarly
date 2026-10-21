@@ -39,6 +39,18 @@ export interface PaymentLineItem {
     kind: 'completed' | 'late_cancellation' | 'custom';
 }
 
+export const PAYMENT_STATUSES = ['unpaid', 'claimed_paid', 'paid', 'disputed', 'waived'] as const;
+
+export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+
+export interface PaymentEvent {
+    paymentStatus: PaymentStatus;
+    note?: string;
+    actorId: string;
+    actorRole: 'teacher' | 'student';
+    createdAt: Date;
+}
+
 export interface PaymentRequestRecord {
     teacherId: string;
     studentId: string;
@@ -50,7 +62,8 @@ export interface PaymentRequestRecord {
     total: number;
     channels: DeliveryChannel[];
     status: 'scheduled' | 'pending_delivery' | 'partially_delivered' | 'delivered' | 'failed' | 'cancelled';
-    paymentStatus: 'unpaid' | 'claimed_paid' | 'paid' | 'disputed' | 'waived';
+    paymentStatus: PaymentStatus;
+    paymentEvents: PaymentEvent[];
     paymentUpdatedAt?: Date;
     paymentUpdatedBy?: string;
     paymentNote?: string;
@@ -60,6 +73,17 @@ export interface PaymentRequestRecord {
     generatedAt: Date;
     cancelledAt?: Date;
 }
+
+const paymentEventSchema = new mongoose.Schema<PaymentEvent>(
+    {
+        paymentStatus: { type: String, enum: PAYMENT_STATUSES, required: true },
+        note: { type: String, maxlength: 1000 },
+        actorId: { type: String, required: true },
+        actorRole: { type: String, enum: ['teacher', 'student'], required: true },
+        createdAt: { type: Date, required: true },
+    },
+    { _id: false },
+);
 
 const paymentRequestSchema = new mongoose.Schema<PaymentRequestRecord>(
     {
@@ -94,10 +118,11 @@ const paymentRequestSchema = new mongoose.Schema<PaymentRequestRecord>(
         },
         paymentStatus: {
             type: String,
-            enum: ['unpaid', 'claimed_paid', 'paid', 'disputed', 'waived'],
+            enum: PAYMENT_STATUSES,
             default: 'unpaid',
             required: true,
         },
+        paymentEvents: { type: [paymentEventSchema], default: [] },
         paymentUpdatedAt: { type: Date },
         paymentUpdatedBy: { type: String },
         paymentNote: { type: String, maxlength: 1000 },
