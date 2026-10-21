@@ -3,12 +3,13 @@ import {
   CreditCard,
   History,
   type LucideIcon,
+  Mail,
   PlusCircle,
   Search,
 } from "lucide-react";
 
 export const teacherTabIds = ["lessons", "create", "payments", "history"] as const;
-export const studentTabIds = ["lessons", "book", "payments", "history"] as const;
+export const studentTabIds = ["lessons", "book", "payments", "messages", "history"] as const;
 export const teacherHistorySectionIds = ["lessons", "payments", "messages"] as const;
 export const studentHistorySectionIds = ["lessons", "payments"] as const;
 
@@ -33,6 +34,7 @@ const tabIcons: Record<TeacherTab | StudentTab, LucideIcon> = {
   create: PlusCircle,
   book: Search,
   payments: CreditCard,
+  messages: Mail,
   history: History,
 };
 

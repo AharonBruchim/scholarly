@@ -332,6 +332,8 @@ export interface PaymentRequestRecord {
 
 export interface LessonMessageRecord {
   _id: string;
+  teacherId: string;
+  studentViewedAt?: string;
   studentId: string;
   lessonId?: string;
   lessonIds?: string[];
@@ -459,6 +461,10 @@ export async function createLessonMessage(input: {
 
 export async function cancelLessonMessage(id: string): Promise<void> {
   await apiClient.post(`${billingPath}/lesson-messages/${id}/cancel`, {});
+}
+
+export async function markLessonMessagesViewed(): Promise<void> {
+  await apiClient.post(`${billingPath}/lesson-messages/viewed`, {});
 }
 
 export async function openLessonMessagePdf(id: string): Promise<string> {

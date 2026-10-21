@@ -55,6 +55,12 @@ billingRouter.get(
     wrapController(AutomationController.listLessonMessages),
 );
 billingRouter.post(
+    '/lesson-messages/viewed',
+    authenticateJWT,
+    validateRequest(markPaymentRequestsViewedSchema),
+    wrapController(AutomationController.markLessonMessagesViewed),
+);
+billingRouter.post(
     '/lesson-messages',
     authenticateJWT,
     validateRequest(createLessonMessageSchema),

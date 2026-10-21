@@ -10,6 +10,7 @@ import {
 import { Spinner } from "@/components/common/Spinner";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { LessonHistory } from "@/components/dashboard/LessonHistory";
+import { StudentLessonMessages } from "@/components/dashboard/StudentLessonMessages";
 import { StudentBookingForm } from "@/components/dashboard/StudentBookingForm";
 import { TeacherDirectory } from "@/components/dashboard/TeacherDirectory";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";
@@ -359,6 +360,9 @@ export default function StudentDashboardPage() {
               </div>
             ) : null}
             {activeTab === "payments" ? <StudentPaymentRequests settled={false} /> : null}
+            {activeTab === "messages" ? (
+              <StudentLessonMessages teachers={teachersQuery.data ?? []} />
+            ) : null}
             {activeTab === "history" && activeSection ? (
               <>
                 {activeSection === "lessons" ? (

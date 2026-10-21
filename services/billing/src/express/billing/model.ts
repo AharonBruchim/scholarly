@@ -272,6 +272,7 @@ export interface LessonMessageRecord {
     scheduledAt: Date;
     status: 'scheduled' | 'pending_delivery' | 'partially_delivered' | 'delivered' | 'failed' | 'cancelled';
     cancelledAt?: Date;
+    studentViewedAt?: Date;
 }
 
 const lessonMessageSchema = new mongoose.Schema<LessonMessageRecord>(
@@ -297,6 +298,7 @@ const lessonMessageSchema = new mongoose.Schema<LessonMessageRecord>(
             required: true,
         },
         cancelledAt: { type: Date },
+        studentViewedAt: { type: Date },
     },
     { timestamps: true },
 );

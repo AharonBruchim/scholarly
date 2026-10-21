@@ -699,9 +699,25 @@ export const AutomationManager = {
     },
 
     listLessonMessages: async (actor: AuthenticatedUser) => {
+        if (actor.role === UsersRoles.STUDENT) {
+            const records = await LessonMessageModel.find({ studentId: actor.sub, status: { $nin: STUDENT_HIDDEN_REQUEST_STATUSES } })
+                .select('-pdfData')
+                .sort({ scheduledAt: -1 })
+                .lean();
+            return records.map((record) => ({ ...record, deliveries: [] }));
+        }
         assertTeacher(actor);
         const records = await LessonMessageModel.find({ teacherId: actor.sub }).sort({ scheduledAt: -1 }).lean();
         return addDeliveries(records, 'lesson_message');
+    },
+
+    markLessonMessagesViewed: async (actor: AuthenticatedUser) => {
+        if (actor.role !== UsersRoles.STUDENT) throw new ForbiddenError();
+        const result = await LessonMessageModel.updateMany(
+            { studentId: actor.sub, studentViewedAt: { $exists: false }, status: { $nin: STUDENT_HIDDEN_REQUEST_STATUSES } },
+            { $set: { studentViewedAt: new Date() } },
+        );
+        return { updated: result.modifiedCount };
     },
 
     listWhatsAppReminderTasks: async (actor: AuthenticatedUser) => {

@@ -80,6 +80,9 @@ export const AutomationController = {
     listLessonMessages: async (req: TypedRequest<typeof listLessonMessagesSchema>, res: Response) => {
         res.json(await AutomationManager.listLessonMessages(actorFrom(req)));
     },
+    markLessonMessagesViewed: async (req: TypedRequest<typeof markPaymentRequestsViewedSchema>, res: Response) => {
+        res.json(await AutomationManager.markLessonMessagesViewed(actorFrom(req)));
+    },
     whatsappReminderTasks: async (req: TypedRequest<typeof listLessonMessagesSchema>, res: Response) => {
         res.json(await AutomationManager.listWhatsAppReminderTasks(actorFrom(req)));
     },
