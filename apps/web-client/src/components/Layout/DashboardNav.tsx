@@ -1,8 +1,9 @@
 import { ChevronDown, Menu, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useLocation } from "react-router-dom";
 
+import { useCloseOnOutsideInteraction } from "@/hooks/useCloseOnOutsideInteraction";
 import { useNavBadges } from "@/hooks/useNavBadges";
 import {
   type DashboardRole,
@@ -40,28 +41,6 @@ function NavBadge({ count }: { count: number | undefined }) {
       <span className="sr-only"> {t("common.pendingItems")}</span>
     </span>
   );
-}
-
-function useCloseOnOutsideInteraction(
-  open: boolean,
-  containerRef: React.RefObject<HTMLElement | null>,
-  setOpen: (open: boolean) => void,
-) {
-  useEffect(() => {
-    if (!open) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open, containerRef, setOpen]);
 }
 
 function DesktopDropdown({ item }: { item: IDashboardNavItem }) {
