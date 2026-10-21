@@ -3,44 +3,20 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
+import { InitialsAvatar } from "@/components/common/InitialsAvatar";
 import { useCloseOnOutsideInteraction } from "@/hooks/useCloseOnOutsideInteraction";
 import { cn } from "@/lib/utils";
 import type { AuthUser } from "@/types/auth";
 
-const avatarColors = [
-  "bg-sky-500",
-  "bg-emerald-500",
-  "bg-violet-500",
-  "bg-amber-500",
-  "bg-rose-500",
-  "bg-teal-500",
-  "bg-indigo-500",
-  "bg-fuchsia-500",
-];
-
-function initialsOf(user: AuthUser): string {
-  const first = user.firstName.trim().charAt(0);
-  const last = user.lastName.trim().charAt(0);
-  return `${first}${last}`.toUpperCase() || user.email.charAt(0).toUpperCase();
-}
-
-function avatarColorOf(seed: string): string {
-  const hash = [...seed].reduce((total, character) => total + character.charCodeAt(0), 0);
-  return avatarColors[hash % avatarColors.length] ?? "bg-sky-500";
-}
-
 export function UserAvatar({ user, className }: { user: AuthUser; className?: string }) {
   return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white",
-        avatarColorOf(user.id || user.email),
-        className,
-      )}
-    >
-      {initialsOf(user)}
-    </span>
+    <InitialsAvatar
+      seed={user.id || user.email}
+      firstName={user.firstName}
+      lastName={user.lastName}
+      fallback={user.email.charAt(0).toUpperCase()}
+      {...(className ? { className } : {})}
+    />
   );
 }
 

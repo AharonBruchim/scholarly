@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, History } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { PaymentTimeline } from "@/components/billing/PaymentTimeline";
 import {
   type PaymentClaimMode,
@@ -10,12 +10,11 @@ import {
 } from "@/components/billing/StudentPaymentClaimForm";
 import { DashboardSkeleton } from "@/components/common/DashboardSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
+import { BookingFlow } from "@/components/dashboard/BookingFlow";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { LessonHistory } from "@/components/dashboard/LessonHistory";
-import { StudentBookingForm } from "@/components/dashboard/StudentBookingForm";
 import { StudentLessonMessages } from "@/components/dashboard/StudentLessonMessages";
-import { TeacherDirectory } from "@/components/dashboard/TeacherDirectory";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -237,28 +236,12 @@ export default function StudentDashboardPage() {
   const lessonsQuery = useDashboardLessons();
   const teachersQuery = useDirectoryUsers("teacher");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
-  const navigate = useNavigate();
   const { activeTab, activeSection, redirectPath } = useDashboardRoute<
     StudentTab,
     StudentHistorySection
   >("/student", studentTabIds, {
     history: studentHistorySectionIds,
   });
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
-  const selectedTeacher = (teachersQuery.data ?? []).find(
-    (teacher) => teacher._id === selectedTeacherId,
-  );
-  const selectedTeacherName = selectedTeacher
-    ? `${selectedTeacher.firstName} ${selectedTeacher.lastName}`
-    : null;
-  const visibleLessons = selectedTeacherId
-    ? (lessonsQuery.data ?? []).filter((lesson) => lesson.teacherId === selectedTeacherId)
-    : (lessonsQuery.data ?? []);
-
-  const selectTeacher = (teacherId: string) => {
-    setSelectedTeacherId(teacherId);
-    navigate("/student/book");
-  };
 
   if (redirectPath || !activeTab)
     return <Navigate to={redirectPath ?? "/student/lessons"} replace />;
@@ -295,49 +278,19 @@ export default function StudentDashboardPage() {
 
           <div className="space-y-5">
             {activeTab === "lessons" ? (
-              <div className="space-y-4">
-                {selectedTeacherName ? (
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sky-500/30 bg-sky-500/10 p-4">
-                    <p className="text-sm text-sky-100">
-                      {t("lessons.teacherFilter", { name: selectedTeacherName })}
-                    </p>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setSelectedTeacherId(null)}
-                    >
-                      {t("lessons.showAll")}
-                    </Button>
-                  </div>
-                ) : null}
-                <UpcomingLessonsList
-                  lessons={visibleLessons}
-                  people={teachersQuery.data ?? []}
-                  personIdKey="teacherId"
-                  personLabel={t("lessons.teacher")}
-                  title={
-                    selectedTeacherName
-                      ? t("lessons.withTeacherTitle", { name: selectedTeacherName })
-                      : undefined
-                  }
-                  description={
-                    selectedTeacherName ? t("lessons.withTeacherDescription") : undefined
-                  }
-                  emptyMessage={selectedTeacherName ? t("lessons.emptyWithTeacher") : undefined}
-                  allowActions
-                />
-              </div>
+              <UpcomingLessonsList
+                lessons={lessonsQuery.data}
+                people={teachersQuery.data ?? []}
+                personIdKey="teacherId"
+                personLabel={t("lessons.teacher")}
+                allowActions
+              />
             ) : null}
             {activeTab === "book" ? (
-              <div className="space-y-4">
-                {selectedTeacher ? (
-                  <StudentBookingForm key={selectedTeacher._id} teacher={selectedTeacher} />
-                ) : null}
-                <TeacherDirectory
-                  selectedTeacherId={selectedTeacherId}
-                  onSelectTeacher={(teacher) => selectTeacher(teacher._id)}
-                />
-              </div>
+              <BookingFlow
+                teachers={teachersQuery.data ?? []}
+                teachersPending={teachersQuery.isPending}
+              />
             ) : null}
             {activeTab === "payments" ? <StudentPaymentRequests settled={false} /> : null}
             {activeTab === "messages" ? (
@@ -347,7 +300,7 @@ export default function StudentDashboardPage() {
               <>
                 {activeSection === "lessons" ? (
                   <LessonHistory
-                    lessons={visibleLessons}
+                    lessons={lessonsQuery.data}
                     people={teachersQuery.data ?? []}
                     personIdKey="teacherId"
                     personLabel={t("lessons.teacher")}
