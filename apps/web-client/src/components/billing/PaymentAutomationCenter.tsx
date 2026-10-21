@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { DeliveryBadge } from "@/components/billing/DeliveryBadge";
 import { PaymentTimeline } from "@/components/billing/PaymentTimeline";
+import { ScheduleField } from "@/components/calendar/ScheduleField";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -785,15 +786,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
                 ))}
               </div>
               <ChannelSelector value={paymentChannels} onChange={setPaymentChannels} />
-              <div className="space-y-2">
-                <Label htmlFor="payment-schedule">מועד שליחה (ריק = עכשיו)</Label>
-                <Input
-                  id="payment-schedule"
-                  type="datetime-local"
-                  value={paymentSchedule}
-                  onChange={(event) => setPaymentSchedule(event.target.value)}
-                />
-              </div>
+              <ScheduleField value={paymentSchedule} onChange={setPaymentSchedule} />
               <div className="space-y-2">
                 <Label htmlFor="payment-notes">הערות שיופיעו במסמך</Label>
                 <textarea
@@ -915,15 +908,7 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
                 />
               </div>
               <ChannelSelector value={messageChannels} onChange={setMessageChannels} />
-              <div className="space-y-2">
-                <Label htmlFor="message-schedule">מועד שליחה (ריק = עכשיו)</Label>
-                <Input
-                  id="message-schedule"
-                  type="datetime-local"
-                  value={messageSchedule}
-                  onChange={(event) => setMessageSchedule(event.target.value)}
-                />
-              </div>
+              <ScheduleField value={messageSchedule} onChange={setMessageSchedule} />
               <Button
                 type="submit"
                 disabled={

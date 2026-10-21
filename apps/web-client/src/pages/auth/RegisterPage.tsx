@@ -6,6 +6,7 @@ import {
   UsersRoles,
 } from "@scholarly/shared";
 import { useForm } from "@tanstack/react-form";
+import { GraduationCap, Presentation } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { PasswordInput } from "@/components/auth/PasswordInput";
@@ -100,34 +101,50 @@ export default function RegisterPage() {
             className="space-y-4"
           >
             <form.Field name="role">
-              {(field) => (
-                <div className="space-y-1">
-                  <label htmlFor="role" className="text-sm font-medium">
-                    {t("auth.role")}
-                  </label>
-                  <select
-                    id="role"
-                    name="role"
-                    value={field.state.value}
-                    onChange={(e) => {
-                      const newRole = e.target.value as UsersRoles;
-                      field.handleChange(newRole);
-                      if (newRole === UsersRoles.STUDENT) {
-                        form.setFieldValue("bankAccount" as never, undefined as never);
-                      } else {
-                        form.setFieldValue(
-                          "bankAccount" as never,
-                          { bankName: "", branchNumber: "", accountNumber: "" } as never,
+              {(field) => {
+                const chooseRole = (newRole: UsersRoles) => {
+                  field.handleChange(newRole);
+                  if (newRole === UsersRoles.STUDENT) {
+                    form.setFieldValue("bankAccount" as never, undefined as never);
+                  } else {
+                    form.setFieldValue(
+                      "bankAccount" as never,
+                      { bankName: "", branchNumber: "", accountNumber: "" } as never,
+                    );
+                  }
+                };
+                const roleOptions = [
+                  { role: UsersRoles.STUDENT, label: t("auth.student"), icon: GraduationCap },
+                  { role: UsersRoles.TEACHER, label: t("auth.teacher"), icon: Presentation },
+                ];
+                return (
+                  <fieldset className="space-y-1.5">
+                    <legend className="text-sm font-medium">{t("auth.role")}</legend>
+                    <div className="grid grid-cols-2 gap-2">
+                      {roleOptions.map((option) => {
+                        const Icon = option.icon;
+                        const selected = field.state.value === option.role;
+                        return (
+                          <button
+                            key={option.role}
+                            type="button"
+                            aria-pressed={selected}
+                            onClick={() => chooseRole(option.role)}
+                            className={
+                              selected
+                                ? "flex h-12 items-center justify-center gap-2 rounded-lg border border-sky-400 bg-sky-500/15 text-sm font-medium text-white"
+                                : "flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-700 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-white"
+                            }
+                          >
+                            <Icon className="h-4 w-4" aria-hidden="true" />
+                            {option.label}
+                          </button>
                         );
-                      }
-                    }}
-                    className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
-                  >
-                    <option value={UsersRoles.STUDENT}>{t("auth.student")}</option>
-                    <option value={UsersRoles.TEACHER}>{t("auth.teacher")}</option>
-                  </select>
-                </div>
-              )}
+                      })}
+                    </div>
+                  </fieldset>
+                );
+              }}
             </form.Field>
 
             <div className="grid grid-cols-2 gap-3">
