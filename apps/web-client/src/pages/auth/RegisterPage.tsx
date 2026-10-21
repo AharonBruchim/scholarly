@@ -9,6 +9,7 @@ import { useForm } from "@tanstack/react-form";
 import { GraduationCap, Presentation } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,8 +83,8 @@ export default function RegisterPage() {
     },
   });
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <Card className="w-full max-w-lg">
+    <AuthLayout>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>{t("auth.registerTitle")}</CardTitle>
           <CardDescription>{t("auth.registerDescription")}</CardDescription>
@@ -401,6 +402,6 @@ export default function RegisterPage() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   );
 }

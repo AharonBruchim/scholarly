@@ -4,7 +4,7 @@ import {
   isDeliveryChannelEnabled,
 } from "@scholarly/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Mail, Plus, RefreshCw } from "lucide-react";
+import { CheckCircle2, ChevronDown, Mail, Plus, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -188,6 +188,33 @@ function ManualDeliveryActions({
   );
 }
 
+const paymentStatusPillClasses: Record<PaymentRequestRecord["paymentStatus"], string> = {
+  unpaid: "border-amber-500/40 bg-amber-500/10 text-amber-200",
+  claimed_paid: "border-sky-500/40 bg-sky-500/10 text-sky-200",
+  paid: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
+  disputed: "border-rose-500/40 bg-rose-500/10 text-rose-200",
+  waived: "border-slate-600 bg-slate-800/60 text-slate-300",
+};
+
+function PaymentStatusPill({ status }: { status: PaymentRequestRecord["paymentStatus"] }) {
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${paymentStatusPillClasses[status]}`}
+    >
+      {paymentStatusLabels[status]}
+    </span>
+  );
+}
+
+const secondaryPaymentActions: Array<{
+  status: PaymentRequestRecord["paymentStatus"];
+  label: string;
+}> = [
+  { status: "unpaid", label: "לא התקבל" },
+  { status: "disputed", label: "מחלוקת" },
+  { status: "waived", label: "ויתור" },
+];
+
 function PaymentStatusActions({
   request,
   onChanged,
@@ -196,77 +223,84 @@ function PaymentStatusActions({
   onChanged: () => void;
 }) {
   const [note, setNote] = useState(request.paymentNote ?? "");
+  const currentStatus = request.paymentStatus ?? "unpaid";
   const mutation = useMutation({
     mutationFn: (paymentStatus: PaymentRequestRecord["paymentStatus"]) =>
       updatePaymentRequestStatus(request._id, {
         paymentStatus,
         paymentNote: note.trim() || undefined,
       }),
-    onSuccess: onChanged,
+    onSuccess: () => {
+      toast.success("סטטוס התשלום עודכן.");
+      onChanged();
+    },
+    onError: () => toast.error("עדכון סטטוס התשלום נכשל."),
   });
   return (
-    <div className="space-y-2 rounded-lg border border-slate-700 bg-slate-950/40 p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium text-white">
-          סטטוס תשלום: {paymentStatusLabels[request.paymentStatus ?? "unpaid"]}
-        </p>
-        {request.paymentUpdatedAt ? (
-          <p className="text-xs text-slate-400">עודכן: {formatDate(request.paymentUpdatedAt)}</p>
-        ) : null}
-      </div>
-      <textarea
+    <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+      <Input
         value={note}
         onChange={(event) => setNote(event.target.value)}
         maxLength={1000}
-        rows={2}
-        className="w-full rounded-md border border-slate-700 bg-slate-950 p-2 text-sm text-white"
-        placeholder="הערת תשלום פנימית או פירוט מחלוקת"
+        placeholder="הערה פנימית (לא חובה)"
+        aria-label="הערה פנימית"
       />
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           size="sm"
           onClick={() => mutation.mutate("paid")}
-          disabled={mutation.isPending || request.paymentStatus === "paid"}
+          disabled={mutation.isPending || currentStatus === "paid"}
         >
-          התקבל
+          {currentStatus === "claimed_paid" ? "אישור קבלת התשלום" : "סימון כשולם"}
         </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          onClick={() => mutation.mutate("unpaid")}
-          disabled={mutation.isPending || request.paymentStatus === "unpaid"}
-        >
-          לא התקבל
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          onClick={() => mutation.mutate("disputed")}
-          disabled={mutation.isPending || request.paymentStatus === "disputed"}
-        >
-          מחלוקת
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          onClick={() => mutation.mutate("waived")}
-          disabled={mutation.isPending || request.paymentStatus === "waived"}
-        >
-          ויתור
-        </Button>
+        {secondaryPaymentActions
+          .filter((action) => action.status !== currentStatus)
+          .map((action) => (
+            <Button
+              key={action.status}
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => mutation.mutate(action.status)}
+              disabled={mutation.isPending}
+            >
+              {action.label}
+            </Button>
+          ))}
       </div>
-      {mutation.isError ? (
-        <p role="alert" className="text-xs text-red-400">
-          עדכון סטטוס התשלום נכשל.
-        </p>
-      ) : null}
     </div>
   );
 }
+
+type PaymentHistoryFilter = "all" | "open" | "attention" | "paid" | "disputed" | "cancelled";
+
+const paymentHistoryFilters: Array<{
+  id: PaymentHistoryFilter;
+  label: string;
+  matches: (request: PaymentRequestRecord) => boolean;
+}> = [
+  { id: "all", label: "הכול", matches: () => true },
+  {
+    id: "open",
+    label: "פתוחות",
+    matches: (request) =>
+      request.status !== "cancelled" && (request.paymentStatus ?? "unpaid") === "unpaid",
+  },
+  { id: "attention", label: "ממתינות לאישור", matches: needsTeacherAttention },
+  {
+    id: "paid",
+    label: "הוסדרו",
+    matches: (request) =>
+      request.status !== "cancelled" && ["paid", "waived"].includes(request.paymentStatus ?? ""),
+  },
+  {
+    id: "disputed",
+    label: "במחלוקת",
+    matches: (request) => request.status !== "cancelled" && request.paymentStatus === "disputed",
+  },
+  { id: "cancelled", label: "בוטלו", matches: (request) => request.status === "cancelled" },
+];
 
 export type PaymentAutomationView = "automation" | "paymentHistory" | "lessonMessageHistory";
 
@@ -295,6 +329,8 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
   const [messageChannels, setMessageChannels] = useState<SelectableDeliveryChannel[]>(["email"]);
   const [messageSchedule, setMessageSchedule] = useState("");
   const [openForm, setOpenForm] = useState<"payment" | "message" | null>(null);
+  const [historyFilter, setHistoryFilter] = useState<PaymentHistoryFilter>("all");
+  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
 
   const requestsQuery = useQuery({
     queryKey: ["billing"],
@@ -357,6 +393,9 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
     );
 
   const pendingApprovalRequests = (requestsQuery.data ?? []).filter(needsTeacherAttention);
+  const historyRequests = (requestsQuery.data ?? []).filter(
+    paymentHistoryFilters.find((filter) => filter.id === historyFilter)?.matches ?? (() => true),
+  );
   const openRequests = (requestsQuery.data ?? []).filter(
     (request) => request.status !== "cancelled" && (request.paymentStatus ?? "unpaid") === "unpaid",
   );
@@ -969,92 +1008,146 @@ export function PaymentAutomationCenter({ lessons, students, view }: PaymentAuto
         <Card>
           <CardHeader>
             <CardTitle>היסטוריית דרישות תשלום</CardTitle>
-            <CardDescription>מסמכים שנשלחו, מתוזמנים, בוטלו או נכשלו נשמרים כאן.</CardDescription>
+            <CardDescription>
+              כל הדרישות שהופקו. לחיצה על דרישה פותחת פירוט ופעולות.
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {(requestsQuery.data ?? []).map((request) => (
-                <article
-                  key={request._id}
-                  className="space-y-3 rounded-xl border border-slate-700 p-4"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold text-white">
-                        {request.requestNumber || "דרישה ישנה"}
-                      </h3>
-                      <p className="text-sm text-slate-300">
-                        {studentsById.get(request.studentId) ?? "תלמידה"} ·{" "}
-                        {request.total.toFixed(2)} ₪ ·{" "}
-                        {request.source === "automatic" ? "אוטומטית" : "ידנית"}
-                      </p>
-                      <p className="text-xs text-slate-400">
-                        {statusLabels[request.status]} ·{" "}
-                        {formatDate(request.scheduledAt ?? request.generatedAt)}
-                      </p>
-                      <p className="mt-1 text-xs text-amber-200">
-                        {paymentStatusLabels[request.paymentStatus ?? "unpaid"]}
-                        {request.paymentNote ? ` · ${request.paymentNote}` : ""}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        onClick={async () =>
-                          showPdfPreview(
-                            request.requestNumber || "דרישת תשלום",
-                            await openPaymentRequestPdf(request._id),
-                          )
-                        }
-                      >
-                        צפייה ב־PDF
-                      </Button>
-                      {["scheduled", "pending_delivery", "failed"].includes(request.status) ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => cancelRequestMutation.mutate(request._id)}
-                        >
-                          ביטול
-                        </Button>
-                      ) : null}
-                    </div>
-                  </div>
-                  <ul className="text-sm text-slate-300">
-                    {request.lineItems.map((line) => (
-                      <li
-                        key={
-                          line.lessonId ??
-                          `${line.kind}-${line.subject}-${line.amount}-${line.date ?? "undated"}`
-                        }
-                      >
-                        {line.subject} · {line.amount.toFixed(2)} ₪
-                      </li>
-                    ))}
-                  </ul>
-                  <PaymentStatusActions request={request} onChanged={() => void refreshBilling()} />
-                  <PaymentTimeline request={request} />
-                  {request.deliveries.map((delivery) => (
-                    <div
-                      key={delivery._id}
-                      className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400"
-                    >
-                      <DeliveryBadge delivery={delivery} />
-                      <ManualDeliveryActions
-                        delivery={delivery}
-                        onChanged={() => void refreshBilling()}
-                      />
-                    </div>
-                  ))}
-                </article>
-              ))}
-              {requestsQuery.isSuccess && requestsQuery.data.length === 0 ? (
-                <p className="text-sm text-slate-300">עדיין אין דרישות תשלום.</p>
-              ) : null}
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {paymentHistoryFilters.map((filter) => {
+                const count = (requestsQuery.data ?? []).filter(filter.matches).length;
+                const selected = filter.id === historyFilter;
+                return (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setHistoryFilter(filter.id)}
+                    className={
+                      selected
+                        ? "rounded-full border border-sky-400 bg-sky-500/15 px-3 py-1 text-sm text-white"
+                        : "rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-slate-500"
+                    }
+                  >
+                    {filter.label} <span className="text-slate-400">{count}</span>
+                  </button>
+                );
+              })}
             </div>
+            {historyRequests.length === 0 ? (
+              <EmptyState icon={CheckCircle2} title="אין דרישות בקטגוריה הזו" />
+            ) : (
+              <ul className="divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800 bg-slate-950/40">
+                {historyRequests.map((request) => {
+                  const expanded = expandedRequestId === request._id;
+                  return (
+                    <li key={request._id}>
+                      <button
+                        type="button"
+                        aria-expanded={expanded}
+                        onClick={() => setExpandedRequestId(expanded ? null : request._id)}
+                        className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-start transition-colors hover:bg-slate-900/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-400"
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-medium text-white">
+                            <bdi>{studentsById.get(request.studentId) ?? "תלמיד/ה"}</bdi> ·{" "}
+                            {request.total.toFixed(2)} ₪
+                          </span>
+                          <span className="block text-xs text-slate-400">
+                            {formatDate(request.scheduledAt ?? request.generatedAt)} ·{" "}
+                            {request.source === "automatic" ? "אוטומטית" : "ידנית"} ·{" "}
+                            {request.status === "cancelled"
+                              ? "בוטלה"
+                              : statusLabels[request.status]}
+                          </span>
+                        </span>
+                        <PaymentStatusPill status={request.paymentStatus ?? "unpaid"} />
+                        <ChevronDown
+                          className={
+                            expanded
+                              ? "h-4 w-4 rotate-180 text-slate-400 transition-transform"
+                              : "h-4 w-4 text-slate-400 transition-transform"
+                          }
+                          aria-hidden="true"
+                        />
+                      </button>
+                      {expanded ? (
+                        <div className="space-y-3 border-t border-slate-800 px-4 py-4">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <p className="text-xs text-slate-400">
+                                {request.requestNumber || "דרישה ישנה"}
+                              </p>
+                              <ul className="space-y-0.5 text-sm text-slate-300">
+                                {request.lineItems.map((line) => (
+                                  <li
+                                    key={
+                                      line.lessonId ??
+                                      `${line.kind}-${line.subject}-${line.amount}-${line.date ?? "undated"}`
+                                    }
+                                  >
+                                    {line.subject} · {line.amount.toFixed(2)} ₪
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="secondary"
+                                onClick={async () =>
+                                  showPdfPreview(
+                                    request.requestNumber || "דרישת תשלום",
+                                    await openPaymentRequestPdf(request._id),
+                                  )
+                                }
+                              >
+                                צפייה ב־PDF
+                              </Button>
+                              {["scheduled", "pending_delivery", "failed"].includes(
+                                request.status,
+                              ) ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (window.confirm("לבטל את דרישת התשלום?")) {
+                                      cancelRequestMutation.mutate(request._id);
+                                    }
+                                  }}
+                                >
+                                  ביטול הדרישה
+                                </Button>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {request.deliveries.map((delivery) => (
+                              <div key={delivery._id} className="flex flex-wrap items-center gap-2">
+                                <DeliveryBadge delivery={delivery} />
+                                <ManualDeliveryActions
+                                  delivery={delivery}
+                                  onChanged={() => void refreshBilling()}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          {request.status === "cancelled" ? null : (
+                            <PaymentStatusActions
+                              request={request}
+                              onChanged={() => void refreshBilling()}
+                            />
+                          )}
+                          <PaymentTimeline request={request} />
+                        </div>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </CardContent>
         </Card>
       ) : null}
