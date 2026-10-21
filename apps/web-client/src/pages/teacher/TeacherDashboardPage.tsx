@@ -11,20 +11,25 @@ import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardTabs, type DashboardTab } from "@/components/ui/dashboard-tabs";
 import { useDashboardLessons } from "@/hooks/useDashboard";
-import { useDashboardTab } from "@/hooks/useDashboardTab";
+import { useDashboardRoute } from "@/hooks/useDashboardRoute";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
 
 const teacherDashboardTabIds = ["lessons", "create", "payments", "history"] as const;
+const historySectionIds = ["lessons", "payments"] as const;
 
 type TeacherDashboardTab = (typeof teacherDashboardTabIds)[number];
+type HistorySection = (typeof historySectionIds)[number];
 
 export default function TeacherDashboardPage() {
   const { t, i18n } = useTranslation();
   const lessonsQuery = useDashboardLessons();
   const studentsQuery = useDirectoryUsers("student");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
-  const { activeTab, setActiveTab } = useDashboardTab("/teacher", teacherDashboardTabIds);
+  const { activeTab, activeSection, redirectPath, setActiveTab, setActiveSection } =
+    useDashboardRoute<TeacherDashboardTab, HistorySection>("/teacher", teacherDashboardTabIds, {
+      history: historySectionIds,
+    });
   const tabs = useMemo<DashboardTab<TeacherDashboardTab>[]>(
     () => [
       { id: "lessons", label: t("dashboard.tabs.lessons"), icon: CalendarDays },
@@ -34,8 +39,16 @@ export default function TeacherDashboardPage() {
     ],
     [t],
   );
+  const historyTabs = useMemo<DashboardTab<HistorySection>[]>(
+    () => [
+      { id: "lessons", label: t("dashboard.tabs.historyLessons"), icon: CalendarDays },
+      { id: "payments", label: t("dashboard.tabs.historyPayments"), icon: CreditCard },
+    ],
+    [t],
+  );
 
-  if (!activeTab) return <Navigate to="/teacher/lessons" replace />;
+  if (redirectPath || !activeTab)
+    return <Navigate to={redirectPath ?? "/teacher/lessons"} replace />;
 
   return (
     <div className="space-y-6">
@@ -110,16 +123,42 @@ export default function TeacherDashboardPage() {
             ) : null}
             {activeTab === "create" ? <CreateLessonForm /> : null}
             {activeTab === "payments" ? (
-              <PaymentAutomationCenter lessons={lessonsQuery.data} students={studentsQuery.data ?? []} />
-            ) : null}
-            {activeTab === "history" ? (
-              <LessonHistory
+              <PaymentAutomationCenter
                 lessons={lessonsQuery.data}
-                people={studentsQuery.data ?? []}
-                personIdKey="studentId"
-                personLabel={t("lessons.student")}
-                allowComplete
+                students={studentsQuery.data ?? []}
+                view="automation"
               />
+            ) : null}
+            {activeTab === "history" && activeSection ? (
+              <DashboardTabs
+                tabs={historyTabs}
+                activeTab={activeSection}
+                onChange={setActiveSection}
+              >
+                {activeSection === "lessons" ? (
+                  <div className="space-y-6">
+                    <LessonHistory
+                      lessons={lessonsQuery.data}
+                      people={studentsQuery.data ?? []}
+                      personIdKey="studentId"
+                      personLabel={t("lessons.student")}
+                      allowComplete
+                    />
+                    <PaymentAutomationCenter
+                      lessons={lessonsQuery.data}
+                      students={studentsQuery.data ?? []}
+                      view="lessonMessageHistory"
+                    />
+                  </div>
+                ) : null}
+                {activeSection === "payments" ? (
+                  <PaymentAutomationCenter
+                    lessons={lessonsQuery.data}
+                    students={studentsQuery.data ?? []}
+                    view="paymentHistory"
+                  />
+                ) : null}
+              </DashboardTabs>
             ) : null}
           </DashboardTabs>
         </>

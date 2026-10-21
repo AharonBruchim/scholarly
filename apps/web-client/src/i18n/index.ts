@@ -107,6 +107,8 @@ const resources = {
           book: "קביעה",
           payments: "תשלומים",
           history: "היסטוריה",
+          historyLessons: "שיעורים",
+          historyPayments: "תשלומים",
         },
       },
       lessons: {
@@ -363,6 +365,8 @@ const resources = {
           book: "Book",
           payments: "Payments",
           history: "History",
+          historyLessons: "Lessons",
+          historyPayments: "Payments",
         },
       },
       lessons: {

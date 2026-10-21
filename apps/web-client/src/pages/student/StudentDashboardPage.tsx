@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardTabs, type DashboardTab } from "@/components/ui/dashboard-tabs";
 import { useDashboardLessons } from "@/hooks/useDashboard";
-import { useDashboardTab } from "@/hooks/useDashboardTab";
+import { useDashboardRoute } from "@/hooks/useDashboardRoute";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
 import {
@@ -32,8 +32,19 @@ const paymentStatusLabels: Record<PaymentRequestRecord["paymentStatus"], string>
 };
 
 const studentDashboardTabIds = ["lessons", "book", "payments", "history"] as const;
+const historySectionIds = ["lessons", "payments"] as const;
 
 type StudentDashboardTab = (typeof studentDashboardTabIds)[number];
+type HistorySection = (typeof historySectionIds)[number];
+
+const settledPaymentStatuses: ReadonlyArray<PaymentRequestRecord["paymentStatus"]> = [
+  "paid",
+  "waived",
+];
+
+function isPaymentSettled(request: PaymentRequestRecord): boolean {
+  return settledPaymentStatuses.includes(request.paymentStatus ?? "unpaid");
+}
 
 function formatPaymentDate(value: string): string {
   return new Intl.DateTimeFormat("he-IL", {
@@ -42,10 +53,13 @@ function formatPaymentDate(value: string): string {
   }).format(new Date(value));
 }
 
-function StudentPaymentRequests() {
+function StudentPaymentRequests({ settled }: { settled: boolean }) {
   const queryClient = useQueryClient();
   const [pdfPreview, setPdfPreview] = useState<{ title: string; url: string } | null>(null);
   const requestsQuery = useQuery({ queryKey: ["billing"], queryFn: fetchPaymentRequests });
+  const visibleRequests = (requestsQuery.data ?? []).filter(
+    (request) => isPaymentSettled(request) === settled,
+  );
   const statusMutation = useMutation({
     mutationFn: ({
       id,
@@ -81,8 +95,12 @@ function StudentPaymentRequests() {
   return (
     <Card id="payments" className="scroll-mt-6">
       <CardHeader>
-        <CardTitle>דרישות תשלום</CardTitle>
-        <CardDescription>כאן אפשר לראות דרישות תשלום ולסמן ששילמת או שיש מחלוקת.</CardDescription>
+        <CardTitle>{settled ? "היסטוריית תשלומים" : "דרישות תשלום פתוחות"}</CardTitle>
+        <CardDescription>
+          {settled
+            ? "דרישות תשלום ששולמו או שוויתרו עליהן."
+            : "כאן אפשר לראות דרישות תשלום ולסמן ששילמת או שיש מחלוקת."}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {pdfPreview ? (
@@ -100,7 +118,7 @@ function StudentPaymentRequests() {
             />
           </div>
         ) : null}
-        {(requestsQuery.data ?? []).map((request) => (
+        {visibleRequests.map((request) => (
           <article key={request._id} className="space-y-3 rounded-lg border border-slate-700 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -114,30 +132,39 @@ function StudentPaymentRequests() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" size="sm" variant="secondary" onClick={() => void showPdf(request)}>
-                  צפייה ב־PDF
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() =>
-                    statusMutation.mutate({ id: request._id, paymentStatus: "claimed_paid" })
-                  }
-                  disabled={statusMutation.isPending || request.paymentStatus === "paid"}
-                >
-                  שילמתי
-                </Button>
                 <Button
                   type="button"
                   size="sm"
                   variant="secondary"
-                  onClick={() =>
-                    statusMutation.mutate({ id: request._id, paymentStatus: "disputed" })
-                  }
-                  disabled={statusMutation.isPending || request.paymentStatus === "paid"}
+                  onClick={() => void showPdf(request)}
                 >
-                  מחלוקת
+                  צפייה ב־PDF
                 </Button>
+                {settled ? null : (
+                  <>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() =>
+                        statusMutation.mutate({ id: request._id, paymentStatus: "claimed_paid" })
+                      }
+                      disabled={statusMutation.isPending || request.paymentStatus === "paid"}
+                    >
+                      שילמתי
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        statusMutation.mutate({ id: request._id, paymentStatus: "disputed" })
+                      }
+                      disabled={statusMutation.isPending || request.paymentStatus === "paid"}
+                    >
+                      מחלוקת
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
             <ul className="text-sm text-slate-300">
@@ -154,8 +181,10 @@ function StudentPaymentRequests() {
             </ul>
           </article>
         ))}
-        {requestsQuery.isSuccess && requestsQuery.data.length === 0 ? (
-          <p className="text-sm text-slate-300">אין כרגע דרישות תשלום.</p>
+        {requestsQuery.isSuccess && visibleRequests.length === 0 ? (
+          <p className="text-sm text-slate-300">
+            {settled ? "עדיין אין תשלומים שהסתיימו." : "אין כרגע דרישות תשלום פתוחות."}
+          </p>
         ) : null}
         {requestsQuery.isError || statusMutation.isError ? (
           <p role="alert" className="text-sm text-red-400">
@@ -172,13 +201,20 @@ export default function StudentDashboardPage() {
   const lessonsQuery = useDashboardLessons();
   const teachersQuery = useDirectoryUsers("teacher");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
-  const { activeTab, setActiveTab } = useDashboardTab("/student", studentDashboardTabIds);
+  const { activeTab, activeSection, redirectPath, setActiveTab, setActiveSection } =
+    useDashboardRoute<StudentDashboardTab, HistorySection>("/student", studentDashboardTabIds, {
+      history: historySectionIds,
+    });
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
   const tabs: DashboardTab<StudentDashboardTab>[] = [
     { id: "lessons", label: t("dashboard.tabs.lessons"), icon: CalendarDays },
     { id: "book", label: t("dashboard.tabs.book"), icon: Search },
     { id: "payments", label: t("dashboard.tabs.payments"), icon: CreditCard },
     { id: "history", label: t("dashboard.tabs.history"), icon: History },
+  ];
+  const historyTabs: DashboardTab<HistorySection>[] = [
+    { id: "lessons", label: t("dashboard.tabs.historyLessons"), icon: CalendarDays },
+    { id: "payments", label: t("dashboard.tabs.historyPayments"), icon: CreditCard },
   ];
   const selectedTeacher = (teachersQuery.data ?? []).find(
     (teacher) => teacher._id === selectedTeacherId,
@@ -195,7 +231,8 @@ export default function StudentDashboardPage() {
     setActiveTab("book");
   };
 
-  if (!activeTab) return <Navigate to="/student/lessons" replace />;
+  if (redirectPath || !activeTab)
+    return <Navigate to={redirectPath ?? "/student/lessons"} replace />;
 
   return (
     <div className="space-y-6">
@@ -266,7 +303,11 @@ export default function StudentDashboardPage() {
                     <p className="text-sm text-sky-100">
                       {t("lessons.teacherFilter", { name: selectedTeacherName })}
                     </p>
-                    <Button type="button" variant="ghost" onClick={() => setSelectedTeacherId(null)}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setSelectedTeacherId(null)}
+                    >
                       {t("lessons.showAll")}
                     </Button>
                   </div>
@@ -281,7 +322,9 @@ export default function StudentDashboardPage() {
                       ? t("lessons.withTeacherTitle", { name: selectedTeacherName })
                       : undefined
                   }
-                  description={selectedTeacherName ? t("lessons.withTeacherDescription") : undefined}
+                  description={
+                    selectedTeacherName ? t("lessons.withTeacherDescription") : undefined
+                  }
                   emptyMessage={selectedTeacherName ? t("lessons.emptyWithTeacher") : undefined}
                   allowActions
                 />
@@ -298,14 +341,23 @@ export default function StudentDashboardPage() {
                 />
               </div>
             ) : null}
-            {activeTab === "payments" ? <StudentPaymentRequests /> : null}
-            {activeTab === "history" ? (
-              <LessonHistory
-                lessons={visibleLessons}
-                people={teachersQuery.data ?? []}
-                personIdKey="teacherId"
-                personLabel={t("lessons.teacher")}
-              />
+            {activeTab === "payments" ? <StudentPaymentRequests settled={false} /> : null}
+            {activeTab === "history" && activeSection ? (
+              <DashboardTabs
+                tabs={historyTabs}
+                activeTab={activeSection}
+                onChange={setActiveSection}
+              >
+                {activeSection === "lessons" ? (
+                  <LessonHistory
+                    lessons={visibleLessons}
+                    people={teachersQuery.data ?? []}
+                    personIdKey="teacherId"
+                    personLabel={t("lessons.teacher")}
+                  />
+                ) : null}
+                {activeSection === "payments" ? <StudentPaymentRequests settled /> : null}
+              </DashboardTabs>
             ) : null}
           </DashboardTabs>
         </>

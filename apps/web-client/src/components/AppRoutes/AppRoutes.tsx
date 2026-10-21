@@ -22,12 +22,12 @@ export default function AppRoutes() {
 
       <Route element={<ProtectedRoute allowedRoles={["teacher"]} />}>
         <Route path="/teacher" element={<Navigate to="/teacher/lessons" replace />} />
-        <Route path="/teacher/:tab" element={<TeacherDashboardPage />} />
+        <Route path="/teacher/:tab/:section?" element={<TeacherDashboardPage />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["student"]} />}>
         <Route path="/student" element={<Navigate to="/student/lessons" replace />} />
-        <Route path="/student/:tab" element={<StudentDashboardPage />} />
+        <Route path="/student/:tab/:section?" element={<StudentDashboardPage />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["teacher", "student"]} />}>
