@@ -88,3 +88,35 @@ export function formatLessonDayTime(value: string, language: string): string {
     timeZone: viewerTimeZone,
   }).format(new Date(value));
 }
+
+export function getLessonDayKey(value: string | Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: viewerTimeZone,
+  }).format(new Date(value));
+}
+
+export function nextDayKey(dayKey: string): string {
+  const [year = 0, month = 1, day = 1] = dayKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+}
+
+export function formatLessonDayHeading(value: string, language: string): string {
+  return new Intl.DateTimeFormat(localeFor(language), {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: viewerTimeZone,
+  }).format(new Date(value));
+}
+
+export function formatLessonTime(value: string, language: string): string {
+  return new Intl.DateTimeFormat(localeFor(language), {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: viewerTimeZone,
+  }).format(new Date(value));
+}

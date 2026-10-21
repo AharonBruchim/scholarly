@@ -17,7 +17,7 @@ export function LessonActions({ lesson }: { lesson: Lesson }) {
   const isLate = new Date(lesson.startTime).getTime() - Date.now() <= 24 * 60 * 60 * 1000;
 
   return (
-    <div className="mt-3 space-y-2 sm:col-span-2">
+    <div className="mt-3 space-y-2 rounded-lg border border-slate-800 bg-slate-900/60 p-3">
       {isLate ? <p className="text-xs text-amber-300">{t("lessons.lateChangeWarning")}</p> : null}
       <div className="flex flex-wrap gap-2">
         <Button
