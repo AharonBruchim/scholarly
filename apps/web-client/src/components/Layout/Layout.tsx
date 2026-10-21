@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { LanguageToggle } from "@/components/common/LanguageToggle";
+import { DesktopDashboardNav, MobileDashboardNav } from "@/components/Layout/DashboardNav";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context-core";
 import { languageSwitchingEnabled } from "@/i18n";
@@ -10,6 +11,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const { t } = useTranslation();
+  const dashboardRole = isAuthenticated ? user?.role : undefined;
 
   const handleLogout = async () => {
     await logout();
@@ -18,14 +20,18 @@ export function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800 bg-slate-950/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <Link
-            to={isAuthenticated ? (user?.role === "teacher" ? "/teacher" : "/student") : "/login"}
-            className="text-lg font-semibold text-white"
-          >
-            {t("common.brand")}
-          </Link>
+      <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+        <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 md:gap-6">
+            {dashboardRole ? <MobileDashboardNav role={dashboardRole} /> : null}
+            <Link
+              to={isAuthenticated ? (user?.role === "teacher" ? "/teacher" : "/student") : "/login"}
+              className="text-lg font-semibold text-white"
+            >
+              {t("common.brand")}
+            </Link>
+            {dashboardRole ? <DesktopDashboardNav role={dashboardRole} /> : null}
+          </div>
 
           <nav className="flex items-center gap-2">
             {!isAuthenticated ? (

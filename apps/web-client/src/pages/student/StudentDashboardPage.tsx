@@ -1,21 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, CreditCard, History, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Spinner } from "@/components/common/Spinner";
-import { LessonHistory } from "@/components/dashboard/LessonHistory";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
+import { LessonHistory } from "@/components/dashboard/LessonHistory";
 import { StudentBookingForm } from "@/components/dashboard/StudentBookingForm";
 import { TeacherDirectory } from "@/components/dashboard/TeacherDirectory";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DashboardTabs, type DashboardTab } from "@/components/ui/dashboard-tabs";
 import { useDashboardLessons } from "@/hooks/useDashboard";
 import { useDashboardRoute } from "@/hooks/useDashboardRoute";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
+import {
+  type HistorySection,
+  historySectionIds,
+  type StudentTab,
+  studentTabIds,
+} from "@/lib/dashboard-navigation";
 import {
   fetchPaymentRequests,
   openPaymentRequestPdf,
@@ -30,12 +34,6 @@ const paymentStatusLabels: Record<PaymentRequestRecord["paymentStatus"], string>
   disputed: "במחלוקת",
   waived: "ויתור",
 };
-
-const studentDashboardTabIds = ["lessons", "book", "payments", "history"] as const;
-const historySectionIds = ["lessons", "payments"] as const;
-
-type StudentDashboardTab = (typeof studentDashboardTabIds)[number];
-type HistorySection = (typeof historySectionIds)[number];
 
 const settledPaymentStatuses: ReadonlyArray<PaymentRequestRecord["paymentStatus"]> = [
   "paid",
@@ -201,21 +199,15 @@ export default function StudentDashboardPage() {
   const lessonsQuery = useDashboardLessons();
   const teachersQuery = useDirectoryUsers("teacher");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
-  const { activeTab, activeSection, redirectPath, setActiveTab, setActiveSection } =
-    useDashboardRoute<StudentDashboardTab, HistorySection>("/student", studentDashboardTabIds, {
+  const navigate = useNavigate();
+  const { activeTab, activeSection, redirectPath } = useDashboardRoute<StudentTab, HistorySection>(
+    "/student",
+    studentTabIds,
+    {
       history: historySectionIds,
-    });
+    },
+  );
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
-  const tabs: DashboardTab<StudentDashboardTab>[] = [
-    { id: "lessons", label: t("dashboard.tabs.lessons"), icon: CalendarDays },
-    { id: "book", label: t("dashboard.tabs.book"), icon: Search },
-    { id: "payments", label: t("dashboard.tabs.payments"), icon: CreditCard },
-    { id: "history", label: t("dashboard.tabs.history"), icon: History },
-  ];
-  const historyTabs: DashboardTab<HistorySection>[] = [
-    { id: "lessons", label: t("dashboard.tabs.historyLessons"), icon: CalendarDays },
-    { id: "payments", label: t("dashboard.tabs.historyPayments"), icon: CreditCard },
-  ];
   const selectedTeacher = (teachersQuery.data ?? []).find(
     (teacher) => teacher._id === selectedTeacherId,
   );
@@ -228,7 +220,7 @@ export default function StudentDashboardPage() {
 
   const selectTeacher = (teacherId: string) => {
     setSelectedTeacherId(teacherId);
-    setActiveTab("book");
+    navigate("/student/book");
   };
 
   if (redirectPath || !activeTab)
@@ -295,7 +287,7 @@ export default function StudentDashboardPage() {
             </Card>
           </div>
 
-          <DashboardTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab}>
+          <div className="space-y-5">
             {activeTab === "lessons" ? (
               <div className="space-y-4">
                 {selectedTeacherName ? (
@@ -343,11 +335,7 @@ export default function StudentDashboardPage() {
             ) : null}
             {activeTab === "payments" ? <StudentPaymentRequests settled={false} /> : null}
             {activeTab === "history" && activeSection ? (
-              <DashboardTabs
-                tabs={historyTabs}
-                activeTab={activeSection}
-                onChange={setActiveSection}
-              >
+              <>
                 {activeSection === "lessons" ? (
                   <LessonHistory
                     lessons={visibleLessons}
@@ -357,9 +345,9 @@ export default function StudentDashboardPage() {
                   />
                 ) : null}
                 {activeSection === "payments" ? <StudentPaymentRequests settled /> : null}
-              </DashboardTabs>
+              </>
             ) : null}
-          </DashboardTabs>
+          </div>
         </>
       ) : null}
     </div>

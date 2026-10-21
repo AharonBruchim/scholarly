@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 type NonEmptyList<T> = readonly [T, ...T[]];
 
@@ -22,7 +22,6 @@ export function useDashboardRoute<T extends string, S extends string = never>(
   sectionIdsByTab: Partial<Record<T, NonEmptyList<S>>> = {},
 ) {
   const { tab, section } = useParams<{ tab: string; section: string }>();
-  const navigate = useNavigate();
   const activeTab = tabIds.find((id) => id === tab);
   const tabSectionIds = activeTab ? sectionIdsByTab[activeTab] : undefined;
   const activeSection = tabSectionIds?.find((id) => id === section);
@@ -34,7 +33,5 @@ export function useDashboardRoute<T extends string, S extends string = never>(
     activeSection,
     section,
   );
-  const setActiveTab = (nextTab: T) => navigate(`${basePath}/${nextTab}`);
-  const setActiveSection = (nextSection: S) => navigate(`${basePath}/${activeTab}/${nextSection}`);
-  return { activeTab, activeSection, redirectPath, setActiveTab, setActiveSection };
+  return { activeTab, activeSection, redirectPath };
 }

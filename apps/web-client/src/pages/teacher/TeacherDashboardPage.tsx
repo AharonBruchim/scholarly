@@ -1,52 +1,35 @@
 import { useTranslation } from "react-i18next";
-import { CalendarDays, CreditCard, History, PlusCircle } from "lucide-react";
-import { useMemo } from "react";
 import { Navigate } from "react-router-dom";
 import { PaymentAutomationCenter } from "@/components/billing/PaymentAutomationCenter";
 import { Spinner } from "@/components/common/Spinner";
 import { CreateLessonForm } from "@/components/dashboard/CreateLessonForm";
-import { LessonHistory } from "@/components/dashboard/LessonHistory";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
+import { LessonHistory } from "@/components/dashboard/LessonHistory";
 import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DashboardTabs, type DashboardTab } from "@/components/ui/dashboard-tabs";
 import { useDashboardLessons } from "@/hooks/useDashboard";
 import { useDashboardRoute } from "@/hooks/useDashboardRoute";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
-
-const teacherDashboardTabIds = ["lessons", "create", "payments", "history"] as const;
-const historySectionIds = ["lessons", "payments"] as const;
-
-type TeacherDashboardTab = (typeof teacherDashboardTabIds)[number];
-type HistorySection = (typeof historySectionIds)[number];
+import {
+  type HistorySection,
+  historySectionIds,
+  type TeacherTab,
+  teacherTabIds,
+} from "@/lib/dashboard-navigation";
 
 export default function TeacherDashboardPage() {
   const { t, i18n } = useTranslation();
   const lessonsQuery = useDashboardLessons();
   const studentsQuery = useDirectoryUsers("student");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
-  const { activeTab, activeSection, redirectPath, setActiveTab, setActiveSection } =
-    useDashboardRoute<TeacherDashboardTab, HistorySection>("/teacher", teacherDashboardTabIds, {
+  const { activeTab, activeSection, redirectPath } = useDashboardRoute<TeacherTab, HistorySection>(
+    "/teacher",
+    teacherTabIds,
+    {
       history: historySectionIds,
-    });
-  const tabs = useMemo<DashboardTab<TeacherDashboardTab>[]>(
-    () => [
-      { id: "lessons", label: t("dashboard.tabs.lessons"), icon: CalendarDays },
-      { id: "create", label: t("dashboard.tabs.create"), icon: PlusCircle },
-      { id: "payments", label: t("dashboard.tabs.payments"), icon: CreditCard },
-      { id: "history", label: t("dashboard.tabs.history"), icon: History },
-    ],
-    [t],
+    },
   );
-  const historyTabs = useMemo<DashboardTab<HistorySection>[]>(
-    () => [
-      { id: "lessons", label: t("dashboard.tabs.historyLessons"), icon: CalendarDays },
-      { id: "payments", label: t("dashboard.tabs.historyPayments"), icon: CreditCard },
-    ],
-    [t],
-  );
-
   if (redirectPath || !activeTab)
     return <Navigate to={redirectPath ?? "/teacher/lessons"} replace />;
 
@@ -111,7 +94,7 @@ export default function TeacherDashboardPage() {
             </Card>
           </div>
 
-          <DashboardTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab}>
+          <div className="space-y-5">
             {activeTab === "lessons" ? (
               <UpcomingLessonsList
                 lessons={lessonsQuery.data}
@@ -130,11 +113,7 @@ export default function TeacherDashboardPage() {
               />
             ) : null}
             {activeTab === "history" && activeSection ? (
-              <DashboardTabs
-                tabs={historyTabs}
-                activeTab={activeSection}
-                onChange={setActiveSection}
-              >
+              <>
                 {activeSection === "lessons" ? (
                   <div className="space-y-6">
                     <LessonHistory
@@ -158,9 +137,9 @@ export default function TeacherDashboardPage() {
                     view="paymentHistory"
                   />
                 ) : null}
-              </DashboardTabs>
+              </>
             ) : null}
-          </DashboardTabs>
+          </div>
         </>
       ) : null}
     </div>

@@ -13,6 +13,7 @@ const resources = {
     translation: {
       common: {
         brand: "Scholarly",
+        mainNavigation: "ניווט ראשי",
         login: "התחברות",
         register: "הרשמה",
         logout: "התנתקות",
@@ -270,6 +271,7 @@ const resources = {
     translation: {
       common: {
         brand: "Scholarly",
+        mainNavigation: "Main navigation",
         login: "Login",
         register: "Register",
         logout: "Logout",
