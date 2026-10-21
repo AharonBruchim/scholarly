@@ -1,8 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useNavigate } from "react-router-dom";
 import { PaymentTimeline } from "@/components/billing/PaymentTimeline";
+import {
+  type PaymentClaimMode,
+  StudentPaymentClaimForm,
+} from "@/components/billing/StudentPaymentClaimForm";
 import { Spinner } from "@/components/common/Spinner";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
 import { LessonHistory } from "@/components/dashboard/LessonHistory";
@@ -25,7 +29,6 @@ import {
   fetchPaymentRequests,
   openPaymentRequestPdf,
   type PaymentRequestRecord,
-  updatePaymentRequestStatus,
 } from "@/services/api";
 
 const paymentStatusLabels: Record<PaymentRequestRecord["paymentStatus"], string> = {
@@ -53,22 +56,15 @@ function formatPaymentDate(value: string): string {
 }
 
 function StudentPaymentRequests({ settled }: { settled: boolean }) {
-  const queryClient = useQueryClient();
+  const [claimTarget, setClaimTarget] = useState<{
+    requestId: string;
+    mode: PaymentClaimMode;
+  } | null>(null);
   const [pdfPreview, setPdfPreview] = useState<{ title: string; url: string } | null>(null);
   const requestsQuery = useQuery({ queryKey: ["billing"], queryFn: fetchPaymentRequests });
   const visibleRequests = (requestsQuery.data ?? []).filter(
     (request) => isPaymentSettled(request) === settled,
   );
-  const statusMutation = useMutation({
-    mutationFn: ({
-      id,
-      paymentStatus,
-    }: {
-      id: string;
-      paymentStatus: "claimed_paid" | "disputed";
-    }) => updatePaymentRequestStatus(id, { paymentStatus }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["billing"] }),
-  });
 
   useEffect(() => {
     return () => {
@@ -145,9 +141,9 @@ function StudentPaymentRequests({ settled }: { settled: boolean }) {
                       type="button"
                       size="sm"
                       onClick={() =>
-                        statusMutation.mutate({ id: request._id, paymentStatus: "claimed_paid" })
+                        setClaimTarget({ requestId: request._id, mode: "claimed_paid" })
                       }
-                      disabled={statusMutation.isPending || request.paymentStatus === "paid"}
+                      disabled={request.paymentStatus === "paid"}
                     >
                       שילמתי
                     </Button>
@@ -155,10 +151,8 @@ function StudentPaymentRequests({ settled }: { settled: boolean }) {
                       type="button"
                       size="sm"
                       variant="secondary"
-                      onClick={() =>
-                        statusMutation.mutate({ id: request._id, paymentStatus: "disputed" })
-                      }
-                      disabled={statusMutation.isPending || request.paymentStatus === "paid"}
+                      onClick={() => setClaimTarget({ requestId: request._id, mode: "disputed" })}
+                      disabled={request.paymentStatus === "paid"}
                     >
                       מחלוקת
                     </Button>
@@ -178,6 +172,14 @@ function StudentPaymentRequests({ settled }: { settled: boolean }) {
                 </li>
               ))}
             </ul>
+            {claimTarget?.requestId === request._id ? (
+              <StudentPaymentClaimForm
+                key={claimTarget.mode}
+                requestId={request._id}
+                mode={claimTarget.mode}
+                onClose={() => setClaimTarget(null)}
+              />
+            ) : null}
             <PaymentTimeline request={request} />
           </article>
         ))}
@@ -186,7 +188,7 @@ function StudentPaymentRequests({ settled }: { settled: boolean }) {
             {settled ? "עדיין אין תשלומים שהסתיימו." : "אין כרגע דרישות תשלום פתוחות."}
           </p>
         ) : null}
-        {requestsQuery.isError || statusMutation.isError ? (
+        {requestsQuery.isError ? (
           <p role="alert" className="text-sm text-red-400">
             לא ניתן לטעון או לעדכן את דרישות התשלום.
           </p>

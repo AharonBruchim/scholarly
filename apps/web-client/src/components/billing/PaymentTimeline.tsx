@@ -1,12 +1,18 @@
-import { History } from "lucide-react";
+import { History, Paperclip } from "lucide-react";
 
-import type { PaymentEventRecord, PaymentRequestRecord } from "@/services/api";
+import { paymentMethodLabels } from "@/components/billing/payment-methods";
+import {
+  openPaymentProof,
+  type PaymentEventRecord,
+  type PaymentRequestRecord,
+} from "@/services/api";
 
 interface ITimelineEntry {
   key: string;
   at: string;
   label: string;
   note?: string;
+  proof?: { id: string; filename: string };
 }
 
 const channelLabels: Record<PaymentRequestRecord["deliveries"][number]["channel"], string> = {
@@ -58,14 +64,26 @@ function buildTimeline(request: PaymentRequestRecord): ITimelineEntry[] {
   const events = (request.paymentEvents ?? []).map((event, index) => ({
     key: `event-${index}`,
     at: event.createdAt,
-    label: (event.actorRole === "teacher" ? teacherEventLabels : studentEventLabels)[
-      event.paymentStatus
-    ],
     ...(event.note ? { note: event.note } : {}),
+    ...(event.proofId ? { proof: { id: event.proofId, filename: event.proofFilename ?? "" } } : {}),
+    label: `${(event.actorRole === "teacher" ? teacherEventLabels : studentEventLabels)[event.paymentStatus]}${
+      event.paymentMethod ? ` · ${paymentMethodLabels[event.paymentMethod]}` : ""
+    }`,
   }));
   return [created, ...deliveries, ...events].sort(
     (left, right) => new Date(left.at).getTime() - new Date(right.at).getTime(),
   );
+}
+
+async function showProof(paymentRequestId: string, proofId: string) {
+  const proofWindow = window.open("", "_blank");
+  try {
+    const url = await openPaymentProof(paymentRequestId, proofId);
+    if (proofWindow) proofWindow.location.href = url;
+    else window.location.assign(url);
+  } catch {
+    proofWindow?.close();
+  }
 }
 
 export function PaymentTimeline({ request }: { request: PaymentRequestRecord }) {
@@ -87,6 +105,17 @@ export function PaymentTimeline({ request }: { request: PaymentRequestRecord }) 
               </p>
               {entry.note ? (
                 <p className="whitespace-pre-wrap text-slate-400">"{entry.note}"</p>
+              ) : null}
+              {entry.proof ? (
+                <button
+                  type="button"
+                  onClick={() => void showProof(request._id, entry.proof?.id ?? "")}
+                  className="mt-1 inline-flex items-center gap-1 text-sky-300 hover:text-sky-200"
+                >
+                  <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
+                  צפייה באישור התשלום
+                  {entry.proof.filename ? ` (${entry.proof.filename})` : ""}
+                </button>
               ) : null}
             </div>
           </li>

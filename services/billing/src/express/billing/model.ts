@@ -43,9 +43,16 @@ export const PAYMENT_STATUSES = ['unpaid', 'claimed_paid', 'paid', 'disputed', '
 
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
+export const PAYMENT_METHODS = ['bit', 'paybox', 'bank_transfer', 'cash', 'other'] as const;
+
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
 export interface PaymentEvent {
     paymentStatus: PaymentStatus;
     note?: string;
+    paymentMethod?: PaymentMethod;
+    proofId?: string;
+    proofFilename?: string;
     actorId: string;
     actorRole: 'teacher' | 'student';
     createdAt: Date;
@@ -78,6 +85,9 @@ const paymentEventSchema = new mongoose.Schema<PaymentEvent>(
     {
         paymentStatus: { type: String, enum: PAYMENT_STATUSES, required: true },
         note: { type: String, maxlength: 1000 },
+        paymentMethod: { type: String, enum: PAYMENT_METHODS },
+        proofId: { type: String },
+        proofFilename: { type: String, maxlength: 200 },
         actorId: { type: String, required: true },
         actorRole: { type: String, enum: ['teacher', 'student'], required: true },
         createdAt: { type: Date, required: true },
@@ -301,3 +311,35 @@ export interface ReminderJobRecord {
     status: 'pending' | 'processing' | 'sent' | 'failed' | 'cancelled';
 }
 export const BillingReminderJobModel = mongoose.model<ReminderJobRecord>('BillingReminderJob', looseSchema, MongoCollections.LESSON_REMINDER_JOBS);
+
+export const PAYMENT_PROOF_CONTENT_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'] as const;
+
+export type PaymentProofContentType = (typeof PAYMENT_PROOF_CONTENT_TYPES)[number];
+
+export const PAYMENT_PROOF_MAX_BYTES = 5 * 1024 * 1024;
+
+export interface PaymentProofRecord {
+    paymentRequestId: string;
+    teacherId: string;
+    studentId: string;
+    uploadedBy: string;
+    filename: string;
+    contentType: PaymentProofContentType;
+    size: number;
+    data: Buffer;
+}
+
+const paymentProofSchema = new mongoose.Schema<PaymentProofRecord>(
+    {
+        paymentRequestId: { type: String, required: true, index: true },
+        teacherId: { type: String, required: true },
+        studentId: { type: String, required: true },
+        uploadedBy: { type: String, required: true },
+        filename: { type: String, required: true, maxlength: 200 },
+        contentType: { type: String, enum: PAYMENT_PROOF_CONTENT_TYPES, required: true },
+        size: { type: Number, required: true, max: PAYMENT_PROOF_MAX_BYTES },
+        data: { type: Buffer, required: true, select: false },
+    },
+    { timestamps: true },
+);
+export const PaymentProofModel = mongoose.model<PaymentProofRecord>('PaymentProof', paymentProofSchema, MongoCollections.BILLING_PAYMENT_PROOFS);

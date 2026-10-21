@@ -284,9 +284,18 @@ export interface PaymentRequestLine {
   kind: "completed" | "late_cancellation" | "custom";
 }
 
+export type PaymentMethod = "bit" | "paybox" | "bank_transfer" | "cash" | "other";
+
+export const PAYMENT_PROOF_MAX_BYTES = 5 * 1024 * 1024;
+
+export const PAYMENT_PROOF_ACCEPT = "image/png,image/jpeg,image/webp,application/pdf";
+
 export interface PaymentEventRecord {
   paymentStatus: "unpaid" | "claimed_paid" | "paid" | "disputed" | "waived";
   note?: string;
+  paymentMethod?: PaymentMethod;
+  proofId?: string;
+  proofFilename?: string;
   actorId: string;
   actorRole: "teacher" | "student";
   createdAt: string;
@@ -386,6 +395,8 @@ export async function updatePaymentRequestStatus(
   input: {
     paymentStatus: PaymentRequestRecord["paymentStatus"];
     paymentNote?: string;
+    paymentMethod?: PaymentMethod;
+    proofId?: string;
   },
 ): Promise<PaymentRequestRecord> {
   const response = await apiClient.patch<PaymentRequestRecord>(
@@ -393,6 +404,26 @@ export async function updatePaymentRequestStatus(
     input,
   );
   return response.data;
+}
+
+export async function uploadPaymentProof(
+  paymentRequestId: string,
+  file: File,
+): Promise<{ proofId: string; filename: string }> {
+  const response = await apiClient.post<{ proofId: string; filename: string }>(
+    `${billingPath}/${paymentRequestId}/payment-proofs`,
+    file,
+    { headers: { "Content-Type": file.type }, params: { filename: file.name } },
+  );
+  return response.data;
+}
+
+export async function openPaymentProof(paymentRequestId: string, proofId: string): Promise<string> {
+  const response = await apiClient.get<Blob>(
+    `${billingPath}/${paymentRequestId}/payment-proofs/${proofId}`,
+    { responseType: "blob" },
+  );
+  return URL.createObjectURL(response.data);
 }
 
 export async function openPaymentRequestPdf(id: string): Promise<string> {

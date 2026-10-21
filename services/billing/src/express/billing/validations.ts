@@ -1,6 +1,7 @@
 import { ENABLED_DELIVERY_CHANNELS } from '@scholarly/shared';
 import { zodMongoObjectId } from '@scholarly/utils';
 import { z } from 'zod';
+import { PAYMENT_METHODS } from './model';
 
 const deliveryChannels = z
     .array(z.enum(ENABLED_DELIVERY_CHANNELS))
@@ -78,6 +79,8 @@ export const updatePaymentStatusSchema = z.object({
         .object({
             paymentStatus: z.enum(['unpaid', 'claimed_paid', 'paid', 'disputed', 'waived']),
             paymentNote: z.string().trim().max(1000).optional(),
+            paymentMethod: z.enum(PAYMENT_METHODS).optional(),
+            proofId: zodMongoObjectId.optional(),
         })
         .strict(),
     query: z.object({}),
@@ -88,4 +91,14 @@ export const googleCallbackSchema = z.object({
     body: z.object({}),
     query: z.object({ code: z.string().min(1).max(4000), state: z.string().min(20).max(500) }),
     params: z.object({}),
+});
+export const uploadPaymentProofSchema = z.object({
+    body: z.instanceof(Buffer),
+    query: z.object({ filename: z.string().max(500).optional() }),
+    params: z.object({ id: zodMongoObjectId }),
+});
+export const getPaymentProofSchema = z.object({
+    body: z.object({}),
+    query: z.object({}),
+    params: z.object({ id: zodMongoObjectId, proofId: zodMongoObjectId }),
 });

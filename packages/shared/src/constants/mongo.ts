@@ -9,4 +9,5 @@ export const MongoCollections = {
     BILLING_SENDER_CONNECTIONS: 'billing_sender_connections',
     BILLING_OAUTH_STATES: 'billing_oauth_states',
     BILLING_LESSON_MESSAGES: 'billing_lesson_messages',
+    BILLING_PAYMENT_PROOFS: 'billing_payment_proofs',
 } as const;

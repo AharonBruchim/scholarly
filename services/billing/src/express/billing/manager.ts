@@ -11,9 +11,11 @@ import {
     DeliveryOutboxModel,
     LessonMessageModel,
     type PaymentLineItem,
+    type PaymentMethod,
     PaymentRequestModel,
     SenderConnectionModel,
 } from './model';
+import { PaymentProofManager } from './payment-proofs';
 import { generateLessonMessagePdf, generatePaymentRequestPdf } from './pdf';
 import {
     lessonMessageDocumentUrl,
@@ -50,6 +52,8 @@ export interface LessonMessageInput {
 export interface PaymentStatusInput {
     paymentStatus: 'unpaid' | 'claimed_paid' | 'paid' | 'disputed' | 'waived';
     paymentNote?: string;
+    paymentMethod?: PaymentMethod;
+    proofId?: string;
 }
 
 function periodRange(period?: string) {
@@ -767,6 +771,7 @@ export const AutomationManager = {
         if (!request || request.status === 'cancelled') throw new NotFoundError('Payment request not found');
         const studentAllowed = ['claimed_paid', 'disputed'].includes(input.paymentStatus);
         if (actor.role === UsersRoles.STUDENT && !studentAllowed) throw new ForbiddenError();
+        const proof = input.proofId ? await PaymentProofManager.findOwnedProof(id, input.proofId, actor) : null;
         const updatedAt = new Date();
         request.paymentStatus = input.paymentStatus;
         if (actor.role === UsersRoles.TEACHER) request.paymentNote = input.paymentNote;
@@ -775,6 +780,9 @@ export const AutomationManager = {
         request.paymentEvents.push({
             paymentStatus: input.paymentStatus,
             note: input.paymentNote,
+            paymentMethod: input.paymentMethod,
+            proofId: proof?._id.toString(),
+            proofFilename: proof?.filename,
             actorId: actor.sub,
             actorRole: actor.role === UsersRoles.TEACHER ? 'teacher' : 'student',
             createdAt: updatedAt,

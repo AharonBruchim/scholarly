@@ -1,11 +1,13 @@
 import { authenticateJWT, validateRequest, wrapController } from '@scholarly/utils';
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { AutomationController } from './controller';
+import { PAYMENT_PROOF_CONTENT_TYPES, PAYMENT_PROOF_MAX_BYTES } from './model';
 import {
     automaticPreviewSchema,
     createLessonMessageSchema,
     createManualPaymentRequestSchema,
     getLessonMessagePdfSchema,
+    getPaymentProofSchema,
     getPaymentRequestPdfSchema,
     getPublicLessonMessagePdfSchema,
     getPublicManualDeliverySchema,
@@ -16,6 +18,7 @@ import {
     listLessonMessagesSchema,
     listPaymentRequestsSchema,
     updatePaymentStatusSchema,
+    uploadPaymentProofSchema,
 } from './validations';
 
 export const billingRouter = Router();
@@ -24,6 +27,19 @@ billingRouter.get('/', authenticateJWT, validateRequest(listPaymentRequestsSchem
 billingRouter.post('/', authenticateJWT, validateRequest(createManualPaymentRequestSchema), wrapController(AutomationController.createManual));
 billingRouter.get('/:id/pdf', authenticateJWT, validateRequest(getPaymentRequestPdfSchema), wrapController(AutomationController.pdf));
 billingRouter.post('/:id/cancel', authenticateJWT, validateRequest(idOnlySchema), wrapController(AutomationController.cancelPayment));
+billingRouter.post(
+    '/:id/payment-proofs',
+    authenticateJWT,
+    express.raw({ type: [...PAYMENT_PROOF_CONTENT_TYPES], limit: PAYMENT_PROOF_MAX_BYTES }),
+    validateRequest(uploadPaymentProofSchema),
+    wrapController(AutomationController.uploadPaymentProof),
+);
+billingRouter.get(
+    '/:id/payment-proofs/:proofId',
+    authenticateJWT,
+    validateRequest(getPaymentProofSchema),
+    wrapController(AutomationController.paymentProof),
+);
 billingRouter.patch(
     '/:id/payment-status',
     authenticateJWT,

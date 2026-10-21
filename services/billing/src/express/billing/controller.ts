@@ -3,11 +3,13 @@ import type { Response } from 'express';
 import { config } from '../../config';
 import { GmailManager } from './gmail';
 import { AutomationManager } from './manager';
+import { PaymentProofManager } from './payment-proofs';
 import type {
     automaticPreviewSchema,
     createLessonMessageSchema,
     createManualPaymentRequestSchema,
     getLessonMessagePdfSchema,
+    getPaymentProofSchema,
     getPaymentRequestPdfSchema,
     getPublicLessonMessagePdfSchema,
     getPublicManualDeliverySchema,
@@ -18,6 +20,7 @@ import type {
     listLessonMessagesSchema,
     listPaymentRequestsSchema,
     updatePaymentStatusSchema,
+    uploadPaymentProofSchema,
 } from './validations';
 
 const actorFrom = (req: AuthenticatedRequest) => {
@@ -56,6 +59,16 @@ export const AutomationController = {
     },
     cancelPayment: async (req: TypedRequest<typeof idOnlySchema>, res: Response) => {
         res.json(await AutomationManager.cancelPaymentRequest(req.params.id, actorFrom(req)));
+    },
+    uploadPaymentProof: async (req: TypedRequest<typeof uploadPaymentProofSchema>, res: Response) => {
+        res.status(201).json(await PaymentProofManager.upload(req.params.id, req.body, req.query.filename, actorFrom(req)));
+    },
+    paymentProof: async (req: TypedRequest<typeof getPaymentProofSchema>, res: Response) => {
+        const proof = await PaymentProofManager.get(req.params.id, req.params.proofId, actorFrom(req));
+        res.setHeader('Content-Type', proof.contentType);
+        res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(proof.filename)}`);
+        res.setHeader('Cache-Control', 'private, no-store');
+        res.send(proof.data);
     },
     updatePaymentStatus: async (req: TypedRequest<typeof updatePaymentStatusSchema>, res: Response) => {
         res.json(await AutomationManager.updatePaymentStatus(req.params.id, req.body, actorFrom(req)));
