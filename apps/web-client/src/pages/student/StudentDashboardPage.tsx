@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, CreditCard, History, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Navigate } from "react-router-dom";
 import { Spinner } from "@/components/common/Spinner";
 import { LessonHistory } from "@/components/dashboard/LessonHistory";
 import { LessonDataError } from "@/components/dashboard/LessonDataError";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardTabs, type DashboardTab } from "@/components/ui/dashboard-tabs";
 import { useDashboardLessons } from "@/hooks/useDashboard";
+import { useDashboardTab } from "@/hooks/useDashboardTab";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
 import {
@@ -29,7 +31,9 @@ const paymentStatusLabels: Record<PaymentRequestRecord["paymentStatus"], string>
   waived: "ויתור",
 };
 
-type StudentDashboardTab = "lessons" | "book" | "payments" | "history";
+const studentDashboardTabIds = ["lessons", "book", "payments", "history"] as const;
+
+type StudentDashboardTab = (typeof studentDashboardTabIds)[number];
 
 function formatPaymentDate(value: string): string {
   return new Intl.DateTimeFormat("he-IL", {
@@ -168,7 +172,7 @@ export default function StudentDashboardPage() {
   const lessonsQuery = useDashboardLessons();
   const teachersQuery = useDirectoryUsers("teacher");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
-  const [activeTab, setActiveTab] = useState<StudentDashboardTab>("lessons");
+  const { activeTab, setActiveTab } = useDashboardTab("/student", studentDashboardTabIds);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
   const tabs: DashboardTab<StudentDashboardTab>[] = [
     { id: "lessons", label: t("dashboard.tabs.lessons"), icon: CalendarDays },
@@ -190,6 +194,8 @@ export default function StudentDashboardPage() {
     setSelectedTeacherId(teacherId);
     setActiveTab("book");
   };
+
+  if (!activeTab) return <Navigate to="/student/lessons" replace />;
 
   return (
     <div className="space-y-6">

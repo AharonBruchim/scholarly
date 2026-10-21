@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { CalendarDays, CreditCard, History, PlusCircle } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { Navigate } from "react-router-dom";
 import { PaymentAutomationCenter } from "@/components/billing/PaymentAutomationCenter";
 import { Spinner } from "@/components/common/Spinner";
 import { CreateLessonForm } from "@/components/dashboard/CreateLessonForm";
@@ -10,17 +11,20 @@ import { UpcomingLessonsList } from "@/components/dashboard/UpcomingLessonsList"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardTabs, type DashboardTab } from "@/components/ui/dashboard-tabs";
 import { useDashboardLessons } from "@/hooks/useDashboard";
+import { useDashboardTab } from "@/hooks/useDashboardTab";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
 
-type TeacherDashboardTab = "lessons" | "create" | "payments" | "history";
+const teacherDashboardTabIds = ["lessons", "create", "payments", "history"] as const;
+
+type TeacherDashboardTab = (typeof teacherDashboardTabIds)[number];
 
 export default function TeacherDashboardPage() {
   const { t, i18n } = useTranslation();
   const lessonsQuery = useDashboardLessons();
   const studentsQuery = useDirectoryUsers("student");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
-  const [activeTab, setActiveTab] = useState<TeacherDashboardTab>("lessons");
+  const { activeTab, setActiveTab } = useDashboardTab("/teacher", teacherDashboardTabIds);
   const tabs = useMemo<DashboardTab<TeacherDashboardTab>[]>(
     () => [
       { id: "lessons", label: t("dashboard.tabs.lessons"), icon: CalendarDays },
@@ -30,6 +34,8 @@ export default function TeacherDashboardPage() {
     ],
     [t],
   );
+
+  if (!activeTab) return <Navigate to="/teacher/lessons" replace />;
 
   return (
     <div className="space-y-6">
