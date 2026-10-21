@@ -21,6 +21,10 @@ const statusClasses: Record<Lesson["status"], string> = {
   cancelled: "text-rose-300",
 };
 
+function hasEnded(lesson: Lesson): boolean {
+  return new Date(lesson.endTime).getTime() < Date.now();
+}
+
 export function LessonHistory({
   lessons,
   people,
@@ -33,14 +37,19 @@ export function LessonHistory({
   const peopleById = new Map(
     people.map((person) => [person._id, `${person.firstName} ${person.lastName}`]),
   );
+  const needsCompletion = (lesson: Lesson) =>
+    allowComplete && lesson.status === "scheduled" && hasEnded(lesson);
   const historyLessons = lessons
-    .filter((lesson) => {
-      const ended = new Date(lesson.endTime).getTime() < Date.now();
-      return lesson.status === "completed" || lesson.status === "cancelled" || ended;
-    })
+    .filter(
+      (lesson) =>
+        lesson.status === "completed" || lesson.status === "cancelled" || hasEnded(lesson),
+    )
     .sort(
-      (left, right) => new Date(right.startTime).getTime() - new Date(left.startTime).getTime(),
+      (left, right) =>
+        Number(needsCompletion(right)) - Number(needsCompletion(left)) ||
+        new Date(right.startTime).getTime() - new Date(left.startTime).getTime(),
     );
+  const pendingCompletionCount = historyLessons.filter(needsCompletion).length;
 
   return (
     <Card id="lesson-history" className="scroll-mt-6">
@@ -48,13 +57,28 @@ export function LessonHistory({
         <CardTitle>{t("lessons.historyTitle")}</CardTitle>
         <CardDescription>{t("lessons.historyDescription")}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        {pendingCompletionCount > 0 ? (
+          <p
+            role="status"
+            className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-100"
+          >
+            {t("lessons.pendingCompletion", { count: pendingCompletionCount })}
+          </p>
+        ) : null}
         {historyLessons.length === 0 ? (
           <p className="text-sm text-slate-300">{t("lessons.historyEmpty")}</p>
         ) : (
           <div className="space-y-3">
             {historyLessons.map((lesson) => (
-              <article key={lesson._id} className="rounded-lg border border-slate-700 p-4">
+              <article
+                key={lesson._id}
+                className={
+                  needsCompletion(lesson)
+                    ? "rounded-lg border border-amber-500/50 bg-amber-500/5 p-4"
+                    : "rounded-lg border border-slate-700 p-4"
+                }
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h3 className="font-semibold text-white">{lesson.subject}</h3>
@@ -82,9 +106,7 @@ export function LessonHistory({
                     <span className={`text-sm font-medium ${statusClasses[lesson.status]}`}>
                       {t(`lessons.status.${lesson.status}`)}
                     </span>
-                    {allowComplete &&
-                    lesson.status === "scheduled" &&
-                    new Date(lesson.endTime).getTime() < Date.now() ? (
+                    {needsCompletion(lesson) ? (
                       <Button
                         type="button"
                         size="sm"
@@ -101,7 +123,7 @@ export function LessonHistory({
           </div>
         )}
         {completeMutation.isError ? (
-          <p role="alert" className="mt-3 text-sm text-red-400">
+          <p role="alert" className="text-sm text-red-400">
             {t("lessons.completeFailed")}
           </p>
         ) : null}

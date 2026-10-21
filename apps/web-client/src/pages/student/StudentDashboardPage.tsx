@@ -15,9 +15,9 @@ import { useDashboardRoute } from "@/hooks/useDashboardRoute";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
 import {
-  type HistorySection,
-  historySectionIds,
+  type StudentHistorySection,
   type StudentTab,
+  studentHistorySectionIds,
   studentTabIds,
 } from "@/lib/dashboard-navigation";
 import {
@@ -200,13 +200,12 @@ export default function StudentDashboardPage() {
   const teachersQuery = useDirectoryUsers("teacher");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
   const navigate = useNavigate();
-  const { activeTab, activeSection, redirectPath } = useDashboardRoute<StudentTab, HistorySection>(
-    "/student",
-    studentTabIds,
-    {
-      history: historySectionIds,
-    },
-  );
+  const { activeTab, activeSection, redirectPath } = useDashboardRoute<
+    StudentTab,
+    StudentHistorySection
+  >("/student", studentTabIds, {
+    history: studentHistorySectionIds,
+  });
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
   const selectedTeacher = (teachersQuery.data ?? []).find(
     (teacher) => teacher._id === selectedTeacherId,

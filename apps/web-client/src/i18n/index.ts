@@ -110,6 +110,7 @@ const resources = {
           history: "היסטוריה",
           historyLessons: "שיעורים",
           historyPayments: "תשלומים",
+          historyMessages: "הודעות",
         },
       },
       lessons: {
@@ -133,6 +134,7 @@ const resources = {
         historyDescription: "שיעורים שהסתיימו, בוטלו או סומנו כהתקיימו",
         historyEmpty: "אין עדיין שיעורים בהיסטוריה.",
         markCompleted: "סימון כהתקיים",
+        pendingCompletion: "שיעורים שעברו ומחכים לסימון: {{count}}",
         completeFailed: "לא ניתן לסמן את השיעור כהתקיים.",
         status: {
           available: "זמין",
@@ -369,6 +371,7 @@ const resources = {
           history: "History",
           historyLessons: "Lessons",
           historyPayments: "Payments",
+          historyMessages: "Messages",
         },
       },
       lessons: {
@@ -392,6 +395,7 @@ const resources = {
         historyDescription: "Lessons that ended, were cancelled, or were marked completed",
         historyEmpty: "No lessons in history yet.",
         markCompleted: "Mark completed",
+        pendingCompletion: "Past lessons waiting to be marked: {{count}}",
         completeFailed: "Couldn't mark the lesson as completed.",
         status: {
           available: "Available",

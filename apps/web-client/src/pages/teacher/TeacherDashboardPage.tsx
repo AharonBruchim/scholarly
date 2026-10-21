@@ -12,9 +12,9 @@ import { useDashboardRoute } from "@/hooks/useDashboardRoute";
 import { useDirectoryUsers } from "@/hooks/useDirectory";
 import { formatLessonDateTime, getLessonDashboardStats } from "@/lib/dashboard";
 import {
-  type HistorySection,
-  historySectionIds,
+  type TeacherHistorySection,
   type TeacherTab,
+  teacherHistorySectionIds,
   teacherTabIds,
 } from "@/lib/dashboard-navigation";
 
@@ -23,13 +23,12 @@ export default function TeacherDashboardPage() {
   const lessonsQuery = useDashboardLessons();
   const studentsQuery = useDirectoryUsers("student");
   const stats = getLessonDashboardStats(lessonsQuery.data ?? []);
-  const { activeTab, activeSection, redirectPath } = useDashboardRoute<TeacherTab, HistorySection>(
-    "/teacher",
-    teacherTabIds,
-    {
-      history: historySectionIds,
-    },
-  );
+  const { activeTab, activeSection, redirectPath } = useDashboardRoute<
+    TeacherTab,
+    TeacherHistorySection
+  >("/teacher", teacherTabIds, {
+    history: teacherHistorySectionIds,
+  });
   if (redirectPath || !activeTab)
     return <Navigate to={redirectPath ?? "/teacher/lessons"} replace />;
 
@@ -115,20 +114,20 @@ export default function TeacherDashboardPage() {
             {activeTab === "history" && activeSection ? (
               <>
                 {activeSection === "lessons" ? (
-                  <div className="space-y-6">
-                    <LessonHistory
-                      lessons={lessonsQuery.data}
-                      people={studentsQuery.data ?? []}
-                      personIdKey="studentId"
-                      personLabel={t("lessons.student")}
-                      allowComplete
-                    />
-                    <PaymentAutomationCenter
-                      lessons={lessonsQuery.data}
-                      students={studentsQuery.data ?? []}
-                      view="lessonMessageHistory"
-                    />
-                  </div>
+                  <LessonHistory
+                    lessons={lessonsQuery.data}
+                    people={studentsQuery.data ?? []}
+                    personIdKey="studentId"
+                    personLabel={t("lessons.student")}
+                    allowComplete
+                  />
+                ) : null}
+                {activeSection === "messages" ? (
+                  <PaymentAutomationCenter
+                    lessons={lessonsQuery.data}
+                    students={studentsQuery.data ?? []}
+                    view="lessonMessageHistory"
+                  />
                 ) : null}
                 {activeSection === "payments" ? (
                   <PaymentAutomationCenter
