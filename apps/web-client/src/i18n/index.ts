@@ -6,6 +6,8 @@ export type SupportedLanguage = (typeof supportedLanguages)[number];
 
 const LANGUAGE_STORAGE_KEY = "scholarly.language";
 
+export const languageSwitchingEnabled = false;
+
 const resources = {
   he: {
     translation: {
@@ -524,6 +526,7 @@ const resources = {
 } as const;
 
 function readInitialLanguage(): SupportedLanguage {
+  if (!languageSwitchingEnabled) return "he";
   const savedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
   return savedLanguage === "en" || savedLanguage === "he" ? savedLanguage : "he";
 }

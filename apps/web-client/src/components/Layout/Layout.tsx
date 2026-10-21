@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { LanguageToggle } from "@/components/common/LanguageToggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context-core";
+import { languageSwitchingEnabled } from "@/i18n";
 
 export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <nav className="flex items-center gap-2">
             {!isAuthenticated ? (
               <>
-                <LanguageToggle />
+                {languageSwitchingEnabled ? <LanguageToggle /> : null}
                 <Button asChild variant="ghost">
                   <Link to="/login">{t("common.login")}</Link>
                 </Button>
@@ -39,7 +40,7 @@ export function Layout({ children }: { children: ReactNode }) {
               </>
             ) : (
               <>
-                <LanguageToggle />
+                {languageSwitchingEnabled ? <LanguageToggle /> : null}
                 <Link
                   to="/profile"
                   className="inline-flex min-h-10 items-center rounded-full border border-slate-700 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-100 shadow-sm transition-all hover:-translate-y-0.5 hover:border-sky-400/60 hover:bg-slate-700 hover:text-white hover:shadow-md hover:shadow-sky-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
