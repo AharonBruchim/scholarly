@@ -1,10 +1,18 @@
+import { useQuery } from "@tanstack/react-query";
+import { Mail } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { DeliveryBadge } from "@/components/billing/DeliveryBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCompleteLesson } from "@/hooks/useDirectory";
 import { formatLessonDateTime } from "@/lib/dashboard";
-import type { DirectoryUser, Lesson } from "@/services/api";
+import {
+  type DirectoryUser,
+  fetchLessonMessages,
+  type Lesson,
+  type LessonMessageRecord,
+} from "@/services/api";
 
 interface LessonHistoryProps {
   lessons: Lesson[];
@@ -12,6 +20,7 @@ interface LessonHistoryProps {
   personIdKey: "studentId" | "teacherId";
   personLabel: string;
   allowComplete?: boolean;
+  showLessonMessages?: boolean;
 }
 
 const statusClasses: Record<Lesson["status"], string> = {
@@ -20,6 +29,51 @@ const statusClasses: Record<Lesson["status"], string> = {
   completed: "text-emerald-300",
   cancelled: "text-rose-300",
 };
+
+function groupMessagesByLessonId(
+  messages: LessonMessageRecord[],
+): Map<string, LessonMessageRecord[]> {
+  const messagesByLessonId = new Map<string, LessonMessageRecord[]>();
+  for (const message of messages) {
+    const lessonIds = message.lessonIds ?? (message.lessonId ? [message.lessonId] : []);
+    for (const lessonId of lessonIds) {
+      messagesByLessonId.set(lessonId, [...(messagesByLessonId.get(lessonId) ?? []), message]);
+    }
+  }
+  return messagesByLessonId;
+}
+
+function LessonMessages({ messages }: { messages: LessonMessageRecord[] }) {
+  const { t, i18n } = useTranslation();
+  return (
+    <details className="group mt-3 rounded-md border border-slate-800 bg-slate-950/40">
+      <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-sm text-sky-300 hover:text-sky-200">
+        <Mail className="h-4 w-4" aria-hidden="true" />
+        {t("lessons.messagesCount", { count: messages.length })}
+      </summary>
+      <ul className="space-y-3 border-t border-slate-800 px-3 py-3">
+        {messages.map((message) => (
+          <li key={message._id} className="space-y-1.5">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="text-sm font-medium text-white">{message.subject}</p>
+              <p className="text-xs text-slate-400">
+                {formatLessonDateTime(message.scheduledAt, i18n.language)}
+              </p>
+            </div>
+            <p className="line-clamp-2 whitespace-pre-wrap text-sm text-slate-300">
+              {message.message}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {message.deliveries.map((delivery) => (
+                <DeliveryBadge key={delivery._id} delivery={delivery} />
+              ))}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
 
 function hasEnded(lesson: Lesson): boolean {
   return new Date(lesson.endTime).getTime() < Date.now();
@@ -31,9 +85,16 @@ export function LessonHistory({
   personIdKey,
   personLabel,
   allowComplete = false,
+  showLessonMessages = false,
 }: LessonHistoryProps) {
   const { t, i18n } = useTranslation();
   const completeMutation = useCompleteLesson();
+  const messagesQuery = useQuery({
+    queryKey: ["lesson-messages"],
+    queryFn: fetchLessonMessages,
+    enabled: showLessonMessages,
+  });
+  const messagesByLessonId = groupMessagesByLessonId(messagesQuery.data ?? []);
   const peopleById = new Map(
     people.map((person) => [person._id, `${person.firstName} ${person.lastName}`]),
   );
@@ -118,6 +179,9 @@ export function LessonHistory({
                     ) : null}
                   </div>
                 </div>
+                {messagesByLessonId.has(lesson._id) ? (
+                  <LessonMessages messages={messagesByLessonId.get(lesson._id) ?? []} />
+                ) : null}
               </article>
             ))}
           </div>

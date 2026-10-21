@@ -120,6 +120,7 @@ export default function TeacherDashboardPage() {
                     personIdKey="studentId"
                     personLabel={t("lessons.student")}
                     allowComplete
+                    showLessonMessages
                   />
                 ) : null}
                 {activeSection === "messages" ? (

@@ -135,6 +135,7 @@ const resources = {
         historyEmpty: "אין עדיין שיעורים בהיסטוריה.",
         markCompleted: "סימון כהתקיים",
         pendingCompletion: "שיעורים שעברו ומחכים לסימון: {{count}}",
+        messagesCount: "הודעות על השיעור: {{count}}",
         completeFailed: "לא ניתן לסמן את השיעור כהתקיים.",
         status: {
           available: "זמין",
@@ -396,6 +397,7 @@ const resources = {
         historyEmpty: "No lessons in history yet.",
         markCompleted: "Mark completed",
         pendingCompletion: "Past lessons waiting to be marked: {{count}}",
+        messagesCount: "Messages about this lesson: {{count}}",
         completeFailed: "Couldn't mark the lesson as completed.",
         status: {
           available: "Available",
